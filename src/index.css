@@ -1,0 +1,230 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #F5F3EE;
+  --panel: #FFFFFF;
+  --panel-alt: #F1EEE6;
+  --border: #E1DCCF;
+  --text: #20201C;
+  --muted: #6B675C;
+  --muted2: #9C978A;
+  --accent: #26344F;
+  --accent-soft: #3E5279;
+  --danger: #8C3B33;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: 'IBM Plex Serif', Georgia, serif;
+}
+
+.dark {
+  --bg: #121212;
+  --panel: #1E1E1E;
+  --panel-alt: #2A2A2A;
+  --border: #3A3A3A;
+  --text: #F3F4F6;
+  --muted: #9CA3AF;
+  --muted2: #6B7280;
+  --accent: #60A5FA;
+  --accent-soft: #3B82F6;
+  --danger: #EF4444;
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+/* Smooth momentum scrolling across iOS and Android */
+.overflow-x-auto, [class*="overflow-x-"] {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar utility for clean category tabs while retaining full touch swipe */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.font-mono-custom {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.font-serif-custom {
+  font-family: var(--font-serif);
+}
+
+.font-sans-custom {
+  font-family: var(--font-sans);
+}
+
+/* Number input spin buttons remove */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Ledger Cell Inputs: Clean, compact, borderless by default, responsive focus ring */
+.ledger-input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 3px 5px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+  width: 100%;
+}
+.ledger-input:hover {
+  background: var(--panel-alt);
+  border-color: var(--border);
+}
+.ledger-input:focus {
+  background: var(--panel);
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(38, 52, 79, 0.15);
+}
+.dark .ledger-input:focus {
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
+}
+
+.ledger-text-input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-family: var(--font-sans);
+  color: var(--text);
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+  width: 100%;
+}
+.ledger-text-input:hover {
+  background: var(--panel-alt);
+  border-color: var(--border);
+}
+.ledger-text-input:focus {
+  background: var(--panel);
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(38, 52, 79, 0.15);
+}
+.dark .ledger-text-input:focus {
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
+}
+
+/* Subtle Total Cell Display - Clean financial typography without loud fills */
+.total-cell-text {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  padding: 3px 4px;
+  border-radius: 4px;
+  transition: all 0.12s ease;
+}
+.total-cell-text.active-total {
+  color: #047857; /* subtle emerald-700 */
+  font-weight: 600;
+}
+.dark .total-cell-text.active-total {
+  color: #34D399; /* subtle emerald-400 */
+  font-weight: 600;
+}
+.total-cell-text.zero-total {
+  color: var(--muted2);
+  font-weight: 400;
+  opacity: 0.5;
+}
+
+/* Heat Range slider */
+.heat-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 54px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: ew-resize;
+}
+.heat-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--panel);
+  cursor: ew-resize;
+  box-shadow: 0 1px 3px rgba(32,32,28,.3);
+}
+.heat-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--panel);
+  cursor: ew-resize;
+  box-shadow: 0 1px 3px rgba(32,32,28,.3);
+}
+
+/* Subtle illuminated category card focus */
+.section-glow-active {
+  border-color: var(--border) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dark .section-glow-active {
+  border-color: var(--border) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Professional Print Stylesheet for PDF and printing across platforms */
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  #sticky-header-container,
+  #planner-toolbar,
+  #category-nav-bar,
+  button,
+  .copy-year-control {
+    display: none !important;
+  }
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  tr {
+    break-inside: avoid;
+  }
+  .ledger-input, .ledger-text-input {
+    border: none !important;
+    background: transparent !important;
+    color: #000000 !important;
+  }
+}
+
+

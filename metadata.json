@@ -1,0 +1,8 @@
+{
+  "name": "Household Ledger",
+  "description": "A multi-year income, cost-of-living, tax, and retirement projection financial planner.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

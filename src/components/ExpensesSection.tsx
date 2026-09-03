@@ -1,0 +1,520 @@
+import React from 'react';
+import { ExpenseItem, CalculationResult, ViewMode } from '../types';
+import { fmt$, num } from '../utils/taxAndCalculations';
+import { ReceiptText, Plus, Trash2, ArrowUp, ArrowDown, FolderPlus, GripVertical, Copy } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { CopyYearControl } from './CopyYearControl';
+
+interface ExpensesSectionProps {
+  years: number;
+  startYear?: number;
+  viewMode: ViewMode;
+  isEditMode: boolean;
+  col: ExpenseItem[];
+  catOrder: string[];
+  collapsedCats: Record<string, boolean>;
+  colIntensity: number;
+  colContrast: number;
+  colHue: string;
+  calc: CalculationResult;
+  onUpdateExpense: (idx: number, field: 'name' | 'cat' | 'monthly', value: any, yearIdx?: number) => void;
+  onAddExpense: (cat?: string) => void;
+  onAddCategory: () => void;
+  onRemoveExpense: (idx: number) => void;
+  onReorderCategoryRows: (cat: string, startIndex: number, endIndex: number) => void;
+  onReorderCategories: (startIndex: number, endIndex: number) => void;
+  onToggleCategoryCollapse: (cat: string) => void;
+  onRenameCategory: (oldCat: string, newCat: string) => void;
+  onSortExpenses: (dir: 'desc' | 'asc') => void;
+  onChangeIntensity: (val: number) => void;
+  onChangeContrast: (val: number) => void;
+  onChangeHue: (val: string) => void;
+  onAutoPopulateExpenseCol: (targetCol: number) => void;
+  onCopyExpenseCol?: (fromYear: number, toYear: number | 'all') => void;
+  onMoveSection?: (dir: 'up' | 'down') => void;
+  isHighlighted?: boolean;
+}
+
+export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
+  years,
+  startYear,
+  viewMode,
+  isEditMode,
+  col,
+  catOrder,
+  collapsedCats,
+  colIntensity,
+  colContrast,
+  colHue,
+  calc,
+  onUpdateExpense,
+  onAddExpense,
+  onAddCategory,
+  onRemoveExpense,
+  onReorderCategoryRows,
+  onReorderCategories,
+  onToggleCategoryCollapse,
+  onRenameCategory,
+  onSortExpenses,
+  onChangeIntensity,
+  onChangeContrast,
+  onChangeHue,
+  onAutoPopulateExpenseCol,
+  onCopyExpenseCol,
+  onMoveSection,
+  isHighlighted,
+}) => {
+  const isMonths = viewMode === 'months';
+  const startYearNum = startYear || 2025;
+  const periodLabel = isMonths ? 'Month' : 'Year';
+  const monthlyColLabel = isMonths ? 'Monthly' : 'Monthly';
+  const totalColLabel = isMonths ? 'Month Total' : 'Annual Total';
+
+  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const headerScroll = document.getElementById('sticky-year-bar-scroll');
+    if (headerScroll && headerScroll.scrollLeft !== e.currentTarget.scrollLeft) {
+      headerScroll.scrollLeft = e.currentTarget.scrollLeft;
+    }
+  };
+
+  // Compute heat map color
+  const hex = (colHue || '#8C3B33').replace('#', '');
+  const hr = parseInt(hex.slice(0, 2), 16) || 140;
+  const hg = parseInt(hex.slice(2, 4), 16) || 59;
+  const hb = parseInt(hex.slice(4, 6), 16) || 51;
+  const exp = Math.pow(4, (50 - colContrast) / 50);
+
+  const getHeatStyle = (periodVal: number): React.CSSProperties => {
+    if (periodVal <= 0 || colIntensity === 0) return {};
+    const maxCost = Math.max(1, calc.maxGlobalCost || 1);
+    const ratio = Math.min(1, Math.max(0, periodVal / maxCost));
+    let t = Math.pow(ratio, exp) * (colIntensity / 100);
+    if (t > 0 && t < 0.04) t = 0.04;
+    return {
+      backgroundColor: `rgba(${hr}, ${hg}, ${hb}, ${t.toFixed(3)})`,
+    };
+  };
+
+  // Filter out any automated retirement/savings rows (those belong in Retirement & Saving Goals)
+  const nonRetireRows = col.filter(r => !r.auto && r.cat !== 'Retirement' && r.cat !== 'Savings Goals');
+
+  // Ensure unique categories
+  const categoriesInUse: string[] = Array.from(new Set(nonRetireRows.map(r => r.cat || 'Other')));
+  const orderedCats: string[] = [];
+  (catOrder || []).forEach(c => {
+    if (categoriesInUse.includes(c) && !orderedCats.includes(c)) orderedCats.push(c);
+  });
+  categoriesInUse.forEach((c: string) => {
+    if (!orderedCats.includes(c)) orderedCats.push(c);
+  });
+
+  const totalTableCols = (isEditMode ? 2 : 0) + 1 + years * 2;
+
+  const handleCategoryDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const { source, destination } = result;
+
+    if (source.droppableId.startsWith('cat-items-') && destination.droppableId.startsWith('cat-items-')) {
+      // Ensure drag scope restriction: cannot drop across different categories
+      if (source.droppableId === destination.droppableId) {
+        const catName = source.droppableId.replace('cat-items-', '');
+        onReorderCategoryRows(catName, source.index, destination.index);
+      }
+    } else if (source.droppableId === 'categories-master-list' && destination.droppableId === 'categories-master-list') {
+      onReorderCategories(source.index, destination.index);
+    }
+  };
+
+  return (
+    <details
+      open
+      className={`bg-[var(--panel)] border rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 ${
+        isHighlighted
+          ? 'section-glow-active'
+          : 'border-[var(--border)] shadow-sm'
+      }`}
+    >
+      <summary className="cursor-pointer list-none flex items-center justify-between font-serif-custom text-base font-semibold text-[var(--text)] select-none">
+        <div className="flex items-center gap-2">
+          <span className="text-xs transition-transform duration-150 inline-block text-[var(--muted2)]">▼</span>
+          <ReceiptText className="w-4 h-4 text-[var(--muted2)]" />
+          <span>{isMonths ? 'Monthly Expenses' : 'Living Expenses'}</span>
+        </div>
+        {isEditMode && onMoveSection && (
+          <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => onMoveSection('up')}
+              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
+              title="Move section up"
+            >
+              <ArrowUp className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => onMoveSection('down')}
+              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
+              title="Move section down"
+            >
+              <ArrowDown className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+      </summary>
+
+      <div className="mt-4 space-y-5">
+        {/* Heat Map & Sort Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-2.5 border-b border-[var(--border)]/60">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase font-semibold text-[var(--muted2)] tracking-wider">
+                Sort:
+              </span>
+              <select
+                onChange={e => {
+                  if (e.target.value) onSortExpenses(e.target.value as 'desc' | 'asc');
+                  e.target.value = '';
+                }}
+                className="bg-[var(--panel)] border border-[var(--border)] text-[var(--text)] text-xs rounded-lg px-2.5 py-1 focus:outline-none cursor-pointer shadow-xs"
+              >
+                <option value="">Manual Order...</option>
+                <option value="desc">Highest ➔ Lowest</option>
+                <option value="asc">Lowest ➔ Highest</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-semibold text-[var(--muted2)]">Intensity:</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={colIntensity}
+                  onChange={e => onChangeIntensity(parseInt(e.target.value, 10))}
+                  className="heat-range"
+                  title="Heat map intensity"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-semibold text-[var(--muted2)]">Contrast:</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={colContrast}
+                  onChange={e => onChangeContrast(parseInt(e.target.value, 10))}
+                  className="heat-range"
+                  title="Heat map contrast"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-semibold text-[var(--muted2)]">Color:</span>
+                <input
+                  type="color"
+                  value={colHue}
+                  onChange={e => onChangeHue(e.target.value)}
+                  className="w-5 h-5 rounded cursor-pointer border border-[var(--border)] p-0"
+                  title="Heat color hue"
+                />
+              </div>
+            </div>
+          </div>
+
+          {years > 1 && (
+            <div className="ml-auto">
+              <CopyYearControl
+                years={years}
+                periodLabel={periodLabel}
+                onCopy={(fromY, toY) => {
+                  if (onCopyExpenseCol) {
+                    onCopyExpenseCol(fromY, toY);
+                  } else if (toY === 'all') {
+                    for (let i = 1; i < years; i++) {
+                      onAutoPopulateExpenseCol(i);
+                    }
+                  } else {
+                    onAutoPopulateExpenseCol(toY);
+                  }
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Expenses Table with Scoped Drag-and-Drop */}
+        <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
+          <DragDropContext onDragEnd={handleCategoryDragEnd}>
+            <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
+              <colgroup>
+                {isEditMode && <col className="w-8 min-w-[32px]" />}
+                <col className="w-[280px] min-w-[240px]" />
+                {Array.from({ length: years }).map((_, y) => (
+                  <React.Fragment key={y}>
+                    <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
+                    <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
+                  </React.Fragment>
+                ))}
+                {isEditMode && <col className="w-10 min-w-[40px]" />}
+              </colgroup>
+
+              <thead>
+                <tr
+                  id="expenses-table-desc"
+                  className="border-b-2 border-stone-300 dark:border-stone-700 bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
+                >
+                  {isEditMode && <th className="w-8"></th>}
+                  <th className="py-2 px-3 text-left font-sans-custom tracking-wider">
+                    Category / Item
+                  </th>
+                  {Array.from({ length: years }).map((_, y) => (
+                    <React.Fragment key={y}>
+                      <th className="py-1.5 pl-2.5 pr-1 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                        {monthlyColLabel}
+                      </th>
+                      <th className="py-1.5 pl-1 pr-2.5 text-center text-[var(--muted)]">
+                        {totalColLabel}
+                      </th>
+                    </React.Fragment>
+                  ))}
+                  {isEditMode && <th className="w-10"></th>}
+                </tr>
+              </thead>
+
+
+              {orderedCats.map((cat) => {
+                const isCollapsed = !!collapsedCats[cat];
+                const catRows = nonRetireRows.filter(r => (r.cat || 'Other') === cat);
+                const catMonthlyTotals = Array.from({ length: years }).map((_, y) => {
+                  return catRows.reduce((sum, r) => sum + (r.monthly?.[y] ?? 0), 0);
+                });
+
+                return (
+                  <React.Fragment key={cat}>
+                    {/* Category Header Row with Quick-Add (+) Button */}
+                    <tbody className="border-t-2 border-b-2 border-stone-300 dark:border-stone-700">
+                      <tr
+                        onClick={() => onToggleCategoryCollapse(cat)}
+                        className="bg-[var(--panel-alt)]/90 hover:bg-[var(--panel-alt)] cursor-pointer select-none transition-colors"
+                      >
+                        {isEditMode && <td className="w-8"></td>}
+                        <td className="py-2 px-3">
+                          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--accent)] tracking-wider uppercase truncate">
+                            <span className="text-[9px] text-[var(--muted2)] flex-shrink-0">
+                              {isCollapsed ? '▶' : '▼'}
+                            </span>
+                            {isEditMode ? (
+                              <input
+                                type="text"
+                                value={cat}
+                                onClick={e => e.stopPropagation()}
+                                onChange={e => onRenameCategory(cat, e.target.value)}
+                                className="bg-[var(--panel)] border border-[var(--border)] px-2 py-0.5 rounded-md text-xs font-semibold text-[var(--accent)] focus:outline-none"
+                              />
+                            ) : (
+                              <span className="truncate">{cat}</span>
+                            )}
+                            <span className="text-[10px] text-[var(--muted2)] normal-case font-normal flex-shrink-0">
+                              ({catRows.length})
+                            </span>
+
+                            {/* Quick-Add (+) Button inside Category Header */}
+                            <button
+                              type="button"
+                              onClick={e => {
+                                e.stopPropagation();
+                                onAddExpense(cat);
+                              }}
+                              className="flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold text-[var(--accent)] bg-[var(--panel)] border border-[var(--border)] rounded hover:bg-[var(--accent)] hover:text-white transition shadow-2xs cursor-pointer flex-shrink-0"
+                              title={`Add item to ${cat}`}
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                        {/* Category Subtotals aligned to each Year column */}
+                        {Array.from({ length: years }).map((_, y) => {
+                          const mTotal = catMonthlyTotals[y] ?? 0;
+                          const aTotal = isMonths ? mTotal : mTotal * 12;
+                          return (
+                            <React.Fragment key={y}>
+                              <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-stone-300 dark:border-stone-700 text-right font-mono text-[11px] font-semibold text-[var(--text)]">
+                                {mTotal > 0 ? fmt$(mTotal) : '—'}
+                              </td>
+                              <td className="py-1.5 pl-1 pr-2.5 text-right font-mono text-[11px] font-semibold text-[var(--muted)]">
+                                {aTotal > 0 ? fmt$(aTotal) : '—'}
+                              </td>
+                            </React.Fragment>
+                          );
+                        })}
+                        {isEditMode && <td className="w-10"></td>}
+                      </tr>
+                    </tbody>
+
+                    {/* Scoped Drag-and-Drop Droppable for this category only */}
+                    {!isCollapsed && (
+                      <Droppable droppableId={`cat-items-${cat}`}>
+                        {dropProvided => (
+                          <tbody ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
+                            {catRows.length === 0 ? (
+                              <tr className="border-b-2 border-stone-300 dark:border-stone-700">
+                                <td
+                                  colSpan={(isEditMode ? 2 : 1) + years * 2 + (isEditMode ? 1 : 0)}
+                                  className="py-3 px-3 text-center text-xs text-[var(--muted2)] italic bg-[var(--panel)]"
+                                >
+                                  No expense items in {cat}. Click &quot;+&quot; above to add an item.
+                                </td>
+                              </tr>
+                            ) : (
+                              catRows.map((row, catRowIdx) => {
+                                const ri = col.findIndex(item => item.id === row.id);
+                                const draggableId = row.id || `exp-${cat}-${catRowIdx}`;
+
+                                return (
+                                  <React.Fragment key={draggableId}>
+                                    <Draggable
+                                      draggableId={draggableId}
+                                      index={catRowIdx}
+                                      isDragDisabled={!isEditMode}
+                                    >
+                                      {dragProvided => (
+                                        <tr
+                                          ref={dragProvided.innerRef}
+                                          {...dragProvided.draggableProps}
+                                          className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/25 hover:bg-[var(--panel-alt)]/60 border-b-2 border-stone-300 dark:border-stone-700 transition-colors"
+                                        >
+                                          {isEditMode && (
+                                            <td className="py-1.5 px-1 text-center" {...dragProvided.dragHandleProps}>
+                                              <GripVertical className="w-4 h-4 text-[var(--muted2)] hover:text-[var(--accent)] cursor-grab active:cursor-grabbing mx-auto" />
+                                            </td>
+                                          )}
+
+                                          <td className="py-1.5 px-2.5">
+                                            <input
+                                              type="text"
+                                              value={row.name}
+                                              onChange={e => onUpdateExpense(ri, 'name', e.target.value)}
+                                              placeholder="Expense Item"
+                                              className="ledger-text-input text-xs font-semibold text-[var(--text)]"
+                                            />
+                                          </td>
+
+                                          {Array.from({ length: years }).map((_, y) => {
+                                            const mVal = row.monthly?.[y] ?? 0;
+                                            const periodCost = isMonths ? mVal : mVal * 12;
+                                            const isNonZero = periodCost > 0;
+                                            const heatStyle = getHeatStyle(periodCost);
+
+                                            return (
+                                              <React.Fragment key={y}>
+                                                <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-stone-300 dark:border-stone-700 text-center">
+                                                  <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={mVal === 0 && !row.monthly?.[y] ? '' : Math.round(mVal * 100) / 100}
+                                                    onChange={e => onUpdateExpense(ri, 'monthly', num(e.target.value), y)}
+                                                    placeholder="0"
+                                                    className={`ledger-input text-center text-xs font-mono-custom ${
+                                                      mVal === 0 ? 'text-[var(--muted2)] opacity-40' : 'text-[var(--text)]'
+                                                    }`}
+                                                    title={`Monthly cost for Year ${y + 1}`}
+                                                  />
+                                                </td>
+                                                <td
+                                                  style={heatStyle}
+                                                  className="py-1.5 pl-1 pr-2.5 text-center font-mono-custom transition-colors"
+                                                >
+                                                  <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={periodCost === 0 && !row.monthly?.[y] ? '' : Math.round(periodCost)}
+                                                    onChange={e => onUpdateExpense(ri, 'monthly', num(e.target.value) / (isMonths ? 1 : 12), y)}
+                                                    placeholder="0"
+                                                    className={`ledger-input text-center text-xs font-mono-custom ${
+                                                      isNonZero
+                                                        ? 'text-emerald-700 dark:text-emerald-400 font-medium'
+                                                        : 'text-[var(--muted2)] opacity-40'
+                                                    }`}
+                                                    title={`Annual total for Year ${y + 1} (updates monthly)`}
+                                                  />
+                                                </td>
+                                              </React.Fragment>
+                                            );
+                                          })}
+
+                                          {isEditMode && (
+                                            <td className="py-1.5 px-1.5 text-center whitespace-nowrap">
+                                              <button
+                                                onClick={() => onRemoveExpense(ri)}
+                                                className="p-1 text-rose-600 dark:text-rose-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded"
+                                                title="Remove expense"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                            </td>
+                                          )}
+                                        </tr>
+                                      )}
+                                    </Draggable>
+                                  </React.Fragment>
+                                );
+                              })
+                            )}
+                            {dropProvided.placeholder}
+                          </tbody>
+                        )}
+                      </Droppable>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+
+              <tfoot>
+                <tr className="bg-[var(--panel-alt)] font-bold border-t-2 border-[var(--border)] font-mono-custom">
+                  {isEditMode && <td></td>}
+                  <td className="py-2.5 px-3 font-sans-custom text-xs text-[var(--text)] font-bold uppercase tracking-wider">
+                    Total Living Expenses
+                  </td>
+                  {Array.from({ length: years }).map((_, y) => {
+                    const annualCol = calc.colTotal[y] ?? 0;
+                    const displayTotal = isMonths ? annualCol / 12 : annualCol;
+                    return (
+                      <React.Fragment key={y}>
+                        <td className="py-2 pl-2.5 pr-1 text-right text-[var(--muted)] text-xs font-semibold border-l-2 border-stone-300 dark:border-stone-700">
+                          {fmt$(annualCol / 12)}
+                        </td>
+                        <td className="py-2 pl-1 pr-2.5 text-right text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-bold">
+                          {fmt$(displayTotal)}
+                        </td>
+                      </React.Fragment>
+                    );
+                  })}
+                  {isEditMode && <td></td>}
+                </tr>
+              </tfoot>
+            </table>
+          </DragDropContext>
+        </div>
+
+        {/* Add Row & Add Category actions */}
+        <div className="flex flex-wrap items-center gap-2.5 pt-1">
+          <button
+            onClick={() => onAddExpense()}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white transition cursor-pointer shadow-xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Expense Row</span>
+          </button>
+
+          <button
+            onClick={onAddCategory}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition cursor-pointer shadow-xs"
+          >
+            <FolderPlus className="w-3.5 h-3.5" />
+            <span>Add New Category Group</span>
+          </button>
+        </div>
+      </div>
+    </details>
+  );
+};
