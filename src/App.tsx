@@ -115,7 +115,6 @@ export default function App() {
         const l = firstYearLeft(tbl);
         if (l != null && Math.abs(l - barLeft) > 1.5) {
           const id = (tbl.closest('[id]') as HTMLElement)?.id || '(table)';
-          // eslint-disable-next-line no-console
           console.error(`[alignment] ${id}: year 1 starts ${(l - barLeft).toFixed(1)}px off the sticky year bar`);
         }
       });
