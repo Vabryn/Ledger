@@ -119,7 +119,9 @@ export function marginalTax(taxable: number, brackets: [number, number][]): numb
  * Cumulative Savings, and Remaining Unallocated Balance.
  */
 export function computePlanner(state: PlannerState): CalculationResult {
-  const years = Math.max(1, state.years || 1);
+  // Clamp to a whole number in [1, 10]: the UI, persistence and this loop all
+  // assume an integer column count, and a fractional value would desync them.
+  const years = Math.min(10, Math.max(1, Math.floor(Number(state.years)) || 1));
   const viewMode: ViewMode = state.viewMode || 'years';
   const periodScale = viewMode === 'months' ? 1 / 12 : 1;
 
@@ -236,7 +238,7 @@ export function computePlanner(state: PlannerState): CalculationResult {
     fed.push(ftAnnual * periodScale);
 
     // 5. State & Local Income Tax Calculation
-    const regionKey = (state.st?.[i] || 'CA').toUpperCase();
+    const regionKey = String(state.st?.[i] || 'CA').toUpperCase();
     let stxAnnual = 0;
 
     if (regionKey === 'CA') {

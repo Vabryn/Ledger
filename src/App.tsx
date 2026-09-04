@@ -23,6 +23,10 @@ import { ExpensesSection } from './components/ExpensesSection';
 import { RetirementSection } from './components/RetirementSection';
 import { SummarySection } from './components/SummarySection';
 
+/** Collision-resistant row id: a timestamp plus ~40 bits of randomness. */
+const newId = (prefix: string): string =>
+  `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
 export default function App() {
   const [activeCategory, setActiveCategory] = useState<NavCategory>('all');
   const [scrolledCategory, setScrolledCategory] = useState<NavCategory>('income');
@@ -106,11 +110,11 @@ export default function App() {
   const calcNow = useMemo(() => computePlanner(safeState), [safeState]);
   const calc = useDeferredValue(calcNow);
 
-  // Start Year Handler
   const handleChangeStartYear = (newStartYear: number) => {
+    if (!Number.isFinite(newStartYear)) return;
     setState(prev => ({
       ...prev,
-      startYear: Math.max(1900, Math.min(2100, newStartYear)),
+      startYear: Math.round(Math.max(1900, Math.min(2100, newStartYear))),
     }));
   };
 
@@ -245,7 +249,7 @@ export default function App() {
       workers: [
         ...prev.workers,
         {
-          id: `w-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: newId('w'),
           name: 'New Income Earner',
           frequency: 'Annually',
           hours: Array(prev.years).fill(40),
@@ -302,7 +306,7 @@ export default function App() {
       other: [
         ...prev.other,
         {
-          id: `o-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: newId('o'),
           name: 'New Income Source',
           frequency: 'Monthly',
           amount: Array(prev.years).fill(0),
@@ -355,7 +359,7 @@ export default function App() {
     setState(prev => {
       const targetCat = cat || (prev.catOrder[0] || 'Housing');
       const newRow: ExpenseItem = {
-        id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: newId('c'),
         name: 'New Expense',
         cat: targetCat,
         monthly: Array(prev.years).fill(0),
@@ -371,7 +375,7 @@ export default function App() {
     setState(prev => {
       const newCat = `Category ${prev.catOrder.length + 1}`;
       const newRow: ExpenseItem = {
-        id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: newId('c'),
         name: 'New Item',
         cat: newCat,
         monthly: Array(prev.years).fill(0),
@@ -470,7 +474,7 @@ export default function App() {
 
   // Retirement & Custom Savings
   const handleAddCustomSavings = (name: string, targetAmount?: number) => {
-    const fundId = `fund-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+    const fundId = newId('fund');
     const colors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'];
     const assignedColor = colors[Object.keys(state.customSavings || {}).length % colors.length];
 

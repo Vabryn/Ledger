@@ -98,9 +98,6 @@ export function getDefaultSampleState(): PlannerState {
     colIntensity: 75,
     colContrast: 50,
     colHue: '#8C3B33',
-    eyebrowText: 'Financial Planner',
-    titleText: 'Household Ledger',
-    subText: 'A multi-period income, cost-of-living, and tax projection — fully editable, all figures recalculate live.',
     catOrder: [
       'Housing',
       'Food',
@@ -196,9 +193,6 @@ export function getCleanEmptyState(years: number = 3, viewMode: 'years' | 'month
     colIntensity: 75,
     colContrast: 50,
     colHue: '#8C3B33',
-    eyebrowText: 'Financial Planner',
-    titleText: 'Household Ledger',
-    subText: 'A multi-period income, cost-of-living, and tax projection — fully editable, all figures recalculate live.',
     catOrder: ['Housing', 'Food', 'Transportation', 'Utilities', 'Subscriptions', 'Additional Payments'],
     workers: [
       { id: 'w-1', name: 'Income Earner 1', frequency: 'Hourly', hours: Array(years).fill(0), wage: Array(years).fill(0) },

@@ -154,11 +154,6 @@ export interface PlannerState {
 
   /** Category order in the expense section */
   catOrder: string[];
-
-  /** Editable header text strings */
-  eyebrowText: string;
-  titleText: string;
-  subText: string;
 }
 
 /**

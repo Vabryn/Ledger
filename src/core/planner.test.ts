@@ -41,6 +41,10 @@ import type { PlannerState } from './';
  * 14. Year expansion & contraction boundary invariants (1 to 10 years, preserving data)
  * 15. Extreme boundaries ($0, $100M income, negative cashflows, 100% match)
  * 16. Heat map mathematical curves (exponent, contrast, intensity, color interpolation)
+ * 18. Independent hand-computed tax vectors (external oracle, not self-referential)
+ * 19. Hostile input: validateAndRepairState + computePlanner never throw and
+ *     always return a finite, self-consistent shape (prototype-pollution,
+ *     wrong types, NaN/Infinity, fractional years, bad enums, …)
  */
 
 function runAllTests() {
@@ -123,9 +127,6 @@ function runAllTests() {
     colIntensity: 75,
     colContrast: 50,
     colHue: '#8C3B33',
-    eyebrowText: 'Test',
-    titleText: 'Test',
-    subText: 'Test',
     catOrder: ['Housing', 'Food', 'Retirement'],
     workers: [
       { id: 'w-1', name: 'Hourly Earner', frequency: 'Hourly', hours: [40], wage: [50] }, // 40 * 50 * 52 = $104,000
@@ -905,6 +906,91 @@ function runAllTests() {
   );
 
   console.log('✅ Suite 18 Passed: Independent hand-computed vectors match the engine.\n');
+
+  // =====================================================================
+  // SUITE 19: HOSTILE INPUT — validateAndRepairState + computePlanner never
+  // throw and always return a sane, finite, self-consistent shape.
+  // =====================================================================
+  console.log('--- Suite 19: Hostile / Corrupted Input ---');
+
+  const hostilePayloads: any[] = [
+    null,
+    undefined,
+    42,
+    'not an object',
+    [],
+    {},
+    { years: 1.5 },
+    { years: 999 },
+    { years: -3 },
+    { years: NaN },
+    { years: 'seven' },
+    { startYear: 2025.7 },
+    { startYear: 99999 },
+    { st: [123, {}, 'CALIFORNIA', null] },
+    { workers: 'nope' },
+    { workers: [null, 5, { wage: 'x', hours: {}, frequency: 'bogus' }] },
+    { other: [{ frequency: 'Fortnightly', amount: [Infinity, NaN] }] },
+    { col: [{ monthly: ['5', null, NaN] }, 7, null] },
+    { catOrder: { 0: 'Housing' } },
+    { catOrder: [1, 'Food', null, {}] },
+    { collapsedCats: [] },
+    { taxStatus: 'Emperor' },
+    { colHue: 12345 },
+    { colIntensity: 'loud', colContrast: NaN },
+    { barColors: { gross: 'red; }', evil: 'javascript:alert(1)' } },
+    { graphToggles: 'all' },
+    { customSavings: { a: { monthly: 'x' }, b: 3 } },
+    JSON.parse('{"__proto__":{"polluted":true},"customSavings":{"__proto__":{"x":1}}}'),
+    JSON.parse('{"customSavings":{"legit":{"name":"X","monthly":[1],"targetAmount":"500"}}}'),
+    { fica: 'yes', showOtherIncome: 0 },
+    { deps: [-1, 'x', 4.4], additionalDeductions: [Infinity] },
+    { retireRate: [500], employerMatchRate: ['20'] },
+  ];
+
+  for (const payload of hostilePayloads) {
+    const label = JSON.stringify(payload)?.slice(0, 60) ?? String(payload);
+    let repaired: PlannerState;
+    try {
+      repaired = validateAndRepairState(payload);
+    } catch (e) {
+      throw new Error(`validateAndRepairState threw on ${label}: ${e}`);
+    }
+    assert(Number.isInteger(repaired.years) && repaired.years >= 1 && repaired.years <= 10,
+      `19 · years is an integer in [1,10] for ${label}`);
+    assert(Number.isInteger(repaired.startYear ?? 2025),
+      `19 · startYear is an integer for ${label}`);
+    assert(Array.isArray(repaired.catOrder) && repaired.catOrder.every(c => typeof c === 'string'),
+      `19 · catOrder is string[] for ${label}`);
+    assert(Array.isArray(repaired.st) && repaired.st.length === repaired.years,
+      `19 · st length matches years for ${label}`);
+    assert(/^#[0-9a-fA-F]{3,8}$/.test(repaired.colHue),
+      `19 · colHue is a hex colour for ${label}`);
+    assert(Object.values(repaired.barColors).every(c => /^#[0-9a-fA-F]{3,8}$/.test(c)),
+      `19 · every barColor is a hex colour for ${label}`);
+    assert(!Object.prototype.hasOwnProperty.call(repaired.customSavings, '__proto__'),
+      `19 · customSavings has no own __proto__ key for ${label}`);
+
+    let result;
+    try {
+      result = computePlanner(repaired);
+    } catch (e) {
+      throw new Error(`computePlanner threw on repaired ${label}: ${e}`);
+    }
+    const cols: number[] = [
+      ...result.g, ...result.fed, ...result.stTax, ...result.fica, ...result.net,
+      ...result.colOnly, ...result.savings, ...result.savingsOT, ...result.unallocatedBalance,
+    ];
+    assert(cols.length > 0 && cols.every(n => Number.isFinite(n)),
+      `19 · every projected number is finite for ${label}`);
+    assert(result.g.length === repaired.years,
+      `19 · result arrays match column count for ${label}`);
+  }
+
+  // Prototype must stay clean after the poisoning attempts above.
+  assert(({} as any).polluted === undefined, '19 · Object.prototype was not polluted');
+
+  console.log('✅ Suite 19 Passed: Hostile input is contained — no throws, all output finite.\n');
 
   // =====================================================================
   // SUMMARY
