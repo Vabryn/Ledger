@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useDeferredValue } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useDeferredValue } from 'react';
 import type {
   PlannerState,
   ExpenseItem,
@@ -59,6 +59,28 @@ export default function App() {
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
   }, []);
+
+  // Keep every category's horizontal scroll in lockstep with the header.
+  // Sections stay mounted but hidden, and a hidden scroll box ignores
+  // scrollLeft writes — so when a category becomes visible again it would
+  // otherwise snap back to 0 while the (always-visible) header bar stays put.
+  // On every category switch, re-apply the header's scrollLeft to whatever
+  // tables are now on screen.
+  useLayoutEffect(() => {
+    const sync = () => {
+      const header = document.getElementById('sticky-year-bar-scroll');
+      if (!header) return;
+      const x = header.scrollLeft;
+      document.querySelectorAll<HTMLElement>('.category-table-scroll').forEach(el => {
+        if (el.scrollLeft !== x) el.scrollLeft = x;
+      });
+    };
+    sync();
+    // Second pass after paint: a section revealed this frame may not have had
+    // its scroll width yet on the synchronous pass.
+    const raf = requestAnimationFrame(sync);
+    return () => cancelAnimationFrame(raf);
+  }, [activeCategory]);
 
   // Persist to safe storage — debounced so typing in a cell doesn't serialize
   // the entire planner and hit localStorage on every keystroke.
