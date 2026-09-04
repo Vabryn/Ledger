@@ -443,10 +443,7 @@ input[type=number] {
     color: #000000 !important;
   }
   #sticky-header-container,
-  #planner-toolbar,
-  #category-nav-bar,
-  button,
-  .copy-year-control {
+  button {
     display: none !important;
   }
   main {
