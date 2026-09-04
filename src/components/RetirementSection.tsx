@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CalculationResult, CustomSavingsFund, ViewMode, fmt$, fmtCompact$, num } from '@/core';
-import { ShieldCheck, ArrowUp, ArrowDown, Plus, Trash2, AlertCircle, LineChart } from 'lucide-react';
+import { ShieldCheck, ArrowUp, ArrowDown, Plus, Trash2, AlertCircle } from 'lucide-react';
 
 interface RetirementSectionProps {
   years: number;
@@ -14,7 +14,7 @@ interface RetirementSectionProps {
   onChangeEmployerMatch: (yearIdx: number, val: number) => void;
   onAddCustomSavings: (name: string, targetAmount?: number) => void;
   onRemoveCustomSavings: (fundId: string) => void;
-  onUpdateCustomSavings: (fundId: string, field: 'name' | 'color' | 'enabledInChart' | 'targetAmount' | 'monthly', value: any, yearIdx?: number) => void;
+  onUpdateCustomSavings: (fundId: string, field: 'name' | 'color' | 'targetAmount' | 'monthly', value: any, yearIdx?: number) => void;
   onMoveSection?: (dir: 'up' | 'down') => void;
   isHighlighted?: boolean;
 }
@@ -266,14 +266,14 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
           </div>
         </div>
 
-        {/* Custom Savings Accounts (Flat Key-Value Map) */}
+        {/* Custom Savings Accounts & Goals */}
         <div className="border-t border-[var(--border)]/60 pt-4">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <h3 className="font-serif-custom text-xs font-semibold text-[var(--muted2)] uppercase tracking-wider">
               Custom Savings Accounts & Goals
             </h3>
             <span className="text-[11px] text-[var(--muted2)]">
-              Flat Key-Value Map • Smart Chart Integrated
+              Charted on the summary graph
             </span>
           </div>
 
@@ -311,17 +311,6 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                         {isEditMode && <td></td>}
                         <td className="py-2 px-3">
                           <div className="flex items-center gap-2">
-                            {/* Smart Chart Rule: Checkbox to toggle on main chart */}
-                            <label className="flex items-center gap-1.5 cursor-pointer select-none" title="Toggle line on main chart">
-                              <input
-                                type="checkbox"
-                                checked={!!fund.enabledInChart}
-                                onChange={e => onUpdateCustomSavings(fundId, 'enabledInChart', e.target.checked)}
-                                className="rounded border-[var(--border)] text-[var(--accent)] focus:ring-0 cursor-pointer"
-                              />
-                              <LineChart className="w-3.5 h-3.5 text-[var(--muted2)]" />
-                            </label>
-
                             <input
                               type="color"
                               value={fund.color || '#3B82F6'}

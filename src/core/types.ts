@@ -52,16 +52,12 @@ export interface ExpenseItem {
   monthly: number[];
 }
 
-/**
- * Custom Savings Fund representation stored in a flat key-value lookup map.
- * Guaranteed instant O(1) dictionary lookups.
- */
+/** A user-defined savings fund, keyed by id in PlannerState.customSavings. */
 export interface CustomSavingsFund {
   id: string;
   name: string;
   color: string;
-  enabledInChart: boolean;
-  monthly: number[]; // monthly contribution per column
+  monthly: number[]; // monthly contribution per projection column
   targetAmount?: number;
 }
 

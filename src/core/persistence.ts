@@ -166,12 +166,13 @@ export function validateAndRepairState(raw: any): PlannerState {
     Object.keys(raw.customSavings).forEach(k => {
       const fund = raw.customSavings[k];
       if (fund && typeof fund === 'object') {
+        const target = Number(fund.targetAmount);
         safeCustomSavings[k] = {
           id: String(fund.id || k),
           name: String(fund.name || 'Savings Fund'),
           color: String(fund.color || '#3B82F6'),
           monthly: padArray(fund.monthly, 0).map((v: any) => (typeof v === 'number' && !isNaN(v) ? v : 0)),
-          enabledInChart: Boolean(fund.enabledInChart),
+          ...(Number.isFinite(target) && target > 0 ? { targetAmount: target } : {}),
         };
       }
     });

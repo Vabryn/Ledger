@@ -85,7 +85,8 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
     { k: 'retire', l: 'Retirement', v: calc.retireActual, defaultColor: '#8B5CF6' },
   ];
 
-  // Dynamically append custom savings funds that are enabled
+  // Every custom savings fund is charted by default; the METRICS & COLORS list
+  // below still lets the viewer hide any of them.
   const customSavingsSeries = Object.keys(state.customSavings || {}).map(fundId => {
     const fund = state.customSavings[fundId];
     return {
@@ -94,7 +95,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
       v: calc.fundValues[fundId] || Array(years).fill(0),
       defaultColor: fund.color || '#F59E0B',
       isCustomFund: true,
-      enabled: !!fund.enabledInChart,
+      enabled: true,
     };
   });
 

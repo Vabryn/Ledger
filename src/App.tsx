@@ -479,7 +479,6 @@ export default function App() {
       name,
       targetAmount,
       color: assignedColor,
-      enabledInChart: true,
       monthly: Array(state.years || 1).fill(0),
     };
 
@@ -502,7 +501,7 @@ export default function App() {
 
   const handleUpdateCustomSavings = (
     fundId: string,
-    field: 'name' | 'color' | 'enabledInChart' | 'targetAmount' | 'monthly',
+    field: 'name' | 'color' | 'targetAmount' | 'monthly',
     value: any,
     yearIdx?: number
   ) => {
@@ -513,7 +512,6 @@ export default function App() {
       let updatedFund = { ...fund };
       if (field === 'name') updatedFund.name = String(value);
       if (field === 'color') updatedFund.color = String(value);
-      if (field === 'enabledInChart') updatedFund.enabledInChart = Boolean(value);
       if (field === 'targetAmount') updatedFund.targetAmount = value ? Number(value) : undefined;
       if (field === 'monthly' && yearIdx !== undefined) {
         const arr = [...fund.monthly];

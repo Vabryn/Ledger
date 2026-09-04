@@ -406,7 +406,6 @@ function runAllTests() {
         name: 'Vacation Fund',
         color: '#10B981',
         monthly: [400],
-        enabledInChart: true,
       },
     },
     retireRate: [10],
