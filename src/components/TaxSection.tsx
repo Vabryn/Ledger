@@ -158,7 +158,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
 
         {/* Tax Table */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-          <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
+          <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
             <colgroup>
               {isEditMode && <col className="w-8 min-w-[32px]" />}
               <col className="w-[280px] min-w-[240px]" />
@@ -178,7 +178,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 {Array.from({ length: years }).map((_, y) => {
                   const currentSt = st[y] || 'CA';
                   return (
-                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-[var(--col-divider)]">
                       <select
                         value={currentSt}
                         onChange={e => onChangeState(y, e.target.value)}
@@ -205,7 +205,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 {Array.from({ length: years }).map((_, y) => {
                   const depCount = deps[y] ?? 0;
                   return (
-                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-[var(--col-divider)]">
                       <input
                         type="number"
                         min="0"
@@ -228,7 +228,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 {Array.from({ length: years }).map((_, y) => {
                   const addl = additionalDeductions[y] ?? 0;
                   return (
-                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-[var(--col-divider)]">
                       <input
                         type="number"
                         min="0"
@@ -249,7 +249,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 {isEditMode && <td></td>}
                 <td className="py-2 px-3 font-sans-custom text-[var(--muted)]">Federal Income Tax</td>
                 {Array.from({ length: years }).map((_, y) => (
-                  <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-rose-600 dark:text-rose-400 border-l-2 border-stone-300 dark:border-stone-700">
+                  <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--neg)] border-l-2 border-[var(--col-divider)]">
                     {fmt$(calc.fed[y] ?? 0)}
                   </td>
                 ))}
@@ -261,7 +261,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 {isEditMode && <td></td>}
                 <td className="py-2 px-3 font-sans-custom text-[var(--muted)]">State & Local Tax</td>
                 {Array.from({ length: years }).map((_, y) => (
-                  <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-rose-600 dark:text-rose-400 border-l-2 border-stone-300 dark:border-stone-700">
+                  <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--neg)] border-l-2 border-[var(--col-divider)]">
                     {fmt$(calc.stTax[y] ?? 0)}
                   </td>
                 ))}
@@ -273,7 +273,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 {isEditMode && <td></td>}
                 <td className="py-2 px-3 font-sans-custom text-[var(--muted)]">Social Security & Medicare (FICA)</td>
                 {Array.from({ length: years }).map((_, y) => (
-                  <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-rose-600 dark:text-rose-400 border-l-2 border-stone-300 dark:border-stone-700">
+                  <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--neg)] border-l-2 border-[var(--col-divider)]">
                     {fmt$(calc.fica[y] ?? 0)}
                   </td>
                 ))}
@@ -287,7 +287,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 {Array.from({ length: years }).map((_, y) => {
                   const totalT = (calc.fed[y] ?? 0) + (calc.stTax[y] ?? 0) + (calc.fica[y] ?? 0);
                   return (
-                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-rose-600 dark:text-rose-400 font-bold border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--neg)] font-bold border-l-2 border-[var(--col-divider)]">
                       {fmt$(totalT)}
                     </td>
                   );

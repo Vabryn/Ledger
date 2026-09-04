@@ -131,7 +131,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
             <DragDropContext onDragEnd={handleWorkerDragEnd}>
-              <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
+              <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
                 <colgroup>
                   {isEditMode && <col className="w-8 min-w-[32px]" />}
                   <col className="w-[280px] min-w-[240px]" />
@@ -147,7 +147,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                 <thead>
                   <tr
                     id="income-table-desc"
-                    className="border-b-2 border-stone-300 dark:border-stone-700 bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
+                    className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
                   >
                     {isEditMode && <th className="w-8"></th>}
                     <th className="py-2 px-3 text-left font-sans-custom tracking-wider">
@@ -155,7 +155,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                     </th>
                     {Array.from({ length: years }).map((_, y) => (
                       <React.Fragment key={y}>
-                        <th className="py-1.5 pl-2.5 pr-1 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                        <th className="py-1.5 pl-2.5 pr-1 text-center border-l-2 border-[var(--col-divider)]">
                           Rate / Wage
                         </th>
                         <th className="py-1.5 pl-1 pr-2.5 text-center text-[var(--muted)]">
@@ -206,7 +206,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                         className="ledger-text-input text-xs font-semibold text-[var(--text)]"
                                       />
                                       <div>
-                                        <div className="text-[9.5px] uppercase tracking-wider text-[var(--muted2)] font-semibold select-none mb-0.5">
+                                        <div className="text-[9px] uppercase tracking-wider text-[var(--muted2)] font-semibold select-none mb-0.5">
                                           Income Frequency
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -239,7 +239,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
 
                                     return (
                                       <React.Fragment key={y}>
-                                        <td className="py-1.5 px-1 border-l-2 border-stone-300 dark:border-stone-700 text-center">
+                                        <td className="py-1.5 px-1 border-l-2 border-[var(--col-divider)] text-center">
                                           {isHourly ? (
                                             <div className="flex items-center justify-center gap-0.5 mx-auto w-fit max-w-full bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1 py-0.5 font-mono-custom focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
                                               <span className="text-[10px] text-[var(--muted2)] select-none">$</span>
@@ -297,7 +297,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                     <td className="py-2 px-2 text-center whitespace-nowrap">
                                       <button
                                         onClick={() => onRemoveWorker(wi)}
-                                        className="p-1 text-rose-600 dark:text-rose-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded"
+                                        className="p-1 text-[var(--neg)] hover:bg-red-50 dark:hover:bg-red-950/40 rounded"
                                         title="Remove Earner"
                                       >
                                         <Trash2 className="w-3.5 h-3.5" />
@@ -398,7 +398,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
             <div>
               <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
                 <DragDropContext onDragEnd={handleOtherDragEnd}>
-                  <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
+                  <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
                     <colgroup>
                       {isEditMode && <col className="w-8 min-w-[32px]" />}
                       <col className="w-[280px] min-w-[240px]" />
@@ -414,7 +414,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                     <thead>
                       <tr
                         id="other-income-table-desc"
-                        className="border-b-2 border-stone-300 dark:border-stone-700 bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
+                        className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
                       >
                         {isEditMode && <th className="w-8"></th>}
                         <th className="py-2 px-3 text-left font-sans-custom tracking-wider">
@@ -422,7 +422,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                         </th>
                         {Array.from({ length: years }).map((_, y) => (
                           <React.Fragment key={y}>
-                            <th className="py-1.5 pl-2.5 pr-1 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                            <th className="py-1.5 pl-2.5 pr-1 text-center border-l-2 border-[var(--col-divider)]">
                               Amount / Period
                             </th>
                             <th className="py-1.5 pl-1 pr-2.5 text-center text-[var(--muted)]">
@@ -496,7 +496,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
 
                                           return (
                                             <React.Fragment key={y}>
-                                              <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-stone-300 dark:border-stone-700 text-center">
+                                              <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-[var(--col-divider)] text-center">
                                                 <div className="relative flex items-center justify-center max-w-[100px] mx-auto bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1.5 py-0.5 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
                                                   <span className="text-[11px] text-[var(--muted2)] select-none mr-0.5">$</span>
                                                   <input
@@ -525,7 +525,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                           <td className="py-2 px-2 text-center whitespace-nowrap">
                                             <button
                                               onClick={() => onRemoveOther(ri)}
-                                              className="p-1 text-rose-600 dark:text-rose-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded"
+                                              className="p-1 text-[var(--neg)] hover:bg-red-50 dark:hover:bg-red-950/40 rounded"
                                               title="Remove Other Income"
                                             >
                                               <Trash2 className="w-3.5 h-3.5" />

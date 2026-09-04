@@ -82,7 +82,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
             </div>
             <div
               className={`text-2xl sm:text-3xl font-extrabold font-mono-custom tracking-tight mt-1.5 ${
-                totalSavings < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--text)]'
+                totalSavings < 0 ? 'text-[var(--neg)]' : 'text-[var(--text)]'
               }`}
             >
               {fmt$(totalSavings)}
@@ -110,7 +110,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
         {/* Aligned Projection Matrix Table */}
         <div className="overflow-x-auto pb-1">
-          <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
+          <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
             <colgroup>
               {state.isEditMode && <col className="w-8 min-w-[32px]" />}
               {/* Left Overview & Metrics Column */}
@@ -135,7 +135,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     <th
                       key={y}
                       colSpan={2}
-                      className="py-2.5 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs font-bold text-[var(--text)]"
+                      className="py-2.5 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs font-bold text-[var(--text)]"
                     >
                       {displayYear}
                     </th>
@@ -160,7 +160,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                   <td
                     key={y}
                     colSpan={2}
-                    className="py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs text-[var(--text)]"
+                    className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs text-[var(--text)]"
                   >
                     {fmt$(calc.g[y] ?? 0)}
                   </td>
@@ -176,8 +176,8 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     Total Taxes (Fed + State + FICA)
                   </div>
                   <div className="text-[10px] font-mono-custom text-[var(--muted2)] mt-0.5">
-                    {kpiPeriodName} Total: <span className="font-semibold text-rose-600 dark:text-rose-400">-{fmt$(totalTax)}</span>{' '}
-                    <span className="text-[9.5px]">({fmtPct(effectiveTaxPct)} eff.)</span>
+                    {kpiPeriodName} Total: <span className="font-semibold text-[var(--neg)]">-{fmt$(totalTax)}</span>{' '}
+                    <span className="text-[9px]">({fmtPct(effectiveTaxPct)} eff.)</span>
                   </div>
                 </td>
                 {Array.from({ length: years }).map((_, y) => {
@@ -186,7 +186,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     <td
                       key={y}
                       colSpan={2}
-                      className="py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs text-rose-600 dark:text-rose-400"
+                      className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs text-[var(--neg)]"
                     >
                       -{fmt$(yrTax)}
                     </td>
@@ -210,7 +210,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                   <td
                     key={y}
                     colSpan={2}
-                    className="py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs font-semibold text-[var(--text)]"
+                    className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs font-semibold text-[var(--text)]"
                   >
                     {fmt$(calc.net[y] ?? 0)}
                   </td>
@@ -226,14 +226,14 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     Living Expenses
                   </div>
                   <div className="text-[10px] font-mono-custom text-[var(--muted2)] mt-0.5">
-                    {kpiPeriodName} Total: <span className="font-semibold text-rose-600 dark:text-rose-400">-{fmt$(calc.colOnly.reduce((a, b) => a + b, 0))}</span>
+                    {kpiPeriodName} Total: <span className="font-semibold text-[var(--neg)]">-{fmt$(calc.colOnly.reduce((a, b) => a + b, 0))}</span>
                   </div>
                 </td>
                 {Array.from({ length: years }).map((_, y) => (
                   <td
                     key={y}
                     colSpan={2}
-                    className="py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs text-rose-600 dark:text-rose-400"
+                    className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs text-[var(--neg)]"
                   >
                     -{fmt$(calc.colOnly[y] ?? 0)}
                   </td>
@@ -249,7 +249,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     Net Savings ({periodLabel})
                   </div>
                   <div className="text-[10px] font-mono-custom text-[var(--muted2)] mt-0.5">
-                    {kpiPeriodName} Net: <span className={`font-semibold ${totalSavings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{fmt$(totalSavings)}</span>
+                    {kpiPeriodName} Net: <span className={`font-semibold ${totalSavings >= 0 ? 'text-[var(--pos)]' : 'text-[var(--neg)]'}`}>{fmt$(totalSavings)}</span>
                   </div>
                 </td>
                 {Array.from({ length: years }).map((_, y) => {
@@ -258,8 +258,8 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     <td
                       key={y}
                       colSpan={2}
-                      className={`py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs font-semibold ${
-                        yrSavings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                      className={`py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs font-semibold ${
+                        yrSavings >= 0 ? 'text-[var(--pos)]' : 'text-[var(--neg)]'
                       }`}
                     >
                       {fmt$(yrSavings)}
@@ -277,7 +277,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     Cumulative Savings
                   </div>
                   <div className="text-[10px] font-mono-custom text-[var(--muted2)] mt-0.5">
-                    Final Accumulated: <span className="font-bold text-blue-600 dark:text-blue-400">{fmt$(totalSavings)}</span>
+                    Final Accumulated: <span className="font-bold text-[var(--accum)]">{fmt$(totalSavings)}</span>
                   </div>
                 </td>
                 {Array.from({ length: years }).map((_, y) => {
@@ -286,8 +286,8 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     <td
                       key={y}
                       colSpan={2}
-                      className={`py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs font-bold ${
-                        cumSavings >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400'
+                      className={`py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs font-bold ${
+                        cumSavings >= 0 ? 'text-[var(--accum)]' : 'text-[var(--neg)]'
                       }`}
                     >
                       {fmt$(cumSavings)}
@@ -312,7 +312,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                   <td
                     key={y}
                     colSpan={2}
-                    className="py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs text-[var(--text)]"
+                    className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs text-[var(--text)]"
                   >
                     {fmt$(calc.retireActual[y] ?? 0)}
                   </td>
@@ -335,7 +335,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                   <td
                     key={y}
                     colSpan={2}
-                    className="py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs font-bold text-[var(--text)]"
+                    className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs font-bold text-[var(--text)]"
                   >
                     {fmt$(calc.retireOT[y] ?? 0)}
                   </td>
@@ -351,7 +351,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     Unallocated Balance
                   </div>
                   <div className="text-[10px] font-mono-custom text-[var(--muted2)] mt-0.5">
-                    Final Balance: <span className={`font-semibold ${(calc.unallocatedBalance[years - 1] ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{fmt$(calc.unallocatedBalance[years - 1] ?? 0)}</span>
+                    Final Balance: <span className={`font-semibold ${(calc.unallocatedBalance[years - 1] ?? 0) >= 0 ? 'text-[var(--pos)]' : 'text-[var(--neg)]'}`}>{fmt$(calc.unallocatedBalance[years - 1] ?? 0)}</span>
                   </div>
                 </td>
                 {Array.from({ length: years }).map((_, y) => {
@@ -360,8 +360,8 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     <td
                       key={y}
                       colSpan={2}
-                      className={`py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs font-semibold ${
-                        unalloc >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                      className={`py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs font-semibold ${
+                        unalloc >= 0 ? 'text-[var(--pos)]' : 'text-[var(--neg)]'
                       }`}
                     >
                       {fmt$(unalloc)}

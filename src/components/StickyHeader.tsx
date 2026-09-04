@@ -391,7 +391,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                       </span>
                     </div>
                     {state.isEditMode && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-[var(--pos)] font-semibold">
                         Active
                       </span>
                     )}
@@ -448,7 +448,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowClearConfirm(true)}
-                      className="w-full flex items-center gap-2 px-3.5 py-2 text-left text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3.5 py-2 text-left text-[var(--neg)] hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5 text-rose-500" />
                       <div>
@@ -514,6 +514,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                   key={item.id}
                   type="button"
                   onClick={() => onSelectCategory(item.id)}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`relative group flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium font-sans-custom transition-all cursor-pointer select-none whitespace-nowrap ${
                     isActive
                       ? 'bg-[var(--accent)] text-white font-semibold shadow-sm'
@@ -540,7 +541,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
               className="overflow-x-auto scrollbar-none"
               onScroll={handleHeaderScroll}
             >
-              <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
+              <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
                 <colgroup>
                   {state.isEditMode && <col className="w-8 min-w-[32px]" />}
                   {/* Name / Category Column */}
@@ -607,7 +608,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                           colSpan={2}
                           onMouseEnter={() => setHoveredIdx(y)}
                           onMouseLeave={() => setHoveredIdx(null)}
-                          className={`py-1 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 transition-colors ${
+                          className={`py-1 px-2 text-center border-l-2 border-[var(--col-divider)] transition-colors ${
                             isHovered ? 'bg-[var(--panel-alt)]' : 'bg-[var(--panel-alt)]/50'
                           }`}
                         >
@@ -620,7 +621,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                     {state.isEditMode && <th className="w-10"></th>}
                   </tr>
                   {hasSubColumns && (
-                    <tr className="bg-[var(--panel-alt)]/40 text-[10.5px] text-[var(--muted2)] font-medium">
+                    <tr className="bg-[var(--panel-alt)]/40 text-[10px] text-[var(--muted2)] font-medium">
                       {state.isEditMode && <th></th>}
                       <th className="py-0.5 px-3 text-left font-sans-custom uppercase tracking-wider text-[10px] text-[var(--muted2)]">
                         {lineItemLabel}
@@ -630,7 +631,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                         return (
                           <React.Fragment key={y}>
                             <th
-                              className={`py-0.5 px-1 text-center font-sans-custom border-l-2 border-stone-300 dark:border-stone-700 ${
+                              className={`py-0.5 px-1 text-center font-sans-custom border-l-2 border-[var(--col-divider)] ${
                                 isHovered ? 'bg-[var(--panel-alt)] text-[var(--text)]' : ''
                               }`}
                             >

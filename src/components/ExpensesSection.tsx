@@ -233,7 +233,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
         {/* Expenses Table with Scoped Drag-and-Drop */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
           <DragDropContext onDragEnd={handleCategoryDragEnd}>
-            <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
+            <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
                 <col className="w-[280px] min-w-[240px]" />
@@ -249,7 +249,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
               <thead>
                 <tr
                   id="expenses-table-desc"
-                  className="border-b-2 border-stone-300 dark:border-stone-700 bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
+                  className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
                 >
                   {isEditMode && <th className="w-8"></th>}
                   <th className="py-2 px-3 text-left font-sans-custom tracking-wider">
@@ -257,7 +257,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                   </th>
                   {Array.from({ length: years }).map((_, y) => (
                     <React.Fragment key={y}>
-                      <th className="py-1.5 pl-2.5 pr-1 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                      <th className="py-1.5 pl-2.5 pr-1 text-center border-l-2 border-[var(--col-divider)]">
                         {monthlyColLabel}
                       </th>
                       <th className="py-1.5 pl-1 pr-2.5 text-center text-[var(--muted)]">
@@ -280,7 +280,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                 return (
                   <React.Fragment key={cat}>
                     {/* Category Header Row with Quick-Add (+) Button */}
-                    <tbody className="border-t-2 border-b-2 border-stone-300 dark:border-stone-700">
+                    <tbody className="border-t-2 border-b-2 border-[var(--col-divider)]">
                       <tr
                         onClick={() => onToggleCategoryCollapse(cat)}
                         className="bg-[var(--panel-alt)]/90 hover:bg-[var(--panel-alt)] cursor-pointer select-none transition-colors"
@@ -326,7 +326,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                           const aTotal = isMonths ? mTotal : mTotal * 12;
                           return (
                             <React.Fragment key={y}>
-                              <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-stone-300 dark:border-stone-700 text-right font-mono text-[11px] font-semibold text-[var(--text)]">
+                              <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-[var(--col-divider)] text-right font-mono text-[11px] font-semibold text-[var(--text)]">
                                 {mTotal > 0 ? fmt$(mTotal) : '—'}
                               </td>
                               <td className="py-1.5 pl-1 pr-2.5 text-right font-mono text-[11px] font-semibold text-[var(--muted)]">
@@ -345,7 +345,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                         {dropProvided => (
                           <tbody ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
                             {catRows.length === 0 ? (
-                              <tr className="border-b-2 border-stone-300 dark:border-stone-700">
+                              <tr className="border-b-2 border-[var(--col-divider)]">
                                 <td
                                   colSpan={(isEditMode ? 2 : 1) + years * 2 + (isEditMode ? 1 : 0)}
                                   className="py-3 px-3 text-center text-xs text-[var(--muted2)] italic bg-[var(--panel)]"
@@ -369,7 +369,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                         <tr
                                           ref={dragProvided.innerRef}
                                           {...dragProvided.draggableProps}
-                                          className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/25 hover:bg-[var(--panel-alt)]/60 border-b-2 border-stone-300 dark:border-stone-700 transition-colors"
+                                          className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/25 hover:bg-[var(--panel-alt)]/60 border-b-2 border-[var(--col-divider)] transition-colors"
                                         >
                                           {isEditMode && (
                                             <td className="py-1.5 px-1 text-center" {...dragProvided.dragHandleProps}>
@@ -395,7 +395,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
 
                                             return (
                                               <React.Fragment key={y}>
-                                                <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-stone-300 dark:border-stone-700 text-center">
+                                                <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-[var(--col-divider)] text-center">
                                                   <input
                                                     type="number"
                                                     min="0"
@@ -434,7 +434,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                             <td className="py-1.5 px-1.5 text-center whitespace-nowrap">
                                               <button
                                                 onClick={() => onRemoveExpense(ri)}
-                                                className="p-1 text-rose-600 dark:text-rose-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded"
+                                                className="p-1 text-[var(--neg)] hover:bg-red-50 dark:hover:bg-red-950/40 rounded"
                                                 title="Remove expense"
                                               >
                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -468,7 +468,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                     const displayTotal = isMonths ? annualCol / 12 : annualCol;
                     return (
                       <React.Fragment key={y}>
-                        <td className="py-2 pl-2.5 pr-1 text-right text-[var(--muted)] text-xs font-semibold border-l-2 border-stone-300 dark:border-stone-700">
+                        <td className="py-2 pl-2.5 pr-1 text-right text-[var(--muted)] text-xs font-semibold border-l-2 border-[var(--col-divider)]">
                           {fmt$(annualCol / 12)}
                         </td>
                         <td className="py-2 pl-1 pr-2.5 text-right text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-bold">

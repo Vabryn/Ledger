@@ -13,6 +13,16 @@
   --accent: #26344F;
   --accent-soft: #3E5279;
   --danger: #8C3B33;
+
+  /* Vertical separators between projection year columns — a touch firmer
+     than --border so the grid reads clearly across a wide table. */
+  --col-divider: #D6D3D1;
+
+  /* Semantic colours for financial values (used for text, not fills). */
+  --pos:   #059669; /* gains / positive cash flow */
+  --neg:   #E11D48; /* costs / taxes / negative cash flow */
+  --accum: #2563EB; /* cumulative / running totals */
+
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: 'IBM Plex Serif', Georgia, serif;
@@ -38,6 +48,10 @@
   --accent: #60A5FA;
   --accent-soft: #3B82F6;
   --danger: #EF4444;
+  --col-divider: #44403C;
+  --pos:   #34D399;
+  --neg:   #FB7185;
+  --accum: #60A5FA;
   color-scheme: dark;
 }
 

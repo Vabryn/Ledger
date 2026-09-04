@@ -109,7 +109,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
           </div>
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-            <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
+            <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
                 <col className="w-[280px] min-w-[240px]" />
@@ -134,7 +134,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                     const hasErr = alert?.hasError;
 
                     return (
-                      <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                      <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-[var(--col-divider)]">
                         <div className="flex flex-col items-center justify-center gap-0.5">
                           <div className="flex items-center justify-center gap-1">
                             <input
@@ -175,7 +175,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   {Array.from({ length: years }).map((_, y) => {
                     const matchRate = employerMatchRate[y] ?? 0;
                     return (
-                      <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                      <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-[var(--col-divider)]">
                         <div className="flex items-center justify-center gap-1">
                           <input
                             type="number"
@@ -202,7 +202,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                     Target Dollar Amount ({isMonths ? '$/mo' : '$/yr'})
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
-                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-[var(--col-divider)]">
                       {fmt$(calc.retireTarget[y] ?? 0)}
                     </td>
                   ))}
@@ -216,7 +216,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                     → Roth IRA (Individual Cap)
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
-                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--text)] border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--text)] border-l-2 border-[var(--col-divider)]">
                       {fmt$(calc.rothArr[y] ?? 0)}
                     </td>
                   ))}
@@ -230,7 +230,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                     → 401(k) Employee Deferral
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
-                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--text)] border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--text)] border-l-2 border-[var(--col-divider)]">
                       {fmt$(calc.k401Arr[y] ?? 0)}
                     </td>
                   ))}
@@ -240,11 +240,11 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 {/* Employer Match Contribution Amount */}
                 <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                   {isEditMode && <td></td>}
-                  <td className="py-2 px-3 font-sans-custom font-medium text-emerald-600 dark:text-emerald-400">
+                  <td className="py-2 px-3 font-sans-custom font-medium text-[var(--pos)]">
                     + Employer Match Contribution
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
-                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-emerald-600 dark:text-emerald-400 border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--pos)] border-l-2 border-[var(--col-divider)]">
                       +{fmt$(calc.employerMatchAmount[y] ?? 0)}
                     </td>
                   ))}
@@ -258,7 +258,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                     Total Retirement Contributed
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
-                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--text)] font-bold border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--text)] font-bold border-l-2 border-[var(--col-divider)]">
                       {fmt$(calc.retireActual[y] ?? 0)}
                     </td>
                   ))}
@@ -281,7 +281,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
           </div>
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-            <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
+            <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
                 <col className="w-[280px] min-w-[240px]" />
@@ -345,7 +345,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                         {Array.from({ length: years }).map((_, y) => {
                           const mVal = fund.monthly?.[y] ?? 0;
                           return (
-                            <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700">
+                            <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-[var(--col-divider)]">
                               <div className="flex flex-col items-center justify-center">
                                 <input
                                   type="number"
@@ -370,7 +370,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                           <td className="py-1.5 px-2 text-center whitespace-nowrap">
                             <button
                               onClick={() => onRemoveCustomSavings(fundId)}
-                              className="p-1 text-rose-600 dark:text-rose-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded"
+                              className="p-1 text-[var(--neg)] hover:bg-red-50 dark:hover:bg-red-950/40 rounded"
                               title="Delete goal"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -387,7 +387,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   {isEditMode && <td></td>}
                   <td className="py-2 px-3 font-sans-custom text-[var(--text)]">Total Custom Savings</td>
                   {Array.from({ length: years }).map((_, y) => (
-                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--accent)] font-bold border-l-2 border-stone-300 dark:border-stone-700">
+                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--accent)] font-bold border-l-2 border-[var(--col-divider)]">
                       {fmt$(calc.customSavingsTotal[y] ?? 0)}
                     </td>
                   ))}

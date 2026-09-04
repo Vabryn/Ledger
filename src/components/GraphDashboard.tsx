@@ -165,7 +165,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
           {state.isEditMode && <div className="w-8 min-w-[32px] flex-shrink-0 border-r border-[var(--border)]/40" />}
 
           {/* Left Control Sidebar (matches the w-[280px] min-w-[240px] left column of the tables) */}
-          <div className="w-[280px] min-w-[240px] flex-shrink-0 p-3.5 sm:p-4 border-r-2 border-stone-300 dark:border-stone-700 bg-[var(--panel)]/70 flex flex-col justify-between gap-4 select-none">
+          <div className="w-[280px] min-w-[240px] flex-shrink-0 p-3.5 sm:p-4 border-r-2 border-[var(--col-divider)] bg-[var(--panel)]/70 flex flex-col justify-between gap-4 select-none">
             <div className="space-y-4">
               {/* 1. Mode Switcher (Trend vs Comparison) */}
               <div>
@@ -316,12 +316,15 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
                   strokeDasharray={pct === 0 ? undefined : '3 3'}
                 />
                 <text
-                  x={10}
+                  x={8}
                   y={yPos - 4}
                   fill="var(--muted2)"
                   fontSize="9.5"
                   fontFamily="var(--font-mono)"
                   fontWeight="600"
+                  stroke="var(--panel-alt)"
+                  strokeWidth="3"
+                  paintOrder="stroke"
                 >
                   {labelVal >= 1000 ? `$${Math.round(labelVal / 1000)}k` : `$${Math.round(labelVal)}`}
                 </text>
