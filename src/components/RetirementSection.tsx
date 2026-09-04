@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CalculationResult, CustomSavingsFund, ViewMode, fmt$, fmtCompact$, num } from '@/core';
 import { ShieldCheck, ArrowUp, ArrowDown, Plus, Trash2, AlertCircle } from 'lucide-react';
+import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
 
 interface RetirementSectionProps {
   years: number;
@@ -37,12 +38,6 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
 }) => {
   const isMonths = viewMode === 'months';
 
-  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const headerScroll = document.getElementById('sticky-year-bar-scroll');
-    if (headerScroll && headerScroll.scrollLeft !== e.currentTarget.scrollLeft) {
-      headerScroll.scrollLeft = e.currentTarget.scrollLeft;
-    }
-  };
   const [newFundName, setNewFundName] = useState('');
   const [newFundTarget, setNewFundTarget] = useState('');
 
@@ -104,19 +99,9 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
           </div>
 
           <div className="sub-card">
-          <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
-            <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
-              <colgroup>
-                {isEditMode && <col className="w-8 min-w-[32px]" />}
-                <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
-                {Array.from({ length: years }).map((_, y) => (
-                  <React.Fragment key={y}>
-                    <col />
-                    <col />
-                  </React.Fragment>
-                ))}
-                {isEditMode && <col className="w-10 min-w-[40px]" />}
-              </colgroup>
+          <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
+            <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
+              <YearColgroup years={years} isEditMode={isEditMode} />
               <tbody>
                 {/* Target Employee Rate Row */}
                 <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors">
@@ -278,19 +263,9 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
           </div>
 
           <div className="sub-card">
-          <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
-            <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
-              <colgroup>
-                {isEditMode && <col className="w-8 min-w-[32px]" />}
-                <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
-                {Array.from({ length: years }).map((_, y) => (
-                  <React.Fragment key={y}>
-                    <col />
-                    <col />
-                  </React.Fragment>
-                ))}
-                {isEditMode && <col className="w-10 min-w-[40px]" />}
-              </colgroup>
+          <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
+            <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
+              <YearColgroup years={years} isEditMode={isEditMode} />
               <tbody>
                 {fundIds.length === 0 ? (
                   <tr>

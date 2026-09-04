@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { CalculationResult, PlannerState, fmt$ } from '@/core';
 import { TrendingUp, BarChart3 } from 'lucide-react';
+import { tableMinWidth, yearsGridWidth, syncScrollToYearBar } from './ledger-table';
 
 interface GraphDashboardProps {
   state: PlannerState;
@@ -62,13 +63,6 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
   const height = CHART_HEIGHT;
   const width = 1000; // ViewBox baseline
 
-  // Keep the chart's horizontal scroll in lockstep with the section tables.
-  const handleChartScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const headerScroll = document.getElementById('sticky-year-bar-scroll');
-    if (headerScroll && headerScroll.scrollLeft !== e.currentTarget.scrollLeft) {
-      headerScroll.scrollLeft = e.currentTarget.scrollLeft;
-    }
-  };
   const padT = 24;
   const padB = 36;
   const drawH = height - padT - padB;
@@ -178,10 +172,10 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
           );
         })}
       </div>
-      <div className="overflow-x-auto category-table-scroll" onScroll={handleChartScroll}>
+      <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
         <div
           className="w-full flex items-stretch"
-          style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w)${state.isEditMode ? ' + 32px' : ''})` }}
+          style={{ minWidth: tableMinWidth(years, state.isEditMode, { trailingCol: false }) }}
         >
           {/* Left rail: edit-mode spacer + control sidebar, pinned like the
               tables' frozen row-label column so it stays put while scrolling. */}
@@ -294,7 +288,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
           <div
             ref={containerRef}
             className="flex-1 min-w-0 relative"
-            style={{ height: `${height}px`, minWidth: `calc(${years} * 2 * var(--yr-col-w))` }}
+            style={{ height: `${height}px`, minWidth: yearsGridWidth(years) }}
           >
         <svg
           viewBox={`0 0 ${width} ${height}`}

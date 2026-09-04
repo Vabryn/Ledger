@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Calendar,
 } from 'lucide-react';
+import { YearColgroup, ledgerTableClass, tableMinWidth } from './ledger-table';
 
 export type NavCategory = 'all' | 'income' | 'expenses' | 'taxes' | 'retire' | 'summary';
 
@@ -348,20 +349,8 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
               className="overflow-x-auto scrollbar-none"
               onScroll={handleHeaderScroll}
             >
-              <table className={`w-full table-fixed text-xs border-collapse${state.isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
-                <colgroup>
-                  {state.isEditMode && <col className="w-8 min-w-[32px]" />}
-                  {/* Name / Category Column */}
-                  <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
-                  {/* Year sub-columns */}
-                  {Array.from({ length: years }).map((_, y) => (
-                    <React.Fragment key={y}>
-                      <col />
-                      <col />
-                    </React.Fragment>
-                  ))}
-                  {state.isEditMode && <col className="w-10 min-w-[40px]" />}
-                </colgroup>
+              <table className={ledgerTableClass(state.isEditMode)} style={{ minWidth: tableMinWidth(years, state.isEditMode) }}>
+                <YearColgroup years={years} isEditMode={state.isEditMode} />
                 <thead>
                   <tr className="bg-[var(--panel-alt)] text-[var(--text)] font-semibold border-b border-[var(--border)]/60">
                     {state.isEditMode && <th className="w-8"></th>}

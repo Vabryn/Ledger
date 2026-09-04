@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExpenseItem, CalculationResult, ViewMode, fmtCompact$, num } from '@/core';
 import { ReceiptText, Plus, Trash2, ArrowUp, ArrowDown, FolderPlus, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
+import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface ExpensesSectionProps {
@@ -62,12 +63,6 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   // Column count for full-width rows (category rule + empty state).
   const fullColSpan = (isEditMode ? 2 : 1) + years * 2 + (isEditMode ? 1 : 0);
 
-  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const headerScroll = document.getElementById('sticky-year-bar-scroll');
-    if (headerScroll && headerScroll.scrollLeft !== e.currentTarget.scrollLeft) {
-      headerScroll.scrollLeft = e.currentTarget.scrollLeft;
-    }
-  };
 
   // Compute heat map color
   const hex = (colHue || '#8C3B33').replace('#', '');
@@ -216,20 +211,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
 
         {/* Expenses Table with Scoped Drag-and-Drop */}
         <div className="sub-card">
-        <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
+        <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
           <DragDropContext onDragEnd={handleCategoryDragEnd}>
-            <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
-              <colgroup>
-                {isEditMode && <col className="w-8 min-w-[32px]" />}
-                <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
-                {Array.from({ length: years }).map((_, y) => (
-                  <React.Fragment key={y}>
-                    <col />
-                    <col />
-                  </React.Fragment>
-                ))}
-                {isEditMode && <col className="w-10 min-w-[40px]" />}
-              </colgroup>
+            <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
+              <YearColgroup years={years} isEditMode={isEditMode} />
 
               <thead>
                 <tr

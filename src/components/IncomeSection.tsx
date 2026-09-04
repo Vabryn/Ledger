@@ -1,6 +1,7 @@
 import React from 'react';
 import { WorkerItem, IncomeItem, ViewMode, IncomeFrequency, PayoutFrequency, fmtCompact$, num, getAnnualIncome, toPeriodValue } from '@/core';
 import { TrendingUp, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
+import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface IncomeSectionProps {
@@ -45,12 +46,6 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
   const isMonths = viewMode === 'months';
   const grossLabel = isMonths ? 'Gross Monthly' : 'Gross Annual';
 
-  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const headerScroll = document.getElementById('sticky-year-bar-scroll');
-    if (headerScroll && headerScroll.scrollLeft !== e.currentTarget.scrollLeft) {
-      headerScroll.scrollLeft = e.currentTarget.scrollLeft;
-    }
-  };
 
   const [isOtherCollapsed, setIsOtherCollapsed] = React.useState(false);
 
@@ -111,20 +106,10 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
           </div>
 
           <div className="sub-card">
-          <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
+          <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
             <DragDropContext onDragEnd={handleWorkerDragEnd}>
-              <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
-                <colgroup>
-                  {isEditMode && <col className="w-8 min-w-[32px]" />}
-                  <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
-                  {Array.from({ length: years }).map((_, y) => (
-                    <React.Fragment key={y}>
-                      <col />
-                      <col />
-                    </React.Fragment>
-                  ))}
-                  {isEditMode && <col className="w-10 min-w-[40px]" />}
-                </colgroup>
+              <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
+                <YearColgroup years={years} isEditMode={isEditMode} />
 
                 <thead>
                   <tr
@@ -360,20 +345,10 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
           ) : !isOtherCollapsed ? (
             <div>
               <div className="sub-card">
-              <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
+              <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
                 <DragDropContext onDragEnd={handleOtherDragEnd}>
-                  <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
-                    <colgroup>
-                      {isEditMode && <col className="w-8 min-w-[32px]" />}
-                      <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
-                      {Array.from({ length: years }).map((_, y) => (
-                        <React.Fragment key={y}>
-                          <col />
-                          <col />
-                        </React.Fragment>
-                      ))}
-                      {isEditMode && <col className="w-10 min-w-[40px]" />}
-                    </colgroup>
+                  <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
+                    <YearColgroup years={years} isEditMode={isEditMode} />
 
                     <thead>
                       <tr

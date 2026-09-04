@@ -1,6 +1,7 @@
 import React from 'react';
 import { CalculationResult, FilingStatus, fmtCompact$ } from '@/core';
 import { Percent, ArrowUp, ArrowDown, HelpCircle } from 'lucide-react';
+import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
 
 interface TaxSectionProps {
   years: number;
@@ -37,13 +38,6 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
   onMoveSection,
   isHighlighted,
 }) => {
-
-  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const headerScroll = document.getElementById('sticky-year-bar-scroll');
-    if (headerScroll && headerScroll.scrollLeft !== e.currentTarget.scrollLeft) {
-      headerScroll.scrollLeft = e.currentTarget.scrollLeft;
-    }
-  };
 
   return (
     <details
@@ -150,19 +144,9 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
 
         {/* Tax Table */}
         <div className="sub-card">
-        <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
-          <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
-            <colgroup>
-              {isEditMode && <col className="w-8 min-w-[32px]" />}
-              <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
-              {Array.from({ length: years }).map((_, y) => (
-                <React.Fragment key={y}>
-                  <col />
-                  <col />
-                </React.Fragment>
-              ))}
-              {isEditMode && <col className="w-10 min-w-[40px]" />}
-            </colgroup>
+        <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
+          <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
+            <YearColgroup years={years} isEditMode={isEditMode} />
             <tbody>
               {/* Location Row */}
               <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors">

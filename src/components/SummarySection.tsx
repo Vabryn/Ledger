@@ -2,6 +2,7 @@ import React from 'react';
 import { CalculationResult, PlannerState, fmt$, fmtCompact$, fmtPct } from '@/core';
 import { GraphDashboard } from './GraphDashboard';
 import { LayoutDashboard, ArrowUp, ArrowDown } from 'lucide-react';
+import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
 
 interface SummarySectionProps {
   state: PlannerState;
@@ -39,12 +40,6 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
   // Keep this table's horizontal scroll in lockstep with the sticky year bar
   // (and, through it, every other section table).
-  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const headerScroll = document.getElementById('sticky-year-bar-scroll');
-    if (headerScroll && headerScroll.scrollLeft !== e.currentTarget.scrollLeft) {
-      headerScroll.scrollLeft = e.currentTarget.scrollLeft;
-    }
-  };
 
   return (
     <details
@@ -118,21 +113,9 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
         {/* Aligned Projection Matrix Table */}
         <div className="sub-card">
-        <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
-          <table className={`w-full table-fixed text-xs border-collapse${state.isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
-            <colgroup>
-              {state.isEditMode && <col className="w-8 min-w-[32px]" />}
-              {/* Left Overview & Metrics Column */}
-              <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
-              {/* Year Columns matching sticky header */}
-              {Array.from({ length: years }).map((_, y) => (
-                <React.Fragment key={y}>
-                  <col />
-                  <col />
-                </React.Fragment>
-              ))}
-              {state.isEditMode && <col className="w-10 min-w-[40px]" />}
-            </colgroup>
+        <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
+          <table className={ledgerTableClass(state.isEditMode)} style={{ minWidth: tableMinWidth(years, state.isEditMode) }}>
+            <YearColgroup years={years} isEditMode={state.isEditMode} />
             <thead>
               <tr className="bg-[var(--panel-alt)] text-[var(--muted)] font-semibold border-b border-[var(--border)]/70 font-sans-custom uppercase text-[10px] tracking-wider">
                 {state.isEditMode && <th className="w-8 min-w-[32px]"></th>}

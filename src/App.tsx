@@ -92,6 +92,39 @@ export default function App() {
     return () => clearTimeout(t);
   }, [state]);
 
+  // DEV guard: the sticky year bar and every visible section table share
+  // <YearColgroup> + tableMinWidth, so their first year column must start at
+  // the same x. If a table ever drifts, shout in the console.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    // Where does year 1's first sub-column begin, in viewport x?
+    const firstYearLeft = (table: Element | null): number | null => {
+      if (!table || table.getBoundingClientRect().width < 100) return null; // not laid out yet
+      const row = table.querySelector('tr');
+      const cell = row?.children[table.classList.contains('is-edit') ? 2 : 1];
+      return cell ? cell.getBoundingClientRect().left : null;
+    };
+    const check = () => {
+      const barLeft = firstYearLeft(document.querySelector('#sticky-year-bar-scroll table'));
+      if (barLeft == null) return;
+      const seen = new Set<Element>();
+      document.querySelectorAll('.category-table-scroll table').forEach(tbl => {
+        const scroller = tbl.closest('[hidden]');
+        if (scroller || seen.has(tbl)) return;
+        seen.add(tbl);
+        const l = firstYearLeft(tbl);
+        if (l != null && Math.abs(l - barLeft) > 1.5) {
+          const id = (tbl.closest('[id]') as HTMLElement)?.id || '(table)';
+          // eslint-disable-next-line no-console
+          console.error(`[alignment] ${id}: year 1 starts ${(l - barLeft).toFixed(1)}px off the sticky year bar`);
+        }
+      });
+    };
+    const t = setTimeout(check, 400);
+    window.addEventListener('resize', check);
+    return () => { clearTimeout(t); window.removeEventListener('resize', check); };
+  }, [activeCategory, state.years, state.isEditMode, state.viewMode]);
+
   // Normalize optional fields for a stable shape before computing.
   const safeState = useMemo(() => {
     return {
