@@ -316,41 +316,24 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
         {/* Other Income Section */}
         <div id="sec-other-income" className="border-t border-[var(--border)]/60 pt-4">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-            <div
+            <button
+              type="button"
               onClick={() => setIsOtherCollapsed(!isOtherCollapsed)}
-              className="flex items-center gap-2 cursor-pointer select-none group"
+              className="flex items-center gap-2 cursor-pointer select-none group bg-transparent border-0 p-0 text-left"
+              title={isOtherCollapsed ? 'Expand Other Income' : 'Collapse Other Income'}
             >
-              <span className="text-[10px] text-[var(--muted2)] group-hover:text-[var(--text)] transition-transform duration-150 inline-block">
-                {isOtherCollapsed ? '▶' : '▼'}
+              <span className="text-[var(--muted2)] group-hover:text-[var(--text)] transition-colors inline-flex">
+                {isOtherCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </span>
               <h3 className="font-serif-custom text-xs font-semibold text-[var(--muted2)] uppercase tracking-wider group-hover:text-[var(--text)] transition-colors">
                 Other Income (Side Hustles, Dividends, Bonuses)
               </h3>
-              <span className="text-[10px] text-[var(--muted2)] normal-case font-normal">
-                ({other.length} {other.length === 1 ? 'source' : 'sources'})
-              </span>
-              {isOtherCollapsed && (
-                <span className="text-[10px] text-[var(--accent)] font-medium">
-                  [Click to expand]
-                </span>
-              )}
               {!showOtherIncome && (
                 <span className="text-[10px] text-[var(--muted2)] italic">(Hidden)</span>
               )}
-            </div>
-            
+            </button>
+
             <div className="flex items-center gap-3 ml-auto">
-
-              <button
-                type="button"
-                onClick={() => setIsOtherCollapsed(!isOtherCollapsed)}
-                className="flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--accent)] cursor-pointer"
-                title={isOtherCollapsed ? 'Expand Other Income' : 'Collapse Other Income'}
-              >
-                {isOtherCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                <span>{isOtherCollapsed ? 'Expand' : 'Collapse'}</span>
-              </button>
-
               {isEditMode && (
                 <button
                   onClick={() => onToggleOtherIncome(!showOtherIncome)}

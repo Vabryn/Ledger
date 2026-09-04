@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExpenseItem, CalculationResult, ViewMode, fmtCompact$, num } from '@/core';
-import { ReceiptText, Plus, Trash2, ArrowUp, ArrowDown, FolderPlus, GripVertical } from 'lucide-react';
+import { ReceiptText, Plus, Trash2, ArrowUp, ArrowDown, FolderPlus, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface ExpensesSectionProps {
@@ -58,6 +58,26 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
 }) => {
   const isMonths = viewMode === 'months';
   const totalColLabel = isMonths ? 'Month Total' : 'Annual Total';
+
+  // ── Category accent system ──────────────────────────────────────────
+  // Each expense category is given a colour from a small curated palette,
+  // assigned by its position so neighbouring categories never share one.
+  // It appears only on the frozen label column — a left "spine" on every
+  // row plus a dot on the category header — so Utilities rows read as a
+  // distinct group from Subscriptions rows at a glance, and it keeps
+  // working while the year columns scroll. Deliberately kept off the
+  // amount columns so it never fights the heat map.
+  const CAT_PALETTE = [
+    '#3E6B89', // slate blue
+    '#9B5060', // dusty rose
+    '#5F7A4B', // sage
+    '#7A5C86', // muted violet
+    '#8A6D3B', // ochre
+    '#4E7C82', // teal
+    '#88643C', // warm brown
+    '#6E6E8A', // grey-violet
+  ];
+  const catColor = (idx: number): string => CAT_PALETTE[((idx % CAT_PALETTE.length) + CAT_PALETTE.length) % CAT_PALETTE.length];
 
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const headerScroll = document.getElementById('sticky-year-bar-scroll');
@@ -251,8 +271,9 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
               </thead>
 
 
-              {orderedCats.map((cat) => {
+              {orderedCats.map((cat, catIdx) => {
                 const isCollapsed = !!collapsedCats[cat];
+                const accent = catColor(catIdx);
                 const catRows = nonRetireRows.filter(r => (r.cat || 'Other') === cat);
                 const catMonthlyTotals = Array.from({ length: years }).map((_, y) => {
                   return catRows.reduce((sum, r) => sum + (r.monthly?.[y] ?? 0), 0);
@@ -261,17 +282,29 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                 return (
                   <React.Fragment key={cat}>
                     {/* Category Header Row with Quick-Add (+) Button */}
-                    <tbody className="border-t-2 border-b-2 border-[var(--col-divider)]">
+                    <tbody className="border-t-2 border-[var(--col-divider)]">
                       <tr
                         onClick={() => onToggleCategoryCollapse(cat)}
-                        className="bg-[var(--panel-alt)] hover:bg-[var(--panel-alt)] cursor-pointer select-none transition-colors"
+                        className="group cursor-pointer select-none transition-colors"
+                        style={{ backgroundColor: `color-mix(in srgb, ${accent} 12%, var(--panel-alt))` }}
                       >
                         {isEditMode && <td className="w-8"></td>}
-                        <td className="py-2 px-3">
+                        <td
+                          className="py-2 px-3"
+                          style={{
+                            boxShadow: `inset 4px 0 0 0 ${accent}, inset 0 -2px 0 0 color-mix(in srgb, ${accent} 45%, transparent)`,
+                          }}
+                        >
                           <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)] truncate">
-                            <span className="text-[9px] text-[var(--muted2)] flex-shrink-0">
-                              {isCollapsed ? '▶' : '▼'}
-                            </span>
+                            {isCollapsed ? (
+                              <ChevronRight className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
+                            )}
+                            <span
+                              className="w-2 h-2 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: accent }}
+                            />
                             {isEditMode ? (
                               <input
                                 type="text"
@@ -281,11 +314,8 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                 className="bg-[var(--panel)] border border-[var(--border)] px-2 py-0.5 rounded-md text-xs font-semibold text-[var(--text)] focus:outline-none"
                               />
                             ) : (
-                              <span className="truncate">{cat}</span>
+                              <span className="truncate uppercase tracking-wide text-[11px]">{cat}</span>
                             )}
-                            <span className="text-[10px] text-[var(--muted2)] font-normal flex-shrink-0">
-                              ({catRows.length})
-                            </span>
 
                             {/* Quick-Add (+) Button inside Category Header */}
                             <button
@@ -294,7 +324,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                 e.stopPropagation();
                                 onAddExpense(cat);
                               }}
-                              className="flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold text-[var(--accent)] bg-[var(--panel)] border border-[var(--border)] rounded hover:bg-[var(--accent)] hover:text-white transition shadow-2xs cursor-pointer flex-shrink-0"
+                              className="flex items-center justify-center w-5 h-5 ml-1 rounded text-[var(--muted2)] hover:text-[var(--accent)] hover:bg-[var(--panel)] opacity-0 group-hover:opacity-100 focus:opacity-100 transition cursor-pointer flex-shrink-0"
                               title={`Add item to ${cat}`}
                             >
                               <Plus className="w-3.5 h-3.5" />
@@ -326,10 +356,11 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                         {dropProvided => (
                           <tbody ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
                             {catRows.length === 0 ? (
-                              <tr className="border-b-2 border-[var(--col-divider)]">
+                              <tr className="border-b border-[var(--border)]/40">
                                 <td
                                   colSpan={(isEditMode ? 2 : 1) + years * 2 + (isEditMode ? 1 : 0)}
                                   className="py-3 px-3 text-center text-xs text-[var(--muted2)] italic bg-[var(--panel)]"
+                                  style={{ boxShadow: `inset 3px 0 0 0 ${accent}` }}
                                 >
                                   No expense items in {cat}. Click &quot;+&quot; above to add an item.
                                 </td>
@@ -350,7 +381,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                         <tr
                                           ref={dragProvided.innerRef}
                                           {...dragProvided.draggableProps}
-                                          className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b-2 border-[var(--col-divider)] transition-colors"
+                                          className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors"
                                         >
                                           {isEditMode && (
                                             <td className="py-1.5 px-1 text-center" {...dragProvided.dragHandleProps}>
@@ -358,7 +389,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                             </td>
                                           )}
 
-                                          <td className="py-1.5 px-2.5">
+                                          <td
+                                            className="py-1.5 pl-5 pr-2.5"
+                                            style={{ boxShadow: `inset 3px 0 0 0 ${accent}` }}
+                                          >
                                             <input
                                               type="text"
                                               value={row.name}
