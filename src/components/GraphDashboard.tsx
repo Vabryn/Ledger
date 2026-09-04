@@ -156,17 +156,37 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
   const yTicks = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <div className="bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded-xl mt-5 shadow-xs overflow-hidden transition-all">
+    <div className="relative bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded-xl mt-5 shadow-xs overflow-hidden transition-all">
+      {/* Y-axis scale — anchored to the non-scrolling outer card at the canvas's
+          left edge, so it stays put while the canvas scrolls horizontally. HTML,
+          not SVG <text>, so the non-uniform SVG scale can't stretch the type. */}
+      <div className="pointer-events-none absolute inset-0 select-none z-10">
+        {yTicks.map(pct => {
+          const labelVal = maxVal * pct;
+          return (
+            <span
+              key={pct}
+              className="absolute -translate-y-1/2 rounded bg-[var(--panel-alt)] px-1 text-[9px] font-semibold font-mono-custom text-[var(--muted2)] leading-none"
+              style={{
+                top: `${padT + drawH * (1 - pct)}px`,
+                left: `calc(var(--label-col-w)${state.isEditMode ? ' + 32px' : ''} + 6px)`,
+              }}
+            >
+              {labelVal >= 1000 ? `$${Math.round(labelVal / 1000)}k` : `$${Math.round(labelVal)}`}
+            </span>
+          );
+        })}
+      </div>
       <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleChartScroll}>
         <div
           className="w-full flex items-stretch"
           style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w)${state.isEditMode ? ' + 32px' : ''})` }}
         >
-          {/* Edit mode left spacer */}
-          {state.isEditMode && <div className="w-8 min-w-[32px] flex-shrink-0 border-r border-[var(--border)]/40" />}
-
-          {/* Left Control Sidebar (matches the w-[var(--label-col-w)] min-w-[var(--label-col-w)] left column of the tables) */}
-          <div className="w-[var(--label-col-w)] min-w-[var(--label-col-w)] flex-shrink-0 p-3.5 sm:p-4 border-r-2 border-[var(--col-divider)] bg-[var(--panel)]/70 flex flex-col justify-between gap-4 select-none">
+          {/* Left rail: edit-mode spacer + control sidebar, pinned like the
+              tables' frozen row-label column so it stays put while scrolling. */}
+          <div className="frozen-col flex flex-shrink-0 items-stretch">
+            {state.isEditMode && <div className="w-8 min-w-[32px] border-r border-[var(--border)]/40" />}
+            <div className="w-[var(--label-col-w)] min-w-[var(--label-col-w)] p-3.5 sm:p-4 flex flex-col justify-between gap-4 select-none">
             <div className="space-y-4">
               {/* 1. Mode Switcher (Trend vs Comparison) */}
               <div>
@@ -261,8 +281,9 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
               </div>
             </div>
 
-            <div className="text-[10px] text-[var(--muted2)] font-mono-custom pt-2 border-t border-[var(--border)]/50">
-              Columns line up with {startYearNum}–{startYearNum + years - 1}
+              <div className="text-[10px] text-[var(--muted2)] font-mono-custom pt-2 border-t border-[var(--border)]/50">
+                Columns line up with {startYearNum}–{startYearNum + years - 1}
+              </div>
             </div>
           </div>
 
@@ -302,36 +323,22 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
             </filter>
           </defs>
 
-          {/* Horizontal Gridlines & Y-Axis Values */}
+          {/* Horizontal gridlines (labels are HTML overlays — see below — so the
+              non-uniform SVG stretch never distorts text). */}
           {yTicks.map(pct => {
             const yPos = padT + drawH * (1 - pct);
-            const labelVal = maxVal * pct;
             return (
-              <g key={pct}>
-                <line
-                  x1={0}
-                  y1={yPos}
-                  x2={width}
-                  y2={yPos}
-                  stroke="var(--border)"
-                  strokeWidth="1"
-                  opacity="0.5"
-                  strokeDasharray={pct === 0 ? undefined : '3 3'}
-                />
-                <text
-                  x={40}
-                  y={yPos - 4}
-                  fill="var(--muted2)"
-                  fontSize="9.5"
-                  fontFamily="var(--font-mono)"
-                  fontWeight="600"
-                  stroke="var(--panel-alt)"
-                  strokeWidth="3"
-                  paintOrder="stroke"
-                >
-                  {labelVal >= 1000 ? `$${Math.round(labelVal / 1000)}k` : `$${Math.round(labelVal)}`}
-                </text>
-              </g>
+              <line
+                key={pct}
+                x1={0}
+                y1={yPos}
+                x2={width}
+                y2={yPos}
+                stroke="var(--border)"
+                strokeWidth="1"
+                opacity="0.5"
+                strokeDasharray={pct === 0 ? undefined : '3 3'}
+              />
             );
           })}
 
@@ -448,26 +455,6 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
               );
             })}
 
-          {/* Calendar Year Axis Labels at bottom - e.g. 2025, 2026, 2027 instead of Year 1, Year 2 */}
-          {Array.from({ length: years }).map((_, y) => {
-            const cx = (y + 0.5) * colW;
-            const displayYear = isMonths ? `Mo ${y + 1}` : `${startYearNum + y}`;
-            return (
-              <text
-                key={y}
-                x={cx}
-                y={height - 12}
-                fill="var(--text)"
-                fontSize="11.5"
-                fontWeight="700"
-                fontFamily="var(--font-mono)"
-                textAnchor="middle"
-              >
-                {displayYear}
-              </text>
-            );
-          })}
-
           {/* Interactive Hover Zones */}
           {Array.from({ length: years }).map((_, y) => {
             return (
@@ -524,6 +511,21 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
             </g>
           )}
         </svg>
+
+        {/* X-axis labels — HTML overlay, not SVG <text>, so the non-uniform
+            SVG scale can't stretch the type. Scrolls with the columns. */}
+        <div className="pointer-events-none absolute inset-0 select-none">
+          <div className="absolute inset-x-0 bottom-1.5 flex">
+            {Array.from({ length: years }).map((_, y) => (
+              <span
+                key={y}
+                className="flex-1 text-center text-[11px] font-bold font-mono-custom text-[var(--text)]"
+              >
+                {isMonths ? `Mo ${y + 1}` : `${startYearNum + y}`}
+              </span>
+            ))}
+          </div>
+        </div>
 
         {/* Floating Tooltip with Elevated Card Design */}
         {hoverYear !== null && (

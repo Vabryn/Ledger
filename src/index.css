@@ -134,11 +134,24 @@ body {
   left: 0;
   z-index: 4;
   background-color: inherit; /* take the row's own fill (banding / hover / totals) */
-  box-shadow: 5px 0 6px -4px rgb(0 0 0 / 0.14);
+  /* same divider as between year columns, plus a faint shadow so it reads
+     as pinned once content scrolls behind it */
+  border-right: 2px solid var(--col-divider);
+  box-shadow: 4px 0 6px -4px rgb(0 0 0 / 0.14);
 }
 .category-table-scroll thead tr > :first-child,
 #sticky-year-bar-scroll thead tr > :first-child {
   z-index: 5;
+}
+
+/* Same pinned-left treatment for non-table left rails (the chart sidebar). */
+.frozen-col {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background-color: var(--panel);
+  border-right: 2px solid var(--col-divider);
+  box-shadow: 4px 0 6px -4px rgb(0 0 0 / 0.14);
 }
 
 /* Edit mode adds a 32px drag-handle spacer as column 1, so pin the
@@ -146,6 +159,7 @@ body {
 .category-table-scroll table.is-edit tr > :first-child,
 #sticky-year-bar-scroll table.is-edit tr > :first-child {
   box-shadow: none;
+  border-right: 0;
 }
 .category-table-scroll table.is-edit tr > :nth-child(2),
 #sticky-year-bar-scroll table.is-edit tr > :nth-child(2) {
@@ -153,7 +167,8 @@ body {
   left: 2rem;
   z-index: 4;
   background-color: inherit;
-  box-shadow: 5px 0 6px -4px rgb(0 0 0 / 0.14);
+  border-right: 2px solid var(--col-divider);
+  box-shadow: 4px 0 6px -4px rgb(0 0 0 / 0.14);
 }
 /* the pinned drag-handle spacer in edit mode still needs an opaque fill */
 .category-table-scroll table.is-edit tr > :first-child,
