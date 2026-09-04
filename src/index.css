@@ -126,18 +126,21 @@ body {
   content: none;
 }
 
-/* ── Year-column divider shading ─────────────────────────────────────
+/* ── Year-column divider ─────────────────────────────────────────────
    The first sub-column of each projection year carries `border-l-2
-   border-[var(--col-divider)]` in the markup — a crisp line. Add a soft
-   rightward fade next to it so it matches the frozen column's ::after
-   and the category rules. The very first year (2025) is skipped: its
-   left edge already has the frozen column's divider, and two lines there
-   read as a doubled rule. */
+   border-[var(--col-divider)]` in the markup. Replace that flat border
+   with a single ::before that paints the crisp line PLUS a low-intensity
+   soft shadow on BOTH sides — the same recipe used for the frozen column
+   divider and (in SVG) the chart gridlines. The line sits ~2px inside the
+   column so both shadow flanks stay within the cell (which clips its
+   overflow). The very first year (2025) is skipped: the frozen column's
+   own divider already sits there. */
 .category-table-scroll td.border-l-2,
 .category-table-scroll th.border-l-2,
 #sticky-year-bar-scroll td.border-l-2,
 #sticky-year-bar-scroll th.border-l-2 {
   position: relative;
+  border-left: 0;
 }
 .category-table-scroll td.border-l-2::before,
 .category-table-scroll th.border-l-2::before,
@@ -148,11 +151,19 @@ body {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 4px;
+  width: 7px;
   pointer-events: none;
-  background: linear-gradient(to right, rgb(0 0 0 / 0.08), transparent);
+  background: linear-gradient(
+    to right,
+    transparent 0,
+    rgb(0 0 0 / 0.045) 14%,
+    var(--col-divider) 29%,
+    var(--col-divider) 57%,
+    rgb(0 0 0 / 0.045) 72%,
+    transparent 100%
+  );
 }
-/* First year: no year rule (border already zeroed above; drop the fade too). */
+/* First year: no year rule (the frozen divider already lives there). */
 .category-table-scroll tr > :nth-child(2)::before,
 #sticky-year-bar-scroll tr > :nth-child(2)::before,
 .category-table-scroll table.is-edit tr > :nth-child(3)::before,
@@ -196,13 +207,16 @@ body {
   top: 0;
   bottom: 0;
   right: 0;
-  width: 6px;
+  width: 7px;
   pointer-events: none;
   background: linear-gradient(
-    to right,
-    var(--col-divider) 0 2px,
-    rgb(0 0 0 / 0.08) 2px,
-    transparent
+    to left,
+    transparent 0,
+    rgb(0 0 0 / 0.045) 14%,
+    var(--col-divider) 29%,
+    var(--col-divider) 57%,
+    rgb(0 0 0 / 0.045) 72%,
+    transparent 100%
   );
 }
 .category-table-scroll thead tr > :first-child,
@@ -221,14 +235,18 @@ body {
   border-left: 0;
 }
 
-/* Same pinned-left treatment for non-table left rails (the chart sidebar). */
+/* Same pinned-left treatment for non-table left rails (the chart sidebar).
+   Right edge is a column line, so it gets the same low-intensity two-sided
+   soft shadow as the table dividers. */
 .frozen-col {
   position: sticky;
   left: 0;
   z-index: 5;
   background-color: var(--panel);
   border-right: 2px solid var(--col-divider);
-  box-shadow: 4px 0 6px -4px rgb(0 0 0 / 0.14);
+  box-shadow:
+    3px 0 5px -3px rgb(0 0 0 / 0.09),
+    -3px 0 5px -3px rgb(0 0 0 / 0.06);
 }
 
 /* Edit mode adds a 32px drag-handle spacer as column 1, so pin the
@@ -259,13 +277,16 @@ body {
   top: 0;
   bottom: 0;
   right: 0;
-  width: 6px;
+  width: 7px;
   pointer-events: none;
   background: linear-gradient(
-    to right,
-    var(--col-divider) 0 2px,
-    rgb(0 0 0 / 0.08) 2px,
-    transparent
+    to left,
+    transparent 0,
+    rgb(0 0 0 / 0.045) 14%,
+    var(--col-divider) 29%,
+    var(--col-divider) 57%,
+    rgb(0 0 0 / 0.045) 72%,
+    transparent 100%
   );
 }
 /* the pinned drag-handle spacer in edit mode still needs an opaque fill */
@@ -276,6 +297,28 @@ body {
 .category-table-scroll table.is-edit thead tr > :nth-child(2),
 #sticky-year-bar-scroll table.is-edit thead tr > :nth-child(2) {
   z-index: 5;
+}
+
+/* ── Sub-card ────────────────────────────────────────────────────────
+   The framed panel that wraps each projection table and the summary
+   chart, sitting inside its section card. A little more lift than the
+   section card itself — a soft drop plus a hairline top highlight — so
+   it reads as a raised surface. */
+.sub-card {
+  background-color: var(--row-alt);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.5),
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 8px 18px -8px rgb(0 0 0 / 0.16);
+}
+.dark .sub-card {
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.04),
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 10px 22px -8px rgb(0 0 0 / 0.55);
 }
 
 .font-mono-custom {

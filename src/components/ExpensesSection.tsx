@@ -215,7 +215,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
         </div>
 
         {/* Expenses Table with Scoped Drag-and-Drop */}
-        <div className="bg-[var(--row-alt)] border border-[var(--border)]/70 rounded-xl shadow-xs overflow-hidden">
+        <div className="sub-card">
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
           <DragDropContext onDragEnd={handleCategoryDragEnd}>
             <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>

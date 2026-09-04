@@ -156,7 +156,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
   const yTicks = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <div className="relative bg-[var(--row-alt)] border border-[var(--border)]/70 rounded-xl mt-5 shadow-xs overflow-hidden transition-all">
+    <div className="sub-card relative mt-5 transition-all">
       {/* Y-axis scale — anchored to the non-scrolling outer card at the canvas's
           left edge, so it stays put while the canvas scrolls horizontally. HTML,
           not SVG <text>, so the non-uniform SVG scale can't stretch the type. */}
@@ -321,6 +321,13 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
             <filter id="subtle-glow" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15" />
             </filter>
+            {/* Low-intensity two-sided soft shadow for the vertical column
+                lines — the SVG counterpart of the tables' divider ::before. */}
+            <linearGradient id="vdiv-shadow" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#000" stopOpacity="0" />
+              <stop offset="50%" stopColor="#000" stopOpacity="0.045" />
+              <stop offset="100%" stopColor="#000" stopOpacity="0" />
+            </linearGradient>
           </defs>
 
           {/* Horizontal gridlines (labels are HTML overlays — see below — so the
@@ -342,20 +349,17 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
             );
           })}
 
-          {/* Vertical Column Separator Gridlines between years (matching table's border-l-2) */}
+          {/* Vertical column separators between years — crisp line plus the
+              same low-intensity two-sided soft shadow as the table dividers. */}
           {Array.from({ length: years }).map((_, y) => {
             if (y === 0) return null;
             const xPos = y * colW;
+            const y2 = height - padB + 6;
             return (
-              <line
-                key={`vgrid-${y}`}
-                x1={xPos}
-                y1={0}
-                x2={xPos}
-                y2={height - padB + 6}
-                stroke="var(--col-divider)"
-                strokeWidth="2"
-              />
+              <g key={`vgrid-${y}`}>
+                <rect x={xPos - 3.5} y={0} width={7} height={y2} fill="url(#vdiv-shadow)" />
+                <line x1={xPos} y1={0} x2={xPos} y2={y2} stroke="var(--col-divider)" strokeWidth="2" />
+              </g>
             );
           })}
 
