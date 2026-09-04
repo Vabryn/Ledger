@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CalculationResult, CustomSavingsFund, ViewMode } from '../types';
-import { fmt$, num } from '../utils/taxAndCalculations';
+import { fmt$, fmtCompact$, num } from '../utils/taxAndCalculations';
 import { ShieldCheck, ArrowUp, ArrowDown, Plus, Trash2, AlertCircle, LineChart } from 'lucide-react';
 
 interface RetirementSectionProps {
@@ -39,7 +39,6 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
   isHighlighted,
 }) => {
   const isMonths = viewMode === 'months';
-  const startYearNum = startYear || 2025;
   const periodLabel = isMonths ? 'Month' : 'Year';
 
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -109,14 +108,14 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
           </div>
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-            <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+            <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
                 <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
                 {Array.from({ length: years }).map((_, y) => (
                   <React.Fragment key={y}>
-                    <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
-                    <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                    <col />
+                    <col />
                   </React.Fragment>
                 ))}
                 {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -203,7 +202,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
                     <td key={y} colSpan={2} className="py-1.5 px-2 text-center border-l-2 border-[var(--col-divider)]">
-                      {fmt$(calc.retireTarget[y] ?? 0)}
+                      {fmtCompact$(calc.retireTarget[y] ?? 0)}
                     </td>
                   ))}
                   {isEditMode && <td></td>}
@@ -217,7 +216,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
                     <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--text)] border-l-2 border-[var(--col-divider)]">
-                      {fmt$(calc.rothArr[y] ?? 0)}
+                      {fmtCompact$(calc.rothArr[y] ?? 0)}
                     </td>
                   ))}
                   {isEditMode && <td></td>}
@@ -231,7 +230,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
                     <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--text)] border-l-2 border-[var(--col-divider)]">
-                      {fmt$(calc.k401Arr[y] ?? 0)}
+                      {fmtCompact$(calc.k401Arr[y] ?? 0)}
                     </td>
                   ))}
                   {isEditMode && <td></td>}
@@ -245,7 +244,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
                     <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--pos)] border-l-2 border-[var(--col-divider)]">
-                      +{fmt$(calc.employerMatchAmount[y] ?? 0)}
+                      +{fmtCompact$(calc.employerMatchAmount[y] ?? 0)}
                     </td>
                   ))}
                   {isEditMode && <td></td>}
@@ -259,7 +258,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
                     <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--text)] font-bold border-l-2 border-[var(--col-divider)]">
-                      {fmt$(calc.retireActual[y] ?? 0)}
+                      {fmtCompact$(calc.retireActual[y] ?? 0)}
                     </td>
                   ))}
                   {isEditMode && <td></td>}
@@ -281,14 +280,14 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
           </div>
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-            <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+            <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
                 <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
                 {Array.from({ length: years }).map((_, y) => (
                   <React.Fragment key={y}>
-                    <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
-                    <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                    <col />
+                    <col />
                   </React.Fragment>
                 ))}
                 {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -388,7 +387,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   <td className="py-2 px-3 font-sans-custom text-[var(--text)]">Total Custom Savings</td>
                   {Array.from({ length: years }).map((_, y) => (
                     <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--accent)] font-bold border-l-2 border-[var(--col-divider)]">
-                      {fmt$(calc.customSavingsTotal[y] ?? 0)}
+                      {fmtCompact$(calc.customSavingsTotal[y] ?? 0)}
                     </td>
                   ))}
                   {isEditMode && <td></td>}

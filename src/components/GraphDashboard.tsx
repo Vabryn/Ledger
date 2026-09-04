@@ -160,7 +160,10 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
   return (
     <div className="bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded-xl mt-5 shadow-xs overflow-hidden transition-all">
       <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleChartScroll}>
-        <div className="w-full min-w-[480px] flex items-stretch">
+        <div
+          className="w-full flex items-stretch"
+          style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w)${state.isEditMode ? ' + 32px' : ''})` }}
+        >
           {/* Edit mode left spacer */}
           {state.isEditMode && <div className="w-8 min-w-[32px] flex-shrink-0 border-r border-[var(--border)]/40" />}
 
@@ -176,26 +179,28 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => onChangeGraphType('area')}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-md transition cursor-pointer ${
+                    title="Trend lines"
+                    className={`flex items-center justify-center gap-1 py-1.5 text-[11px] font-semibold rounded-md transition cursor-pointer ${
                       mode === 'area'
                         ? 'bg-[var(--accent)] text-white shadow-xs'
                         : 'text-[var(--muted)] hover:text-[var(--text)]'
                     }`}
                   >
-                    <TrendingUp className="w-3.5 h-3.5" />
+                    <TrendingUp className="w-3.5 h-3.5 flex-shrink-0" />
                     <span>Trend</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => onChangeGraphType('grouped')}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-md transition cursor-pointer ${
+                    title="Grouped bars"
+                    className={`flex items-center justify-center gap-1 py-1.5 text-[11px] font-semibold rounded-md transition cursor-pointer ${
                       mode === 'grouped'
                         ? 'bg-[var(--accent)] text-white shadow-xs'
                         : 'text-[var(--muted)] hover:text-[var(--text)]'
                     }`}
                   >
-                    <BarChart3 className="w-3.5 h-3.5" />
-                    <span>Comparison</span>
+                    <BarChart3 className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>Bars</span>
                   </button>
                 </div>
               </div>
@@ -263,13 +268,13 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
             </div>
           </div>
 
-          {/* Right Canvas: fixed to the same per-year width as the table columns
-              (2 x var(--yr-col-w)) so the year axis lines up exactly, and scrolls
-              with them via the shared .category-table-scroll wrapper. */}
+          {/* Right Canvas: grows to fill the width left of the sidebar (like the
+              section tables' year columns), with a slim floor, and scrolls in
+              lockstep via the shared .category-table-scroll wrapper. */}
           <div
             ref={containerRef}
-            className="flex-shrink-0 relative"
-            style={{ height: `${height}px`, width: `calc(${years} * 2 * var(--yr-col-w))` }}
+            className="flex-1 min-w-0 relative"
+            style={{ height: `${height}px`, minWidth: `calc(${years} * 2 * var(--yr-col-w))` }}
           >
         <svg
           viewBox={`0 0 ${width} ${height}`}
@@ -316,7 +321,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
                   strokeDasharray={pct === 0 ? undefined : '3 3'}
                 />
                 <text
-                  x={8}
+                  x={40}
                   y={yPos - 4}
                   fill="var(--muted2)"
                   fontSize="9.5"
@@ -340,13 +345,11 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
               <line
                 key={`vgrid-${y}`}
                 x1={xPos}
-                y1={padT}
+                y1={0}
                 x2={xPos}
                 y2={height - padB + 6}
-                stroke="var(--border)"
-                strokeDasharray="4 4"
-                strokeWidth="1.2"
-                opacity="0.8"
+                stroke="var(--col-divider)"
+                strokeWidth="2"
               />
             );
           })}

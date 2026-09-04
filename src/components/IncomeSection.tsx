@@ -1,9 +1,8 @@
 import React from 'react';
 import { WorkerItem, IncomeItem, ViewMode, IncomeFrequency, PayoutFrequency } from '../types';
-import { fmt$, num, getAnnualIncome, toPeriodValue } from '../utils/taxAndCalculations';
-import { TrendingUp, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, Copy, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
+import { fmt$, fmtCompact$, num, getAnnualIncome, toPeriodValue } from '../utils/taxAndCalculations';
+import { TrendingUp, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { CopyYearControl } from './CopyYearControl';
 
 interface IncomeSectionProps {
   years: number;
@@ -22,8 +21,6 @@ interface IncomeSectionProps {
   onRemoveOther: (idx: number) => void;
   onReorderOther: (startIndex: number, endIndex: number) => void;
   onToggleOtherIncome: (show: boolean) => void;
-  onCopyWorkerCol: (fromYear: number, toYear: number | 'all') => void;
-  onCopyOtherCol: (fromYear: number, toYear: number | 'all') => void;
   onMoveSection?: (dir: 'up' | 'down') => void;
   isHighlighted?: boolean;
 }
@@ -45,14 +42,10 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
   onRemoveOther,
   onReorderOther,
   onToggleOtherIncome,
-  onCopyWorkerCol,
-  onCopyOtherCol,
   onMoveSection,
   isHighlighted,
 }) => {
   const isMonths = viewMode === 'months';
-  const startYearNum = startYear || 2025;
-  const periodLabel = isMonths ? 'Month' : 'Year';
   const grossLabel = isMonths ? 'Gross Monthly' : 'Gross Annual';
 
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -118,27 +111,18 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                 Income Earners (Wages & Salary)
               </h3>
             </div>
-            {years > 1 && (
-              <div className="ml-auto">
-                <CopyYearControl
-                  years={years}
-                  periodLabel={periodLabel}
-                  onCopy={(fromY, toY) => onCopyWorkerCol(fromY, toY)}
-                />
-              </div>
-            )}
           </div>
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
             <DragDropContext onDragEnd={handleWorkerDragEnd}>
-              <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+              <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
                 <colgroup>
                   {isEditMode && <col className="w-8 min-w-[32px]" />}
                   <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
                   {Array.from({ length: years }).map((_, y) => (
                     <React.Fragment key={y}>
-                      <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
-                      <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                      <col />
+                      <col />
                     </React.Fragment>
                   ))}
                   {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -290,7 +274,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                         </td>
                                         <td className="py-1.5 px-1 text-center font-mono-custom">
                                           <span className={`total-cell-text ${isNonZero ? 'active-total' : 'zero-total'} text-xs font-semibold`}>
-                                            {fmt$(periodDisplay)}
+                                            {fmtCompact$(periodDisplay)}
                                           </span>
                                         </td>
                                       </React.Fragment>
@@ -359,13 +343,6 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
             </div>
             
             <div className="flex items-center gap-3 ml-auto">
-              {showOtherIncome && !isOtherCollapsed && years > 1 && (
-                <CopyYearControl
-                  years={years}
-                  periodLabel={periodLabel}
-                  onCopy={(fromY, toY) => onCopyOtherCol(fromY, toY)}
-                />
-              )}
 
               <button
                 type="button"
@@ -402,14 +379,14 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
             <div>
               <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
                 <DragDropContext onDragEnd={handleOtherDragEnd}>
-                  <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+                  <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
                     <colgroup>
                       {isEditMode && <col className="w-8 min-w-[32px]" />}
                       <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
                       {Array.from({ length: years }).map((_, y) => (
                         <React.Fragment key={y}>
-                          <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
-                          <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                          <col />
+                          <col />
                         </React.Fragment>
                       ))}
                       {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -518,7 +495,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                               </td>
                                               <td className="py-1.5 pl-1 pr-2.5 text-center font-mono-custom">
                                                 <span className={`total-cell-text ${isNonZero ? 'active-total' : 'zero-total'} text-xs font-semibold`}>
-                                                  {fmt$(periodDisplay)}
+                                                  {fmtCompact$(periodDisplay)}
                                                 </span>
                                               </td>
                                             </React.Fragment>

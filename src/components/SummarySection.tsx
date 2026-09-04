@@ -1,6 +1,6 @@
 import React from 'react';
 import { CalculationResult, PlannerState } from '../types';
-import { fmt$, fmtPct } from '../utils/taxAndCalculations';
+import { fmt$, fmtCompact$, fmtPct } from '../utils/taxAndCalculations';
 import { GraphDashboard } from './GraphDashboard';
 import { LayoutDashboard, ArrowUp, ArrowDown } from 'lucide-react';
 
@@ -119,7 +119,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
         {/* Aligned Projection Matrix Table */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-          <table className={`table-fixed text-xs border-collapse min-w-[480px]${state.isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
+          <table className={`w-full table-fixed text-xs border-collapse${state.isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
             <colgroup>
               {state.isEditMode && <col className="w-8 min-w-[32px]" />}
               {/* Left Overview & Metrics Column */}
@@ -127,8 +127,8 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               {/* Year Columns matching sticky header */}
               {Array.from({ length: years }).map((_, y) => (
                 <React.Fragment key={y}>
-                  <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
-                  <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                  <col />
+                  <col />
                 </React.Fragment>
               ))}
               {state.isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -171,7 +171,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     colSpan={2}
                     className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs text-[var(--text)]"
                   >
-                    {fmt$(calc.g[y] ?? 0)}
+                    {fmtCompact$(calc.g[y] ?? 0)}
                   </td>
                 ))}
                 {state.isEditMode && <td></td>}
@@ -197,7 +197,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                       colSpan={2}
                       className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs text-[var(--neg)]"
                     >
-                      -{fmt$(yrTax)}
+                      -{fmtCompact$(yrTax)}
                     </td>
                   );
                 })}
@@ -221,7 +221,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     colSpan={2}
                     className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs font-semibold text-[var(--text)]"
                   >
-                    {fmt$(calc.net[y] ?? 0)}
+                    {fmtCompact$(calc.net[y] ?? 0)}
                   </td>
                 ))}
                 {state.isEditMode && <td></td>}
@@ -244,7 +244,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     colSpan={2}
                     className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs text-[var(--neg)]"
                   >
-                    -{fmt$(calc.colOnly[y] ?? 0)}
+                    -{fmtCompact$(calc.colOnly[y] ?? 0)}
                   </td>
                 ))}
                 {state.isEditMode && <td></td>}
@@ -271,7 +271,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                         yrSavings >= 0 ? 'text-[var(--pos)]' : 'text-[var(--neg)]'
                       }`}
                     >
-                      {fmt$(yrSavings)}
+                      {fmtCompact$(yrSavings)}
                     </td>
                   );
                 })}
@@ -299,7 +299,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                         cumSavings >= 0 ? 'text-[var(--accum)]' : 'text-[var(--neg)]'
                       }`}
                     >
-                      {fmt$(cumSavings)}
+                      {fmtCompact$(cumSavings)}
                     </td>
                   );
                 })}
@@ -323,7 +323,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     colSpan={2}
                     className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs text-[var(--text)]"
                   >
-                    {fmt$(calc.retireActual[y] ?? 0)}
+                    {fmtCompact$(calc.retireActual[y] ?? 0)}
                   </td>
                 ))}
                 {state.isEditMode && <td></td>}
@@ -346,7 +346,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     colSpan={2}
                     className="py-2 px-2 text-center border-l-2 border-[var(--col-divider)] font-mono-custom text-xs font-bold text-[var(--text)]"
                   >
-                    {fmt$(calc.retireOT[y] ?? 0)}
+                    {fmtCompact$(calc.retireOT[y] ?? 0)}
                   </td>
                 ))}
                 {state.isEditMode && <td></td>}
@@ -373,7 +373,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                         unalloc >= 0 ? 'text-[var(--pos)]' : 'text-[var(--neg)]'
                       }`}
                     >
-                      {fmt$(unalloc)}
+                      {fmtCompact$(unalloc)}
                     </td>
                   );
                 })}

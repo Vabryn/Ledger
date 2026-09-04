@@ -41,6 +41,23 @@ export const fmt$ = (n: number | undefined | null): string => {
   return (rounded < 0 ? '-' : '') + '$' + Math.abs(rounded).toLocaleString('en-US');
 };
 
+/**
+ * Compact currency for the narrow year columns. Values under $100k render in
+ * full ($8,273); larger values switch to k / M so they always fit the column
+ * ($135k, -$329k, $1.49M). Used only inside the projection grid — precise
+ * totals still use fmt$ in the wider row-label sub-lines and KPI cards.
+ */
+export const fmtCompact$ = (n: number | undefined | null): string => {
+  if (n === undefined || n === null || isNaN(n) || !isFinite(n)) return '$0';
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  if (abs < 100_000) return fmt$(n);
+  if (abs < 1_000_000) return `${sign}$${Math.round(abs / 1000).toLocaleString('en-US')}k`;
+  const m = abs / 1_000_000;
+  const str = m >= 100 ? Math.round(m).toString() : m.toFixed(2).replace(/\.?0+$/, '');
+  return `${sign}$${str}M`;
+};
+
 /** Formats a numeric value into a percentage string (e.g. 15.0%). */
 export const fmtPct = (n: number | undefined | null): string => {
   if (n === undefined || n === null || isNaN(n) || !isFinite(n)) return '0.0%';

@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef, useDeferredValue, lazy, Suspense } from 'react';
-import { PlannerState, ExpenseItem, FilingStatus, CustomSavingsFund, ViewMode, IncomeFrequency, PayoutFrequency } from './types';
+import { useState, useEffect, useMemo, useRef, useDeferredValue } from 'react';
+import { PlannerState, ExpenseItem, FilingStatus, CustomSavingsFund, IncomeFrequency, PayoutFrequency } from './types';
 import {
   getDefaultSampleState,
   getCleanEmptyState,
@@ -16,16 +16,10 @@ import { ExpensesSection } from './components/ExpensesSection';
 import { RetirementSection } from './components/RetirementSection';
 import { SummarySection } from './components/SummarySection';
 
-// Tutorial is a large, rarely-opened walkthrough — load it on demand.
-const TutorialModal = lazy(() =>
-  import('./components/TutorialModal').then(m => ({ default: m.TutorialModal }))
-);
-
 export default function App() {
   const [activeCategory, setActiveCategory] = useState<NavCategory>('all');
   const [scrolledCategory, setScrolledCategory] = useState<NavCategory>('income');
   const [activeDescription, setActiveDescription] = useState<'income' | 'expenses' | null>(null);
-  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [state, setState] = useState<PlannerState>(() => {
     const saved = safeStorage.getJson<any>(STORAGE_KEY, null);
     if (saved) {
@@ -93,10 +87,6 @@ export default function App() {
     }));
   };
 
-  // View Mode Handler
-  const handleToggleViewMode = (mode: ViewMode) => {
-    setState(prev => ({ ...prev, viewMode: mode }));
-  };
 
   // Year Handlers
   const handleAddYear = () => {
@@ -255,29 +245,6 @@ export default function App() {
     });
   };
 
-  const handleCopyWorkerCol = (fromYear: number, toYear: number | 'all') => {
-    setState(prev => {
-      const updatedWorkers = prev.workers.map(w => {
-        const newWage = [...w.wage];
-        const newHours = [...w.hours];
-        const srcWage = newWage[fromYear] ?? 0;
-        const srcHours = newHours[fromYear] ?? 40;
-        if (toYear === 'all') {
-          for (let i = 0; i < prev.years; i++) {
-            if (i !== fromYear) {
-              newWage[i] = srcWage;
-              newHours[i] = srcHours;
-            }
-          }
-        } else {
-          newWage[toYear] = srcWage;
-          newHours[toYear] = srcHours;
-        }
-        return { ...w, wage: newWage, hours: newHours };
-      });
-      return { ...prev, workers: updatedWorkers };
-    });
-  };
 
   // Other Income
   const handleUpdateOther = (
@@ -333,25 +300,6 @@ export default function App() {
     });
   };
 
-  const handleCopyOtherCol = (fromYear: number, toYear: number | 'all') => {
-    setState(prev => {
-      const updatedOther = prev.other.map(o => {
-        const newAmount = [...o.amount];
-        const srcAmount = newAmount[fromYear] ?? 0;
-        if (toYear === 'all') {
-          for (let i = 0; i < prev.years; i++) {
-            if (i !== fromYear) {
-              newAmount[i] = srcAmount;
-            }
-          }
-        } else {
-          newAmount[toYear] = srcAmount;
-        }
-        return { ...o, amount: newAmount };
-      });
-      return { ...prev, other: updatedOther };
-    });
-  };
 
   // Expenses
   const handleUpdateExpense = (
@@ -492,25 +440,6 @@ export default function App() {
     });
   };
 
-  const handleCopyExpenseCol = (fromYear: number, toYear: number | 'all') => {
-    setState(prev => {
-      const updatedCol = prev.col.map(c => {
-        const newMonthly = [...c.monthly];
-        const srcMonthly = newMonthly[fromYear] ?? 0;
-        if (toYear === 'all') {
-          for (let i = 0; i < prev.years; i++) {
-            if (i !== fromYear) {
-              newMonthly[i] = srcMonthly;
-            }
-          }
-        } else {
-          newMonthly[toYear] = srcMonthly;
-        }
-        return { ...c, monthly: newMonthly };
-      });
-      return { ...prev, col: updatedCol };
-    });
-  };
 
   // Retirement & Custom Savings
   const handleAddCustomSavings = (name: string, targetAmount?: number) => {
@@ -695,8 +624,6 @@ export default function App() {
             onRemoveOther={handleRemoveOther}
             onReorderOther={handleReorderOther}
             onToggleOtherIncome={show => setState(prev => ({ ...prev, showOtherIncome: show }))}
-            onCopyWorkerCol={handleCopyWorkerCol}
-            onCopyOtherCol={handleCopyOtherCol}
             onMoveSection={dir => handleMoveSection('sec-income', dir)}
             isHighlighted={isHighlighted}
           />
@@ -771,7 +698,6 @@ export default function App() {
             onChangeIntensity={val => setState(prev => ({ ...prev, colIntensity: val }))}
             onChangeContrast={val => setState(prev => ({ ...prev, colContrast: val }))}
             onChangeHue={val => setState(prev => ({ ...prev, colHue: val }))}
-            onCopyExpenseCol={handleCopyExpenseCol}
             onMoveSection={dir => handleMoveSection('sec-expenses', dir)}
             isHighlighted={isHighlighted}
           />
@@ -850,11 +776,6 @@ export default function App() {
         effectiveCategory={activeCategory === 'all' ? scrolledCategory : activeCategory}
         activeDescription={activeDescription}
         onSelectCategory={cat => setActiveCategory(cat)}
-        counts={{
-          incomeWorkers: state.workers.length,
-          expenseItems: state.col.length,
-          savingsFunds: Object.keys(state.customSavings || {}).length,
-        }}
         onAddYear={handleAddYear}
         onRemoveYear={handleRemoveYear}
         onToggleDarkMode={() => {
@@ -864,24 +785,23 @@ export default function App() {
         onToggleEditMode={() => setState(prev => ({ ...prev, isEditMode: !prev.isEditMode }))}
         onResetDefaults={() => setState(getDefaultSampleState())}
         onClearToBlank={() => setState(getCleanEmptyState(state.years || 3))}
-        onOpenTutorial={() => setIsTutorialOpen(true)}
         onChangeStartYear={handleChangeStartYear}
       />
 
       {/* Main Container */}
-      <main className="max-w-[1850px] w-full mx-auto px-3 sm:px-5 lg:px-6 pt-2 pb-20 transition-all duration-300">
-        {/* Dynamic Ordered Sections / Filtered by Category */}
+      <main className="max-w-[1850px] w-full mx-auto px-3 sm:px-5 lg:px-6 pt-4 pb-20">
+        {/* All sections stay mounted; a category filter just hides the rest,
+            so switching categories never tears down / rebuilds the DOM. */}
         <div className="flex flex-col">
-          {activeCategory === 'all' && state.sectionOrder.map(secId => (
-            <div id={secId} key={secId}>
-              {renderSection(secId)}
-            </div>
-          ))}
-          {activeCategory === 'income' && <div id="sec-income">{renderSection('sec-income')}</div>}
-          {activeCategory === 'expenses' && <div id="sec-expenses">{renderSection('sec-expenses')}</div>}
-          {activeCategory === 'taxes' && <div id="sec-taxes">{renderSection('sec-taxes')}</div>}
-          {activeCategory === 'retire' && <div id="sec-retire">{renderSection('sec-retire')}</div>}
-          {activeCategory === 'summary' && <div id="sec-summary">{renderSection('sec-summary')}</div>}
+          {state.sectionOrder.map(secId => {
+            const cat = secId.replace('sec-', '') as NavCategory;
+            const visible = activeCategory === 'all' || activeCategory === cat;
+            return (
+              <div id={secId} key={secId} hidden={!visible}>
+                {renderSection(secId)}
+              </div>
+            );
+          })}
         </div>
 
         {/* Footnote */}
@@ -890,12 +810,6 @@ export default function App() {
         </footer>
       </main>
 
-      {/* Dimmed Interactive Step-by-Step Tutorial Walkthrough (lazy-loaded) */}
-      {isTutorialOpen && (
-        <Suspense fallback={null}>
-          <TutorialModal isOpen={isTutorialOpen} onClose={() => setIsTutorialOpen(false)} />
-        </Suspense>
-      )}
     </div>
   );
 }

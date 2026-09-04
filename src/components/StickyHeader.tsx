@@ -15,7 +15,6 @@ import {
   LayoutDashboard,
   Layers,
   ChevronDown,
-  HelpCircle,
   AlertTriangle,
   Calendar,
 } from 'lucide-react';
@@ -28,18 +27,12 @@ interface StickyHeaderProps {
   effectiveCategory?: NavCategory;
   activeDescription?: 'income' | 'expenses' | null;
   onSelectCategory: (category: NavCategory) => void;
-  counts?: {
-    incomeWorkers?: number;
-    expenseItems?: number;
-    savingsFunds?: number;
-  };
   onAddYear: () => void;
   onRemoveYear: () => void;
   onToggleDarkMode: () => void;
   onToggleEditMode: () => void;
   onResetDefaults: () => void;
   onClearToBlank: () => void;
-  onOpenTutorial: () => void;
   onChangeStartYear?: (startYear: number) => void;
 }
 
@@ -49,14 +42,12 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   effectiveCategory,
   activeDescription,
   onSelectCategory,
-  counts,
   onAddYear,
   onRemoveYear,
   onToggleDarkMode,
   onToggleEditMode,
   onResetDefaults,
   onClearToBlank,
-  onOpenTutorial,
   onChangeStartYear,
 }) => {
   const years = state.years || 1;
@@ -145,48 +136,48 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   }, [isEditDropdownOpen]);
 
   const navItems: { id: NavCategory; label: string; icon: React.ReactNode }[] = [
-    {
-      id: 'all',
-      label: 'All Categories',
-      icon: <Layers className="w-3.5 h-3.5" />,
-    },
-    {
-      id: 'income',
-      label: 'Income',
-      icon: <DollarSign className="w-3.5 h-3.5" />,
-    },
-    {
-      id: 'expenses',
-      label: 'Expenses',
-      icon: <Receipt className="w-3.5 h-3.5" />,
-    },
-    {
-      id: 'taxes',
-      label: 'Taxes',
-      icon: <Landmark className="w-3.5 h-3.5" />,
-    },
-    {
-      id: 'retire',
-      label: 'Retirement & Savings',
-      icon: <PiggyBank className="w-3.5 h-3.5" />,
-    },
-    {
-      id: 'summary',
-      label: 'Summary & Projections',
-      icon: <LayoutDashboard className="w-3.5 h-3.5" />,
-    },
+    { id: 'all', label: 'All', icon: <Layers className="w-3.5 h-3.5" /> },
+    { id: 'income', label: 'Income', icon: <DollarSign className="w-3.5 h-3.5" /> },
+    { id: 'expenses', label: 'Expenses', icon: <Receipt className="w-3.5 h-3.5" /> },
+    { id: 'taxes', label: 'Taxes', icon: <Landmark className="w-3.5 h-3.5" /> },
+    { id: 'retire', label: 'Retirement', icon: <PiggyBank className="w-3.5 h-3.5" /> },
+    { id: 'summary', label: 'Summary', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
   ];
 
   return (
     <header
       id="sticky-header-container"
-      className="sticky top-0 z-50 bg-[var(--panel)] border-b border-[var(--border)] shadow-sm pt-2 pb-1.5 mb-4 transition-colors duration-200"
+      className="sticky top-0 z-50 bg-[var(--bg)] mb-4 transition-colors duration-200"
     >
-      <div className="max-w-[1850px] w-full mx-auto px-3 sm:px-5 lg:px-6 flex flex-col gap-1.5 transition-all duration-300">
-        {/* Top Row: Metrics & Toolbar - side by side so sparkline graph is left of Dark mode */}
-        <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+      {/* Panel box that matches the section cards: left/right/bottom borders,
+          rounded bottom corners, no top edge. */}
+      <div className="max-w-[1850px] w-full mx-auto px-3 sm:px-5 lg:px-6 pt-2 pb-2 bg-[var(--panel)] border-x border-b border-[var(--border)] rounded-b-xl shadow-sm flex flex-col gap-1.5">
+        {/* Category nav + planner toolbar share one line, separated. */}
+        <div className="flex items-center justify-between flex-wrap gap-x-5 gap-y-1.5">
+          <nav aria-label="Planner sections" className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+            {navItems.map(item => {
+              const isActive = activeCategory === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onSelectCategory(item.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium font-sans-custom transition-colors cursor-pointer select-none whitespace-nowrap ${
+                    isActive
+                      ? 'bg-[var(--accent)] text-white font-semibold shadow-sm'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--panel-alt)]'
+                  }`}
+                >
+                  <span className={isActive ? 'text-white' : 'text-[var(--muted2)]'}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
           {/* Global Toolbar Controls */}
-          <div id="planner-toolbar" className="flex items-center flex-wrap gap-1.5 sm:gap-2 flex-shrink-0">
+          <div id="planner-toolbar" className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {/* Dark Mode Toggle */}
             <button
               onClick={onToggleDarkMode}
@@ -371,46 +362,6 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
               )}
             </div>
 
-            {/* Tutorial Walkthrough Button (Positioned to the right of Edit) */}
-            <button
-              type="button"
-              onClick={onOpenTutorial}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-indigo-500/40 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition cursor-pointer shadow-xs"
-              title="Start step-by-step tutorial walkthrough"
-            >
-              <HelpCircle className="w-3.5 h-3.5" />
-              <span>Tutorial</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Attached Category Navigation Sub-Bar */}
-        <div
-          id="category-nav-bar"
-          className="border-t border-[var(--border)]/70 pt-1.5 flex items-center justify-start overflow-x-auto scrollbar-none relative"
-        >
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap min-w-max pb-1">
-            {navItems.map(item => {
-              const isActive = activeCategory === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onSelectCategory(item.id)}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`relative group flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium font-sans-custom transition-all cursor-pointer select-none whitespace-nowrap ${
-                    isActive
-                      ? 'bg-[var(--accent)] text-white font-semibold shadow-sm'
-                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--panel-alt)]'
-                  }`}
-                >
-                  <span className={isActive ? 'text-white' : 'text-[var(--muted2)]'}>
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
 
@@ -424,7 +375,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
               className="overflow-x-auto scrollbar-none"
               onScroll={handleHeaderScroll}
             >
-              <table className={`table-fixed text-xs border-collapse min-w-[480px]${state.isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
+              <table className={`w-full table-fixed text-xs border-collapse${state.isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
                 <colgroup>
                   {state.isEditMode && <col className="w-8 min-w-[32px]" />}
                   {/* Name / Category Column */}
@@ -432,8 +383,8 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                   {/* Year sub-columns */}
                   {Array.from({ length: years }).map((_, y) => (
                     <React.Fragment key={y}>
-                      <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
-                      <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                      <col />
+                      <col />
                     </React.Fragment>
                   ))}
                   {state.isEditMode && <col className="w-10 min-w-[40px]" />}

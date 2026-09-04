@@ -1,6 +1,6 @@
 import React from 'react';
 import { CalculationResult, FilingStatus, ViewMode } from '../types';
-import { fmt$ } from '../utils/taxAndCalculations';
+import { fmt$, fmtCompact$ } from '../utils/taxAndCalculations';
 import { Percent, ArrowUp, ArrowDown, HelpCircle } from 'lucide-react';
 
 interface TaxSectionProps {
@@ -43,7 +43,6 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
   isHighlighted,
 }) => {
   const isMonths = viewMode === 'months';
-  const startYearNum = startYear || 2025;
   const periodLabel = isMonths ? 'Month' : 'Year';
 
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -158,14 +157,14 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
 
         {/* Tax Table */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-          <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+          <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
             <colgroup>
               {isEditMode && <col className="w-8 min-w-[32px]" />}
               <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
               {Array.from({ length: years }).map((_, y) => (
                 <React.Fragment key={y}>
-                  <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
-                  <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                  <col />
+                  <col />
                 </React.Fragment>
               ))}
               {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -250,7 +249,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 <td className="py-2 px-3 font-sans-custom text-[var(--muted)]">Federal Income Tax</td>
                 {Array.from({ length: years }).map((_, y) => (
                   <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--neg)] border-l-2 border-[var(--col-divider)]">
-                    {fmt$(calc.fed[y] ?? 0)}
+                    {fmtCompact$(calc.fed[y] ?? 0)}
                   </td>
                 ))}
                 {isEditMode && <td></td>}
@@ -262,7 +261,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 <td className="py-2 px-3 font-sans-custom text-[var(--muted)]">State & Local Tax</td>
                 {Array.from({ length: years }).map((_, y) => (
                   <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--neg)] border-l-2 border-[var(--col-divider)]">
-                    {fmt$(calc.stTax[y] ?? 0)}
+                    {fmtCompact$(calc.stTax[y] ?? 0)}
                   </td>
                 ))}
                 {isEditMode && <td></td>}
@@ -274,7 +273,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 <td className="py-2 px-3 font-sans-custom text-[var(--muted)]">Social Security & Medicare (FICA)</td>
                 {Array.from({ length: years }).map((_, y) => (
                   <td key={y} colSpan={2} className="py-1.5 px-2 text-center text-[var(--neg)] border-l-2 border-[var(--col-divider)]">
-                    {fmt$(calc.fica[y] ?? 0)}
+                    {fmtCompact$(calc.fica[y] ?? 0)}
                   </td>
                 ))}
                 {isEditMode && <td></td>}
@@ -288,7 +287,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                   const totalT = (calc.fed[y] ?? 0) + (calc.stTax[y] ?? 0) + (calc.fica[y] ?? 0);
                   return (
                     <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--neg)] font-bold border-l-2 border-[var(--col-divider)]">
-                      {fmt$(totalT)}
+                      {fmtCompact$(totalT)}
                     </td>
                   );
                 })}

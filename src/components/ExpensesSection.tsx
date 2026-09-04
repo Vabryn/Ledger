@@ -1,9 +1,8 @@
 import React from 'react';
 import { ExpenseItem, CalculationResult, ViewMode } from '../types';
-import { fmt$, num } from '../utils/taxAndCalculations';
-import { ReceiptText, Plus, Trash2, ArrowUp, ArrowDown, FolderPlus, GripVertical, Copy } from 'lucide-react';
+import { fmt$, fmtCompact$, num } from '../utils/taxAndCalculations';
+import { ReceiptText, Plus, Trash2, ArrowUp, ArrowDown, FolderPlus, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { CopyYearControl } from './CopyYearControl';
 
 interface ExpensesSectionProps {
   years: number;
@@ -29,7 +28,6 @@ interface ExpensesSectionProps {
   onChangeIntensity: (val: number) => void;
   onChangeContrast: (val: number) => void;
   onChangeHue: (val: string) => void;
-  onCopyExpenseCol: (fromYear: number, toYear: number | 'all') => void;
   onMoveSection?: (dir: 'up' | 'down') => void;
   isHighlighted?: boolean;
 }
@@ -58,14 +56,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   onChangeIntensity,
   onChangeContrast,
   onChangeHue,
-  onCopyExpenseCol,
   onMoveSection,
   isHighlighted,
 }) => {
   const isMonths = viewMode === 'months';
-  const startYearNum = startYear || 2025;
-  const periodLabel = isMonths ? 'Month' : 'Year';
-  const monthlyColLabel = isMonths ? 'Monthly' : 'Monthly';
   const totalColLabel = isMonths ? 'Month Total' : 'Annual Total';
 
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -106,7 +100,6 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
     if (!orderedCats.includes(c)) orderedCats.push(c);
   });
 
-  const totalTableCols = (isEditMode ? 2 : 0) + 1 + years * 2;
 
   const handleCategoryDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -219,28 +212,19 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
             </div>
           </div>
 
-          {years > 1 && (
-            <div className="ml-auto">
-              <CopyYearControl
-                years={years}
-                periodLabel={periodLabel}
-                onCopy={(fromY, toY) => onCopyExpenseCol(fromY, toY)}
-              />
-            </div>
-          )}
         </div>
 
         {/* Expenses Table with Scoped Drag-and-Drop */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
           <DragDropContext onDragEnd={handleCategoryDragEnd}>
-            <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+            <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
                 <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
                 {Array.from({ length: years }).map((_, y) => (
                   <React.Fragment key={y}>
-                    <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
-                    <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                    <col />
+                    <col />
                   </React.Fragment>
                 ))}
                 {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -258,7 +242,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                   {Array.from({ length: years }).map((_, y) => (
                     <React.Fragment key={y}>
                       <th className="py-1.5 pl-2.5 pr-1 text-center border-l-2 border-[var(--col-divider)]">
-                        {monthlyColLabel}
+                        Monthly
                       </th>
                       <th className="py-1.5 pl-1 pr-2.5 text-center text-[var(--muted)]">
                         {totalColLabel}
@@ -287,7 +271,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                       >
                         {isEditMode && <td className="w-8"></td>}
                         <td className="py-2 px-3">
-                          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--accent)] tracking-wider uppercase truncate">
+                          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)] truncate">
                             <span className="text-[9px] text-[var(--muted2)] flex-shrink-0">
                               {isCollapsed ? '▶' : '▼'}
                             </span>
@@ -297,12 +281,12 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                 value={cat}
                                 onClick={e => e.stopPropagation()}
                                 onChange={e => onRenameCategory(cat, e.target.value)}
-                                className="bg-[var(--panel)] border border-[var(--border)] px-2 py-0.5 rounded-md text-xs font-semibold text-[var(--accent)] focus:outline-none"
+                                className="bg-[var(--panel)] border border-[var(--border)] px-2 py-0.5 rounded-md text-xs font-semibold text-[var(--text)] focus:outline-none"
                               />
                             ) : (
                               <span className="truncate">{cat}</span>
                             )}
-                            <span className="text-[10px] text-[var(--muted2)] normal-case font-normal flex-shrink-0">
+                            <span className="text-[10px] text-[var(--muted2)] font-normal flex-shrink-0">
                               ({catRows.length})
                             </span>
 
@@ -327,10 +311,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                           return (
                             <React.Fragment key={y}>
                               <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-[var(--col-divider)] text-right font-mono text-[11px] font-semibold text-[var(--text)]">
-                                {mTotal > 0 ? fmt$(mTotal) : '—'}
+                                {mTotal > 0 ? fmtCompact$(mTotal) : '—'}
                               </td>
                               <td className="py-1.5 pl-1 pr-2.5 text-right font-mono text-[11px] font-semibold text-[var(--muted)]">
-                                {aTotal > 0 ? fmt$(aTotal) : '—'}
+                                {aTotal > 0 ? fmtCompact$(aTotal) : '—'}
                               </td>
                             </React.Fragment>
                           );
@@ -469,10 +453,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                     return (
                       <React.Fragment key={y}>
                         <td className="py-2 pl-2.5 pr-1 text-right text-[var(--muted)] text-xs font-semibold border-l-2 border-[var(--col-divider)]">
-                          {fmt$(annualCol / 12)}
+                          {fmtCompact$(annualCol / 12)}
                         </td>
                         <td className="py-2 pl-1 pr-2.5 text-right text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-bold">
-                          {fmt$(displayTotal)}
+                          {fmtCompact$(displayTotal)}
                         </td>
                       </React.Fragment>
                     );

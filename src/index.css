@@ -107,6 +107,16 @@ body {
   padding-right: 0.5rem;
 }
 
+/* Hard guarantee that no value ever spills across a column line: every cell
+   clips its own overflow. Values use the compact k/M formatter so this
+   almost never actually triggers. (A cell's own box-shadow is unaffected.) */
+.category-table-scroll td,
+.category-table-scroll th,
+#sticky-year-bar-scroll td,
+#sticky-year-bar-scroll th {
+  overflow: hidden;
+}
+
 /* ── Frozen row-label column ──────────────────────────────────────────
    The first column of every projection table stays pinned to the left
    while the year columns scroll, so each row's description (Mortgage,
