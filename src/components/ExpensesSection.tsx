@@ -264,13 +264,22 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                 return (
                   <React.Fragment key={cat}>
                     {/* Category Header Row with Quick-Add (+) Button */}
-                    <tbody className="border-t border-[var(--border)]/60">
+                    <tbody>
                       <tr
                         onClick={() => onToggleCategoryCollapse(cat)}
                         className="group bg-[var(--panel-alt)] cursor-pointer select-none transition-colors"
                       >
                         {isEditMode && <td className="w-8"></td>}
                         <td className="py-2 px-3">
+                          {/* Thread stem — drops from the disclosure arrow into the
+                              item rows, so the whole group reads as one branch. */}
+                          {!isCollapsed && catRows.length > 0 && (
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute left-[17px] w-px bg-[var(--col-divider)]"
+                              style={{ top: '50%', bottom: 0 }}
+                            />
+                          )}
                           <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)] truncate">
                             {isCollapsed ? (
                               <ChevronRight className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
@@ -323,18 +332,24 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
 
                       {/* Underline under the category title — a crisp rule with a
                           soft downward fade, echoing the frozen column's vertical
-                          divider. Spans the full table width. */}
-                      <tr aria-hidden="true">
-                        <td colSpan={fullColSpan} className="cat-rule-cell">
-                          <div
-                            className="h-1.5"
-                            style={{
-                              background:
-                                'linear-gradient(to bottom, var(--col-divider) 0 2px, rgb(0 0 0 / 0.08) 2px, transparent)',
-                            }}
-                          />
-                        </td>
-                      </tr>
+                          divider. Spans the full table width. The thread stem
+                          continues through it so the arrow connects to the items. */}
+                      {!isCollapsed && (
+                        <tr aria-hidden="true">
+                          <td colSpan={fullColSpan} className="cat-rule-cell">
+                            {catRows.length > 0 && (
+                              <span className="pointer-events-none absolute left-[17px] inset-y-0 w-px bg-[var(--col-divider)]" />
+                            )}
+                            <div
+                              className="h-1.5"
+                              style={{
+                                background:
+                                  'linear-gradient(to bottom, var(--col-divider) 0 2px, rgb(0 0 0 / 0.08) 2px, transparent)',
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
 
                     {/* Scoped Drag-and-Drop Droppable for this category only */}
@@ -355,7 +370,6 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                               catRows.map((row, catRowIdx) => {
                                 const ri = col.findIndex(item => item.id === row.id);
                                 const draggableId = row.id || `exp-${cat}-${catRowIdx}`;
-                                const isFirstInCat = catRowIdx === 0;
                                 const isLastInCat = catRowIdx === catRows.length - 1;
 
                                 return (
@@ -377,16 +391,17 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                             </td>
                                           )}
 
-                                          <td className="py-1.5 pl-[22px] pr-2.5">
+                                          <td className="py-1.5 pl-[29px] pr-2.5">
                                             {/* Thread line — a faint vertical rail down the
-                                                left of a category's items, capped at the first
-                                                and last row, so it reads like a comment thread:
-                                                one more cue that these rows sit inside a group. */}
+                                                left of a category's items. It runs unbroken
+                                                from the header arrow (via the title-rule stem)
+                                                and rounds off 7px above the last row, so the
+                                                whole group reads as one comment-style thread. */}
                                             <span
                                               aria-hidden="true"
-                                              className="pointer-events-none absolute left-2.5 w-px bg-[var(--col-divider)]"
+                                              className="pointer-events-none absolute left-[17px] w-px bg-[var(--col-divider)]"
                                               style={{
-                                                top: isFirstInCat ? '7px' : 0,
+                                                top: 0,
                                                 bottom: isLastInCat ? '7px' : 0,
                                               }}
                                             />
@@ -465,6 +480,24 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                         )}
                       </Droppable>
                     )}
+
+                    {/* Closing rule — the mirror of the title underline: a faint
+                        line with an upward fade that caps the bottom of this
+                        category and sits flush against the top of the next, so
+                        the group is bounded on both sides. */}
+                    <tbody>
+                      <tr aria-hidden="true">
+                        <td colSpan={fullColSpan} className="cat-rule-cell">
+                          <div
+                            className="h-1.5"
+                            style={{
+                              background:
+                                'linear-gradient(to top, var(--col-divider) 0 1px, rgb(0 0 0 / 0.05) 1px, transparent)',
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
                   </React.Fragment>
                 );
               })}

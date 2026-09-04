@@ -120,7 +120,9 @@ body {
    specificity than the rules above so these actually win. */
 .category-table-scroll td.cat-rule-cell {
   padding: 0;
-  position: static;
+  /* relative (not sticky) so it opts out of the frozen-first-column
+     treatment while still anchoring the thread-stem span inside it. */
+  position: relative;
 }
 .category-table-scroll td.cat-rule-cell::after {
   content: none;
