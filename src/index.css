@@ -309,16 +309,20 @@ body {
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   overflow: hidden;
+  /* Light from the north-west: the drop shadow is offset south-east so the
+     panel reads as lifted toward the bottom-right. Pairs with the pb-1/pr-1
+     ground strip on the scroll area (a hairline of --row-alt showing along
+     the bottom and right inside the border). */
   box-shadow:
     inset 0 1px 0 0 rgb(255 255 255 / 0.5),
-    0 1px 2px rgb(0 0 0 / 0.05),
-    0 8px 18px -8px rgb(0 0 0 / 0.16);
+    1px 1px 2px rgb(0 0 0 / 0.05),
+    7px 11px 22px -9px rgb(0 0 0 / 0.20);
 }
 .dark .sub-card {
   box-shadow:
     inset 0 1px 0 0 rgb(255 255 255 / 0.04),
-    0 1px 2px rgb(0 0 0 / 0.35),
-    0 10px 22px -8px rgb(0 0 0 / 0.55);
+    1px 1px 2px rgb(0 0 0 / 0.38),
+    9px 13px 26px -9px rgb(0 0 0 / 0.6);
 }
 
 .font-mono-custom {

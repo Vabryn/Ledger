@@ -346,7 +346,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
         >
             <div
               id="sticky-year-bar-scroll"
-              className="overflow-x-auto scrollbar-none"
+              className="overflow-x-auto pr-1 scrollbar-none"
               onScroll={handleHeaderScroll}
             >
               <table className={`w-full table-fixed text-xs border-collapse${state.isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>

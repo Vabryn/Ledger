@@ -177,7 +177,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
           );
         })}
       </div>
-      <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleChartScroll}>
+      <div className="overflow-x-auto pb-1 pr-1 category-table-scroll" onScroll={handleChartScroll}>
         <div
           className="w-full flex items-stretch"
           style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w)${state.isEditMode ? ' + 32px' : ''})` }}
