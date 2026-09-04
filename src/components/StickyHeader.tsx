@@ -424,7 +424,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
               className="overflow-x-auto scrollbar-none"
               onScroll={handleHeaderScroll}
             >
-              <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
+              <table className={`table-fixed text-xs border-collapse min-w-[480px]${state.isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
                 <colgroup>
                   {state.isEditMode && <col className="w-8 min-w-[32px]" />}
                   {/* Name / Category Column */}
@@ -439,7 +439,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                   {state.isEditMode && <col className="w-10 min-w-[40px]" />}
                 </colgroup>
                 <thead>
-                  <tr className="bg-[var(--panel-alt)]/70 text-[var(--text)] font-semibold border-b border-[var(--border)]/60">
+                  <tr className="bg-[var(--panel-alt)] text-[var(--text)] font-semibold border-b border-[var(--border)]/60">
                     {state.isEditMode && <th className="w-8"></th>}
                     {/* Left Column: Category / Line Items Indicator + Start Year Picker */}
                     <th className="py-1 px-3 text-left align-middle">
@@ -504,7 +504,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                     {state.isEditMode && <th className="w-10"></th>}
                   </tr>
                   {hasSubColumns && (
-                    <tr className="bg-[var(--panel-alt)]/40 text-[10px] text-[var(--muted2)] font-medium">
+                    <tr className="bg-[var(--row-alt)] text-[10px] text-[var(--muted2)] font-medium">
                       {state.isEditMode && <th></th>}
                       <th className="py-0.5 px-3 text-left font-sans-custom uppercase tracking-wider text-[10px] text-[var(--muted2)]">
                         {lineItemLabel}

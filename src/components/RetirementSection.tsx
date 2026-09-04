@@ -109,7 +109,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
           </div>
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-            <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+            <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
                 <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
@@ -123,7 +123,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
               </colgroup>
               <tbody>
                 {/* Target Employee Rate Row */}
-                <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 transition-colors">
+                <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors">
                   {isEditMode && <td></td>}
                   <td className="py-2 px-3 font-medium text-[var(--text)]">
                     Employee Target Rate (% of Gross)
@@ -167,7 +167,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 </tr>
 
                 {/* Employer Match % Row */}
-                <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 transition-colors">
+                <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors">
                   {isEditMode && <td></td>}
                   <td className="py-2 px-3 font-medium text-[var(--text)]">
                     Employer Match (% of Gross)
@@ -196,7 +196,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 </tr>
 
                 {/* Target Dollar Amount */}
-                <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom text-[var(--muted)] transition-colors">
+                <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom text-[var(--muted)] transition-colors">
                   {isEditMode && <td></td>}
                   <td className="py-2 px-3 font-sans-custom">
                     Target Dollar Amount ({isMonths ? '$/mo' : '$/yr'})
@@ -210,7 +210,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 </tr>
 
                 {/* Roth IRA Allocation */}
-                <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+                <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                   {isEditMode && <td></td>}
                   <td className="py-2 px-3 font-sans-custom font-medium text-[var(--text)]">
                     → Roth IRA (Individual Cap)
@@ -224,7 +224,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 </tr>
 
                 {/* 401k Employee Allocation */}
-                <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+                <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                   {isEditMode && <td></td>}
                   <td className="py-2 px-3 font-sans-custom font-medium text-[var(--text)]">
                     → 401(k) Employee Deferral
@@ -238,7 +238,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 </tr>
 
                 {/* Employer Match Contribution Amount */}
-                <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+                <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                   {isEditMode && <td></td>}
                   <td className="py-2 px-3 font-sans-custom font-medium text-[var(--pos)]">
                     + Employer Match Contribution
@@ -281,7 +281,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
           </div>
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-            <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+            <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
                 <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
@@ -308,7 +308,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                     return (
                       <tr
                         key={fundId}
-                        className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 transition-colors"
+                        className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors"
                       >
                         {isEditMode && <td></td>}
                         <td className="py-2 px-3">

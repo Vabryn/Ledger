@@ -233,7 +233,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
         {/* Expenses Table with Scoped Drag-and-Drop */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
           <DragDropContext onDragEnd={handleCategoryDragEnd}>
-            <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+            <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
                 <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
@@ -249,7 +249,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
               <thead>
                 <tr
                   id="expenses-table-desc"
-                  className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
+                  className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)] text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
                 >
                   {isEditMode && <th className="w-8"></th>}
                   <th className="py-2 px-3 text-left font-sans-custom tracking-wider">
@@ -283,7 +283,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                     <tbody className="border-t-2 border-b-2 border-[var(--col-divider)]">
                       <tr
                         onClick={() => onToggleCategoryCollapse(cat)}
-                        className="bg-[var(--panel-alt)]/90 hover:bg-[var(--panel-alt)] cursor-pointer select-none transition-colors"
+                        className="bg-[var(--panel-alt)] hover:bg-[var(--panel-alt)] cursor-pointer select-none transition-colors"
                       >
                         {isEditMode && <td className="w-8"></td>}
                         <td className="py-2 px-3">
@@ -369,7 +369,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                         <tr
                                           ref={dragProvided.innerRef}
                                           {...dragProvided.draggableProps}
-                                          className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/25 hover:bg-[var(--panel-alt)]/60 border-b-2 border-[var(--col-divider)] transition-colors"
+                                          className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b-2 border-[var(--col-divider)] transition-colors"
                                         >
                                           {isEditMode && (
                                             <td className="py-1.5 px-1 text-center" {...dragProvided.dragHandleProps}>

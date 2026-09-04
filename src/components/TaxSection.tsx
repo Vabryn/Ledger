@@ -158,7 +158,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
 
         {/* Tax Table */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-          <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+          <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
             <colgroup>
               {isEditMode && <col className="w-8 min-w-[32px]" />}
               <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
@@ -172,7 +172,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
             </colgroup>
             <tbody>
               {/* Location Row */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors">
                 {isEditMode && <td></td>}
                 <td className="py-2 px-3 font-medium text-[var(--text)]">Tax Jurisdiction</td>
                 {Array.from({ length: years }).map((_, y) => {
@@ -199,7 +199,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
               </tr>
 
               {/* Dependents */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors">
                 {isEditMode && <td></td>}
                 <td className="py-2 px-3 font-medium text-[var(--text)]">Dependents</td>
                 {Array.from({ length: years }).map((_, y) => {
@@ -222,7 +222,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
               </tr>
 
               {/* Additional Deductions */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors">
                 {isEditMode && <td></td>}
                 <td className="py-2 px-3 font-medium text-[var(--text)]">Additional Deductions ($/yr)</td>
                 {Array.from({ length: years }).map((_, y) => {
@@ -245,7 +245,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
               </tr>
 
               {/* Federal Tax */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {isEditMode && <td></td>}
                 <td className="py-2 px-3 font-sans-custom text-[var(--muted)]">Federal Income Tax</td>
                 {Array.from({ length: years }).map((_, y) => (
@@ -257,7 +257,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
               </tr>
 
               {/* State/Local Tax */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {isEditMode && <td></td>}
                 <td className="py-2 px-3 font-sans-custom text-[var(--muted)]">State & Local Tax</td>
                 {Array.from({ length: years }).map((_, y) => (
@@ -269,7 +269,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
               </tr>
 
               {/* Social Security & Medicare (FICA) */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {isEditMode && <td></td>}
                 <td className="py-2 px-3 font-sans-custom text-[var(--muted)]">Social Security & Medicare (FICA)</td>
                 {Array.from({ length: years }).map((_, y) => (

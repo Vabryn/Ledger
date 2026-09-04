@@ -131,7 +131,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
             <DragDropContext onDragEnd={handleWorkerDragEnd}>
-              <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+              <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
                 <colgroup>
                   {isEditMode && <col className="w-8 min-w-[32px]" />}
                   <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
@@ -147,7 +147,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                 <thead>
                   <tr
                     id="income-table-desc"
-                    className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
+                    className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)] text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
                   >
                     {isEditMode && <th className="w-8"></th>}
                     <th className="py-2 px-3 text-left font-sans-custom tracking-wider">
@@ -188,7 +188,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                   <tr
                                     ref={dragProvided.innerRef}
                                     {...dragProvided.draggableProps}
-                                    className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/25 hover:bg-[var(--panel-alt)]/60 border-b border-[var(--border)]/50 transition-colors"
+                                    className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/50 transition-colors"
                                   >
                                   {isEditMode && (
                                     <td className="py-2 px-1 text-center" {...dragProvided.dragHandleProps}>
@@ -402,7 +402,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
             <div>
               <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
                 <DragDropContext onDragEnd={handleOtherDragEnd}>
-                  <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
+                  <table className={`table-fixed text-xs border-collapse min-w-[480px]${isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
                     <colgroup>
                       {isEditMode && <col className="w-8 min-w-[32px]" />}
                       <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
@@ -418,7 +418,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                     <thead>
                       <tr
                         id="other-income-table-desc"
-                        className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)]/60 text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
+                        className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)] text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
                       >
                         {isEditMode && <th className="w-8"></th>}
                         <th className="py-2 px-3 text-left font-sans-custom tracking-wider">
@@ -458,7 +458,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                       <tr
                                         ref={dragProvided.innerRef}
                                         {...dragProvided.draggableProps}
-                                        className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/25 hover:bg-[var(--panel-alt)]/60 border-b border-[var(--border)]/50 transition-colors"
+                                        className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/50 transition-colors"
                                       >
                                         {isEditMode && (
                                           <td className="py-2 px-1 text-center" {...dragProvided.dragHandleProps}>

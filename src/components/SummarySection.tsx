@@ -119,7 +119,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
         {/* Aligned Projection Matrix Table */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-          <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
+          <table className={`table-fixed text-xs border-collapse min-w-[480px]${state.isEditMode ? ' is-edit' : ''}`} style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
             <colgroup>
               {state.isEditMode && <col className="w-8 min-w-[32px]" />}
               {/* Left Overview & Metrics Column */}
@@ -155,7 +155,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
             </thead>
             <tbody>
               {/* 1. Gross Income */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {state.isEditMode && <td></td>}
                 <td className="py-2 px-3 text-left">
                   <div className="font-semibold text-xs text-[var(--text)] font-sans-custom">
@@ -178,7 +178,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               </tr>
 
               {/* 2. Taxes */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {state.isEditMode && <td></td>}
                 <td className="py-2 px-3 text-left">
                   <div className="font-semibold text-xs text-[var(--text)] font-sans-custom">
@@ -205,7 +205,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               </tr>
 
               {/* 3. Net Take-Home */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {state.isEditMode && <td></td>}
                 <td className="py-2 px-3 text-left">
                   <div className="font-semibold text-xs text-[var(--text)] font-sans-custom">
@@ -228,7 +228,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               </tr>
 
               {/* 4. Living Expenses */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {state.isEditMode && <td></td>}
                 <td className="py-2 px-3 text-left">
                   <div className="font-semibold text-xs text-[var(--text)] font-sans-custom">
@@ -251,7 +251,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               </tr>
 
               {/* 5. Net Savings (Per Period) */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {state.isEditMode && <td></td>}
                 <td className="py-2 px-3 text-left">
                   <div className="font-semibold text-xs text-[var(--text)] font-sans-custom">
@@ -279,7 +279,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               </tr>
 
               {/* 6. Cumulative Savings */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors bg-[var(--panel-alt)]/30">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors bg-[var(--row-alt)]">
                 {state.isEditMode && <td></td>}
                 <td className="py-2 px-3 text-left">
                   <div className="font-semibold text-xs text-[var(--text)] font-sans-custom">
@@ -307,7 +307,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               </tr>
 
               {/* 7. Retirement Contribution */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {state.isEditMode && <td></td>}
                 <td className="py-2 px-3 text-left">
                   <div className="font-semibold text-xs text-[var(--text)] font-sans-custom">
@@ -330,7 +330,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               </tr>
 
               {/* 8. Cumulative Retirement */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors bg-[var(--panel-alt)]/30">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors bg-[var(--row-alt)]">
                 {state.isEditMode && <td></td>}
                 <td className="py-2 px-3 text-left">
                   <div className="font-semibold text-xs text-[var(--text)] font-sans-custom">
@@ -353,7 +353,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               </tr>
 
               {/* 9. Unallocated Balance */}
-              <tr className="odd:bg-[var(--panel)] even:bg-[var(--panel-alt)]/40 hover:bg-[var(--panel-alt)]/80 border-b border-[var(--border)]/40 font-mono-custom transition-colors">
+              <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 font-mono-custom transition-colors">
                 {state.isEditMode && <td></td>}
                 <td className="py-2 px-3 text-left">
                   <div className="font-semibold text-xs text-[var(--text)] font-sans-custom">

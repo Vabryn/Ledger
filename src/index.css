@@ -23,6 +23,11 @@
   --neg:   #E11D48; /* costs / taxes / negative cash flow */
   --accum: #2563EB; /* cumulative / running totals */
 
+  /* Opaque table-row fills (were --panel-alt at 30-40% opacity). Solid so the
+     frozen first column can inherit a row's colour without bleed-through. */
+  --row-alt:   #F8F6F1;
+  --row-hover: #EDE9DF;
+
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: 'IBM Plex Serif', Georgia, serif;
@@ -55,6 +60,8 @@
   --pos:   #34D399;
   --neg:   #FB7185;
   --accum: #60A5FA;
+  --row-alt:   #232320;
+  --row-hover: #2E2E2A;
   color-scheme: dark;
 }
 
@@ -98,6 +105,47 @@ body {
 #sticky-year-bar-scroll tr > :first-child {
   padding-left: 0.625rem;
   padding-right: 0.5rem;
+}
+
+/* ── Frozen row-label column ──────────────────────────────────────────
+   The first column of every projection table stays pinned to the left
+   while the year columns scroll, so each row's description (Mortgage,
+   Federal Income Tax, …) is always visible. */
+.category-table-scroll tr > :first-child,
+#sticky-year-bar-scroll tr > :first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background-color: inherit; /* take the row's own fill (banding / hover / totals) */
+  box-shadow: 5px 0 6px -4px rgb(0 0 0 / 0.14);
+}
+.category-table-scroll thead tr > :first-child,
+#sticky-year-bar-scroll thead tr > :first-child {
+  z-index: 5;
+}
+
+/* Edit mode adds a 32px drag-handle spacer as column 1, so pin the
+   spacer at the edge and the real label column (column 2) beside it. */
+.category-table-scroll table.is-edit tr > :first-child,
+#sticky-year-bar-scroll table.is-edit tr > :first-child {
+  box-shadow: none;
+}
+.category-table-scroll table.is-edit tr > :nth-child(2),
+#sticky-year-bar-scroll table.is-edit tr > :nth-child(2) {
+  position: sticky;
+  left: 2rem;
+  z-index: 4;
+  background-color: inherit;
+  box-shadow: 5px 0 6px -4px rgb(0 0 0 / 0.14);
+}
+/* the pinned drag-handle spacer in edit mode still needs an opaque fill */
+.category-table-scroll table.is-edit tr > :first-child,
+#sticky-year-bar-scroll table.is-edit tr > :first-child {
+  background-color: inherit;
+}
+.category-table-scroll table.is-edit thead tr > :nth-child(2),
+#sticky-year-bar-scroll table.is-edit thead tr > :nth-child(2) {
+  z-index: 5;
 }
 
 .font-mono-custom {
