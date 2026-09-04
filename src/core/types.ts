@@ -7,23 +7,6 @@
 
 export type ViewMode = 'years' | 'months';
 
-export type PageWidth = 'slim' | 'compact' | 'standard' | 'wide' | 'full';
-
-export const PAGE_WIDTH_CLASSES: Record<PageWidth, string> = {
-  slim: 'max-w-[960px]',
-  compact: 'max-w-[1140px]',
-  standard: 'max-w-[1360px]',
-  wide: 'max-w-[1580px]',
-  full: 'max-w-[1850px]',
-};
-
-export const PAGE_WIDTH_CONFIG: Record<PageWidth, { label: string; width: string; description: string }> = {
-  slim: { label: 'Slim', width: '960px', description: 'Split-screen or narrow layout' },
-  compact: { label: 'Compact', width: '1140px', description: 'Focused, tighter desktop layout' },
-  standard: { label: 'Standard', width: '1360px', description: 'Balanced desktop layout' },
-  wide: { label: 'Wide', width: '1580px', description: 'Expanded multi-year view' },
-  full: { label: 'Full', width: '1850px', description: 'Maximized span for ultra-wide displays' },
-};
 
 export type IncomeFrequency = 'Hourly' | 'Daily' | 'Weekly' | 'Biweekly' | 'Bi-Monthly' | 'Monthly' | 'Annually';
 
@@ -86,8 +69,6 @@ export interface CustomSavingsFund {
  * Complete state tree for the application.
  */
 export interface PlannerState {
-  /** Page max-width constraint preset: 'slim' | 'compact' | 'standard' | 'wide' | 'full' */
-  pageWidth?: PageWidth;
 
   /** Column view toggle: 'years' or 'months' */
   viewMode: ViewMode;

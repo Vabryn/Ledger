@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PlannerState } from '../types';
+import { PlannerState } from '@/core';
 import {
   Sun,
   Moon,

@@ -1,6 +1,5 @@
 import React from 'react';
-import { CalculationResult, PlannerState } from '../types';
-import { fmt$, fmtCompact$, fmtPct } from '../utils/taxAndCalculations';
+import { CalculationResult, PlannerState, fmt$, fmtCompact$, fmtPct } from '@/core';
 import { GraphDashboard } from './GraphDashboard';
 import { LayoutDashboard, ArrowUp, ArrowDown } from 'lucide-react';
 

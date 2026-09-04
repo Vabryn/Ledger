@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "test": "tsx src/utils/tax.test.ts"
+    "test": "tsx src/core/planner.test.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

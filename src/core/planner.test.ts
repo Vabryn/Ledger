@@ -1,22 +1,24 @@
-import { computePlanner, marginalTax, fmt$, fmtPct, num } from './taxAndCalculations';
 import {
+  computePlanner,
+  marginalTax,
+  fmt$,
+  fmtPct,
+  num,
+  safeStorage,
+  validateAndRepairState,
+  getDefaultSampleState,
+  getCleanEmptyState,
   FED_2025,
   CA_2025,
   NY_2025,
   NYC_2025,
-  ROTH_CAP,
   CAP401K_EMPLOYEE,
-  CAP401K_TOTAL_ADDITIONS,
   SS_WAGE_CAP,
   SS_RATE,
   MEDICARE_RATE,
   CTC_PER_DEP,
-  ANNUAL_MULTIPLIERS,
-  getDefaultSampleState,
-  getCleanEmptyState,
-} from './taxRulesAndStarterData';
-import { safeStorage, validateAndRepairState } from './safeStorage';
-import { PlannerState, PAGE_WIDTH_CLASSES, PAGE_WIDTH_CONFIG } from '../types';
+} from './';
+import type { PlannerState } from './';
 
 /**
  * =======================================================================
@@ -538,14 +540,6 @@ export function runAllTests() {
   assert(repairedResult.g.length === 5, 'Repaired state computes 5 years without error');
 
   // Page width validation tests
-  assert(validateAndRepairState({ pageWidth: 'invalid' as any }).pageWidth === 'standard', 'Repairs invalid pageWidth to standard');
-  assert(validateAndRepairState({ pageWidth: 'compact' }).pageWidth === 'compact', 'Preserves valid compact pageWidth');
-  assert(validateAndRepairState({ pageWidth: 'slim' }).pageWidth === 'slim', 'Preserves valid slim pageWidth');
-  assert(PAGE_WIDTH_CLASSES.slim.includes('max-w-[960px]'), 'Slim width class has max-w-[960px]');
-  assert(PAGE_WIDTH_CLASSES.compact.includes('max-w-[1140px]'), 'Compact width class has max-w-[1140px]');
-  assert(PAGE_WIDTH_CLASSES.standard.includes('max-w-[1360px]'), 'Standard width class has max-w-[1360px]');
-  assert(PAGE_WIDTH_CLASSES.wide.includes('max-w-[1580px]'), 'Wide width class has max-w-[1580px]');
-  assert(PAGE_WIDTH_CLASSES.full.includes('max-w-[1850px]'), 'Full width class has max-w-[1850px]');
 
   console.log('✅ Suite 11 Passed: Schema validation and state repair robustly guard against corrupted data.\n');
 
@@ -556,7 +550,6 @@ export function runAllTests() {
 
   // getDefaultSampleState()
   const sample = getDefaultSampleState();
-  assert(sample.pageWidth === 'standard', 'Sample state defaults to standard width');
   assert(sample.years === 6, 'Sample state has 6 projection years');
   assert(sample.workers.length >= 1, 'Sample state contains primary income earner');
   assert(sample.other.length >= 2, 'Sample state contains additional income streams');
@@ -573,7 +566,6 @@ export function runAllTests() {
 
   // getCleanEmptyState()
   const empty = getCleanEmptyState(4, 'months');
-  assert(empty.pageWidth === 'standard', 'Empty state defaults to standard width');
   assert(empty.years === 4, 'Empty state creates specified 4 years');
   assert(empty.viewMode === 'months', 'Empty state respects months viewMode');
   assert(empty.workers.length === 1, 'Empty state provides 1 clean starter earner');
@@ -846,6 +838,74 @@ export function runAllTests() {
   assert(noneState.stTax[0] === 0, "Jurisdiction 'NONE' produces $0 state tax");
 
   console.log('✅ Suite 17 Passed: Pre-tax 401(k), match cap, CTC phase-out, and MFS surtax verified.\n');
+
+  // =====================================================================
+  // SUITE 18: INDEPENDENT VECTORS
+  // Hand-computed expected dollar amounts (not derived from the same helper
+  // functions), so a bug in marginalTax / bracket data can't hide behind a
+  // self-referential assertion. Recompute these by hand if the 2025 tables change.
+  // =====================================================================
+  console.log('--- Suite 18: Independent Hand-Computed Vectors ---');
+
+  const vec = (o: Partial<PlannerState>): PlannerState => ({
+    ...baseState,
+    st: ['NONE'],
+    fica: false,
+    retireRate: [0],
+    employerMatchRate: [0],
+    other: [],
+    deps: [0],
+    additionalDeductions: [0],
+    ...o,
+  });
+  const wageOnly = (wage: number): Pick<PlannerState, 'workers'> => ({
+    workers: [{ id: 'w', name: 'E', frequency: 'Annually', hours: [40], wage: [wage] }],
+  });
+
+  // A. Federal, Single, $120,000 gross → taxable $105,000 → $18,047.00
+  assertClose(
+    computePlanner(vec({ taxStatus: 'Single', ...wageOnly(120000) })).fed[0],
+    18047, 0.01, 'A · Single federal on $120k gross = $18,047',
+  );
+
+  // B. Federal, Married, $80,000 gross → taxable $50,000 → $5,523.00
+  assertClose(
+    computePlanner(vec({ taxStatus: 'Married', ...wageOnly(80000) })).fed[0],
+    5523, 0.01, 'B · Married federal on $80k gross = $5,523',
+  );
+
+  // C. FICA, single earner $90,000 wage → 6.2% + 1.45% → $6,885.00
+  assertClose(
+    computePlanner(vec({ taxStatus: 'Single', fica: true, ...wageOnly(90000) })).fica[0],
+    6885, 0.01, 'C · FICA on $90k wage = $6,885',
+  );
+
+  // D. FICA, single $260,000 wage → SS capped + 0.9% surtax on $60k → $15,228.20
+  assertClose(
+    computePlanner(vec({ taxStatus: 'Single', fica: true, ...wageOnly(260000) })).fica[0],
+    15228.2, 0.01, 'D · FICA on $260k wage (cap + surtax) = $15,228.20',
+  );
+
+  // E. California, Single, $75,000 gross → taxable $69,460, minus $149 exemption credit → $2,868.04
+  assertClose(
+    computePlanner(vec({ taxStatus: 'Single', st: ['CA'], ...wageOnly(75000) })).stTax[0],
+    2868.04, 0.02, 'E · CA state on $75k gross = $2,868.04',
+  );
+
+  // F. Traditional 401(k) is pre-tax: Single, $150k gross, $23k 401(k) deferral.
+  //    Federal without deferral = $25,247; with = $19,727 (both hand-computed).
+  const fNo = computePlanner(vec({ taxStatus: 'Single', ...wageOnly(150000), retireRate: [0] }));
+  const fYes = computePlanner(vec({ taxStatus: 'Single', ...wageOnly(150000), retireRate: [20] })); // target 30k → 7k Roth + 23k 401k
+  assertClose(fNo.fed[0], 25247, 0.01, 'F · Federal on $150k, no deferral = $25,247');
+  assertClose(fYes.fed[0], 19727, 0.01, 'F · Federal on $150k, $23k 401(k) deferral = $19,727');
+
+  // H. marginalTax() as a pure function, fully independent bracket set.
+  assert(
+    marginalTax(100000, [[0, 0.1], [10000, 0.2], [50000, 0.3]]) === 24000,
+    'H · marginalTax(100k, [10/20/30 @ 0/10k/50k]) = 24,000',
+  );
+
+  console.log('✅ Suite 18 Passed: Independent hand-computed vectors match the engine.\n');
 
   // =====================================================================
   // SUMMARY

@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { CalculationResult, PlannerState } from '../types';
-import { fmt$ } from '../utils/taxAndCalculations';
+import { CalculationResult, PlannerState, fmt$ } from '@/core';
 import { TrendingUp, BarChart3 } from 'lucide-react';
 
 interface GraphDashboardProps {
@@ -60,7 +59,6 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
 
   const years = state.years || 1;
   const isMonths = state.viewMode === 'months';
-  const periodLabel = isMonths ? 'Month' : 'Year';
   const height = CHART_HEIGHT;
   const width = 1000; // ViewBox baseline
 

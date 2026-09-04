@@ -1,5 +1,12 @@
 import { useState, useEffect, useMemo, useRef, useDeferredValue } from 'react';
-import { PlannerState, ExpenseItem, FilingStatus, CustomSavingsFund, IncomeFrequency, PayoutFrequency } from './types';
+import type {
+  PlannerState,
+  ExpenseItem,
+  FilingStatus,
+  CustomSavingsFund,
+  IncomeFrequency,
+  PayoutFrequency,
+} from '@/core';
 import {
   getDefaultSampleState,
   getCleanEmptyState,
@@ -8,7 +15,7 @@ import {
   STORAGE_KEY,
   safeStorage,
   validateAndRepairState,
-} from './utils/taxAndCalculations';
+} from '@/core';
 import { StickyHeader, NavCategory } from './components/StickyHeader';
 import { IncomeSection } from './components/IncomeSection';
 import { TaxSection } from './components/TaxSection';
@@ -580,7 +587,6 @@ export default function App() {
           <IncomeSection
             key="sec-income"
             years={state.years}
-            startYear={safeState.startYear}
             viewMode={state.viewMode}
             isEditMode={state.isEditMode}
             workers={state.workers}
@@ -605,8 +611,6 @@ export default function App() {
           <TaxSection
             key="sec-taxes"
             years={state.years}
-            startYear={safeState.startYear}
-            viewMode={state.viewMode}
             isEditMode={state.isEditMode}
             taxStatus={state.taxStatus}
             fica={state.fica}
@@ -647,7 +651,6 @@ export default function App() {
           <ExpensesSection
             key="sec-expenses"
             years={state.years}
-            startYear={safeState.startYear}
             viewMode={state.viewMode}
             isEditMode={state.isEditMode}
             col={safeState.col}
@@ -679,7 +682,6 @@ export default function App() {
           <RetirementSection
             key="sec-retire"
             years={state.years}
-            startYear={safeState.startYear}
             viewMode={state.viewMode}
             isEditMode={state.isEditMode}
             retireRate={state.retireRate}

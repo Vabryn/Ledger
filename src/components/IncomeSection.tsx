@@ -1,12 +1,10 @@
 import React from 'react';
-import { WorkerItem, IncomeItem, ViewMode, IncomeFrequency, PayoutFrequency } from '../types';
-import { fmt$, fmtCompact$, num, getAnnualIncome, toPeriodValue } from '../utils/taxAndCalculations';
+import { WorkerItem, IncomeItem, ViewMode, IncomeFrequency, PayoutFrequency, fmtCompact$, num, getAnnualIncome, toPeriodValue } from '@/core';
 import { TrendingUp, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface IncomeSectionProps {
   years: number;
-  startYear?: number;
   viewMode: ViewMode;
   isEditMode: boolean;
   workers: WorkerItem[];
@@ -27,7 +25,6 @@ interface IncomeSectionProps {
 
 export const IncomeSection: React.FC<IncomeSectionProps> = ({
   years,
-  startYear,
   viewMode,
   isEditMode,
   workers,

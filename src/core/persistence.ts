@@ -1,5 +1,5 @@
-import { PlannerState, CustomSavingsFund, IncomeFrequency } from '../types';
-import { getDefaultSampleState } from './taxRulesAndStarterData';
+import { PlannerState, CustomSavingsFund, IncomeFrequency } from './types';
+import { getDefaultSampleState } from './starter-data';
 
 /**
  * In-memory fallback map when localStorage is blocked, restricted, or unavailable
@@ -192,9 +192,6 @@ export function validateAndRepairState(raw: any): PlannerState {
     if (!filteredOrder.includes(s)) filteredOrder.push(s);
   });
 
-  // Validate pageWidth
-  const validPageWidths = ['slim', 'compact', 'standard', 'wide', 'full'];
-  const pageWidth = validPageWidths.includes(raw.pageWidth) ? raw.pageWidth : 'standard';
 
   // Validate startYear
   const startYear = typeof raw.startYear === 'number' && raw.startYear >= 1900 && raw.startYear <= 2100
@@ -206,7 +203,6 @@ export function validateAndRepairState(raw: any): PlannerState {
   return {
     ...defaultState,
     ...rawRest,
-    pageWidth,
     years,
     startYear,
     workers: workers.length > 0 ? workers : defaultState.workers,

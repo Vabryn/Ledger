@@ -1,12 +1,10 @@
 import React from 'react';
-import { ExpenseItem, CalculationResult, ViewMode } from '../types';
-import { fmt$, fmtCompact$, num } from '../utils/taxAndCalculations';
+import { ExpenseItem, CalculationResult, ViewMode, fmtCompact$, num } from '@/core';
 import { ReceiptText, Plus, Trash2, ArrowUp, ArrowDown, FolderPlus, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface ExpensesSectionProps {
   years: number;
-  startYear?: number;
   viewMode: ViewMode;
   isEditMode: boolean;
   col: ExpenseItem[];
@@ -34,7 +32,6 @@ interface ExpensesSectionProps {
 
 export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   years,
-  startYear,
   viewMode,
   isEditMode,
   col,

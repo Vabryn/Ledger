@@ -1,6 +1,5 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { STORAGE_KEY } from '../utils/taxRulesAndStarterData';
-import { safeStorage } from '../utils/safeStorage';
+import { Component, ErrorInfo, ReactNode } from 'react';
+import { STORAGE_KEY, safeStorage } from '@/core';
 import { AlertTriangle, RotateCcw, RefreshCw } from 'lucide-react';
 
 interface Props {

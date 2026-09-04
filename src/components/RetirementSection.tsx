@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { CalculationResult, CustomSavingsFund, ViewMode } from '../types';
-import { fmt$, fmtCompact$, num } from '../utils/taxAndCalculations';
+import { CalculationResult, CustomSavingsFund, ViewMode, fmt$, fmtCompact$, num } from '@/core';
 import { ShieldCheck, ArrowUp, ArrowDown, Plus, Trash2, AlertCircle, LineChart } from 'lucide-react';
 
 interface RetirementSectionProps {
   years: number;
-  startYear?: number;
   viewMode: ViewMode;
   isEditMode: boolean;
   retireRate: number[];
@@ -23,7 +21,6 @@ interface RetirementSectionProps {
 
 export const RetirementSection: React.FC<RetirementSectionProps> = ({
   years,
-  startYear,
   viewMode,
   isEditMode,
   retireRate,
@@ -39,7 +36,6 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
   isHighlighted,
 }) => {
   const isMonths = viewMode === 'months';
-  const periodLabel = isMonths ? 'Month' : 'Year';
 
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const headerScroll = document.getElementById('sticky-year-bar-scroll');

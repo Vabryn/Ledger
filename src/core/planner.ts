@@ -1,4 +1,5 @@
-import { CalculationResult, PlannerState, ExpenseItem, IncomeFrequency, PayoutFrequency, ViewMode } from '../types';
+import { CalculationResult, PlannerState, IncomeFrequency, PayoutFrequency, ViewMode } from './types';
+import { ANNUAL_MULTIPLIERS } from './starter-data';
 import {
   FED_2025,
   CA_2025,
@@ -6,6 +7,10 @@ import {
   NYC_2025,
   CTC_PER_DEP,
   CA_DEP_EXEMPTION_CREDIT,
+  CA_MENTAL_HEALTH_TAX_THRESHOLD,
+  CA_MENTAL_HEALTH_TAX_RATE,
+  NY_DEP_EXEMPTION,
+  YONKERS_RESIDENT_SURCHARGE,
   ADDL_MEDICARE_RATE,
   ADDL_MEDICARE_THRESHOLDS,
   SS_WAGE_CAP,
@@ -14,19 +19,7 @@ import {
   ROTH_CAP,
   CAP401K_EMPLOYEE,
   CAP401K_TOTAL_ADDITIONS,
-  ANNUAL_MULTIPLIERS,
-  STORAGE_KEY,
-  getDefaultSampleState,
-  getCleanEmptyState,
-} from './taxRulesAndStarterData';
-
-export {
-  STORAGE_KEY,
-  getDefaultSampleState,
-  getCleanEmptyState,
-};
-
-export { safeStorage, validateAndRepairState } from './safeStorage';
+} from './tax';
 
 /**
  * =======================================================================
@@ -252,17 +245,19 @@ export function computePlanner(state: PlannerState): CalculationResult {
       stxAnnual = marginalTax(taxable, cfg.brackets);
       stxAnnual -= (cfg.ex + (CA_DEP_EXEMPTION_CREDIT * deps));
       stxAnnual = Math.max(0, stxAnnual);
-      // Mental Health Services Tax for taxable income > $1M
-      if (taxable > 1000000) stxAnnual += (taxable - 1000000) * 0.01;
+      // Mental Health Services Tax on taxable income over the surtax threshold.
+      if (taxable > CA_MENTAL_HEALTH_TAX_THRESHOLD) {
+        stxAnnual += (taxable - CA_MENTAL_HEALTH_TAX_THRESHOLD) * CA_MENTAL_HEALTH_TAX_RATE;
+      }
     } else if (regionKey === 'NY' || regionKey === 'NYC' || regionKey === 'YONKERS') {
       const cfg = NY_2025[statusKey as keyof typeof NY_2025] || NY_2025.Married;
-      const taxable = Math.max(0, annualGross - preTaxRetirement - cfg.stdDed - addlDeduction - (1000 * deps));
+      const taxable = Math.max(0, annualGross - preTaxRetirement - cfg.stdDed - addlDeduction - (NY_DEP_EXEMPTION * deps));
       stxAnnual = marginalTax(taxable, cfg.brackets);
       stxAnnual = Math.max(0, stxAnnual);
       if (regionKey === 'NYC') {
         stxAnnual += marginalTax(taxable, (NYC_2025[statusKey as keyof typeof NYC_2025] || NYC_2025.Married).brackets);
       } else if (regionKey === 'YONKERS') {
-        stxAnnual += stxAnnual * 0.1675; // 16.75% resident surcharge on NY State tax
+        stxAnnual += stxAnnual * YONKERS_RESIDENT_SURCHARGE; // Yonkers resident surcharge on NY State tax
       }
     }
     // Any other jurisdiction (incl. 'NONE' and the no-income-tax states) = $0 state tax.
@@ -384,4 +379,3 @@ export function computePlanner(state: PlannerState): CalculationResult {
   };
 }
 
-export * from './taxRulesAndStarterData';

@@ -1,12 +1,9 @@
 import React from 'react';
-import { CalculationResult, FilingStatus, ViewMode } from '../types';
-import { fmt$, fmtCompact$ } from '../utils/taxAndCalculations';
+import { CalculationResult, FilingStatus, fmtCompact$ } from '@/core';
 import { Percent, ArrowUp, ArrowDown, HelpCircle } from 'lucide-react';
 
 interface TaxSectionProps {
   years: number;
-  startYear?: number;
-  viewMode: ViewMode;
   isEditMode: boolean;
   taxStatus: FilingStatus;
   fica: boolean;
@@ -25,8 +22,6 @@ interface TaxSectionProps {
 
 export const TaxSection: React.FC<TaxSectionProps> = ({
   years,
-  startYear,
-  viewMode,
   isEditMode,
   taxStatus,
   fica,
@@ -42,8 +37,6 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
   onMoveSection,
   isHighlighted,
 }) => {
-  const isMonths = viewMode === 'months';
-  const periodLabel = isMonths ? 'Month' : 'Year';
 
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const headerScroll = document.getElementById('sticky-year-bar-scroll');
