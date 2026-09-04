@@ -111,7 +111,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
           </div>
 
           <div className="sub-card">
-          <div className="overflow-x-auto pb-1 pr-1 category-table-scroll" onScroll={handleTableScroll}>
+          <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
             <DragDropContext onDragEnd={handleWorkerDragEnd}>
               <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
                 <colgroup>
@@ -360,7 +360,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
           ) : !isOtherCollapsed ? (
             <div>
               <div className="sub-card">
-              <div className="overflow-x-auto pb-1 pr-1 category-table-scroll" onScroll={handleTableScroll}>
+              <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
                 <DragDropContext onDragEnd={handleOtherDragEnd}>
                   <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
                     <colgroup>

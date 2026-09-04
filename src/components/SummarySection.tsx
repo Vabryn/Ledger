@@ -118,7 +118,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
         {/* Aligned Projection Matrix Table */}
         <div className="sub-card">
-        <div className="overflow-x-auto pb-1 pr-1 category-table-scroll" onScroll={handleTableScroll}>
+        <div className="overflow-x-auto category-table-scroll" onScroll={handleTableScroll}>
           <table className={`w-full table-fixed text-xs border-collapse${state.isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
             <colgroup>
               {state.isEditMode && <col className="w-8 min-w-[32px]" />}
