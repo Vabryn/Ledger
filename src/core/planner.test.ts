@@ -43,7 +43,7 @@ import type { PlannerState } from './';
  * 16. Heat map mathematical curves (exponent, contrast, intensity, color interpolation)
  */
 
-export function runAllTests() {
+function runAllTests() {
   console.log('🧪 Starting Comprehensive Household Ledger Test Suite...\n');
   let testCount = 0;
   let passedCount = 0;

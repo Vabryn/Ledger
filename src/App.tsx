@@ -38,7 +38,6 @@ export default function App() {
     return defaultState;
   });
 
-  // Dark mode effect
   useEffect(() => {
     if (state.darkMode) {
       document.documentElement.classList.add('dark');
@@ -543,7 +542,8 @@ export default function App() {
     return false;
   };
 
-  // Dynamically update column descriptions based on which category is scrolled into view
+  // While viewing "All", track which section is scrolled into view so the
+  // sticky year bar can name the current category.
   useEffect(() => {
     let rafPending = false;
     const onScrollOrResize = () => {
@@ -558,7 +558,6 @@ export default function App() {
       const headerEl = document.getElementById('sticky-header-container');
       const headerBottom = headerEl ? headerEl.getBoundingClientRect().bottom : 120;
 
-      // 3. Update active scrolled category
       if (activeCategory === 'all') {
         const secOrder = state.sectionOrder || ['sec-income', 'sec-taxes', 'sec-expenses', 'sec-retire', 'sec-summary'];
         const secMap: Record<string, NavCategory> = {

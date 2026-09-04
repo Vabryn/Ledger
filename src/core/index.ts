@@ -36,7 +36,7 @@ export {
 } from './planner';
 
 // Starter state + local persistence
-export { getDefaultSampleState, getCleanEmptyState, STORAGE_KEY, ANNUAL_MULTIPLIERS } from './starter-data';
+export { getDefaultSampleState, getCleanEmptyState, STORAGE_KEY } from './starter-data';
 export { safeStorage, validateAndRepairState } from './persistence';
 
 // Active tax-year tables (consumed by the test suite; the app rarely needs these directly)
