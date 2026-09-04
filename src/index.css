@@ -37,12 +37,12 @@
      derives its left gutter + per-year width from them, so the chart axis
      always lines up with the table headers.
      Sized so a 5-year view fits a ~900px viewport without horizontal scroll. */
-  --label-col-w: 176px;
+  --label-col-w: 202px;
   --yr-col-w: 64px;
 }
 
 @media (max-width: 639px) {
-  :root { --label-col-w: 150px; --yr-col-w: 62px; }
+  :root { --label-col-w: 172px; --yr-col-w: 62px; }
 }
 
 .dark {
