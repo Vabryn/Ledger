@@ -233,14 +233,14 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
         {/* Expenses Table with Scoped Drag-and-Drop */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
           <DragDropContext onDragEnd={handleCategoryDragEnd}>
-            <table className="w-max table-fixed text-xs border-collapse min-w-[700px]">
+            <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
               <colgroup>
                 {isEditMode && <col className="w-8 min-w-[32px]" />}
-                <col className="w-[280px] min-w-[240px]" />
+                <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
                 {Array.from({ length: years }).map((_, y) => (
                   <React.Fragment key={y}>
-                    <col className="w-[var(--yr-col-w)] min-w-[84px]" />
-                    <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                    <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                    <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
                   </React.Fragment>
                 ))}
                 {isEditMode && <col className="w-10 min-w-[40px]" />}

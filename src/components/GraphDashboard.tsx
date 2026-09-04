@@ -160,12 +160,12 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
   return (
     <div className="bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded-xl mt-5 shadow-xs overflow-hidden transition-all">
       <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleChartScroll}>
-        <div className="w-full min-w-[700px] flex items-stretch">
+        <div className="w-full min-w-[480px] flex items-stretch">
           {/* Edit mode left spacer */}
           {state.isEditMode && <div className="w-8 min-w-[32px] flex-shrink-0 border-r border-[var(--border)]/40" />}
 
-          {/* Left Control Sidebar (matches the w-[280px] min-w-[240px] left column of the tables) */}
-          <div className="w-[280px] min-w-[240px] flex-shrink-0 p-3.5 sm:p-4 border-r-2 border-[var(--col-divider)] bg-[var(--panel)]/70 flex flex-col justify-between gap-4 select-none">
+          {/* Left Control Sidebar (matches the w-[var(--label-col-w)] min-w-[var(--label-col-w)] left column of the tables) */}
+          <div className="w-[var(--label-col-w)] min-w-[var(--label-col-w)] flex-shrink-0 p-3.5 sm:p-4 border-r-2 border-[var(--col-divider)] bg-[var(--panel)]/70 flex flex-col justify-between gap-4 select-none">
             <div className="space-y-4">
               {/* 1. Mode Switcher (Trend vs Comparison) */}
               <div>

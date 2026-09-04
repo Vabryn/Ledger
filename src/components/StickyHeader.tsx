@@ -424,16 +424,16 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
               className="overflow-x-auto scrollbar-none"
               onScroll={handleHeaderScroll}
             >
-              <table className="w-max table-fixed text-xs border-collapse min-w-[700px]">
+              <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
                 <colgroup>
                   {state.isEditMode && <col className="w-8 min-w-[32px]" />}
                   {/* Name / Category Column */}
-                  <col className="w-[280px] min-w-[240px]" />
+                  <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
                   {/* Year sub-columns */}
                   {Array.from({ length: years }).map((_, y) => (
                     <React.Fragment key={y}>
-                      <col className="w-[var(--yr-col-w)] min-w-[84px]" />
-                      <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                      <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                      <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
                     </React.Fragment>
                   ))}
                   {state.isEditMode && <col className="w-10 min-w-[40px]" />}

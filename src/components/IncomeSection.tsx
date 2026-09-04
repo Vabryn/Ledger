@@ -131,14 +131,14 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
 
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
             <DragDropContext onDragEnd={handleWorkerDragEnd}>
-              <table className="w-max table-fixed text-xs border-collapse min-w-[700px]">
+              <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
                 <colgroup>
                   {isEditMode && <col className="w-8 min-w-[32px]" />}
-                  <col className="w-[280px] min-w-[240px]" />
+                  <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
                   {Array.from({ length: years }).map((_, y) => (
                     <React.Fragment key={y}>
-                      <col className="w-[var(--yr-col-w)] min-w-[84px]" />
-                      <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                      <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                      <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
                     </React.Fragment>
                   ))}
                   {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -241,35 +241,39 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                       <React.Fragment key={y}>
                                         <td className="py-1.5 px-1 border-l-2 border-[var(--col-divider)] text-center">
                                           {isHourly ? (
-                                            <div className="flex items-center justify-center gap-0.5 mx-auto w-fit max-w-full bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1 py-0.5 font-mono-custom focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
-                                              <span className="text-[10px] text-[var(--muted2)] select-none">$</span>
-                                              <input
-                                                type="number"
-                                                min="0"
-                                                step="0.5"
-                                                value={rawWage === 0 && !w.wage?.[y] ? '' : rawWage}
-                                                onChange={e => onUpdateWorker(wi, 'wage', num(e.target.value), y)}
-                                                placeholder="0"
-                                                className={`w-9 text-right bg-transparent text-[11px] font-mono-custom focus:outline-none ${
-                                                  rawWage === 0 ? 'text-[var(--muted2)] opacity-40' : 'text-[var(--text)]'
-                                                }`}
-                                                title={`Hourly wage ($/hr) for Year ${y + 1}`}
-                                              />
-                                              <span className="text-[10px] text-[var(--muted2)] select-none">/</span>
-                                              <input
-                                                type="number"
-                                                min="0"
-                                                max="168"
-                                                value={hrs}
-                                                onChange={e => onUpdateWorker(wi, 'hours', num(e.target.value), y)}
-                                                className="w-6 text-right bg-transparent text-[11px] font-mono-custom text-[var(--text)] focus:outline-none"
-                                                title={`Hours per week for Year ${y + 1}`}
-                                              />
-                                              <span className="text-[10px] text-[var(--muted2)] select-none">h</span>
+                                            <div className="flex flex-col items-stretch gap-0.5 mx-auto max-w-full bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1 py-0.5 font-mono-custom focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
+                                              <div className="flex items-center justify-center">
+                                                <span className="text-[10px] text-[var(--muted2)] select-none">$</span>
+                                                <input
+                                                  type="number"
+                                                  min="0"
+                                                  step="0.5"
+                                                  value={rawWage === 0 && !w.wage?.[y] ? '' : rawWage}
+                                                  onChange={e => onUpdateWorker(wi, 'wage', num(e.target.value), y)}
+                                                  placeholder="0"
+                                                  className={`w-full min-w-0 text-center bg-transparent text-[11px] font-mono-custom focus:outline-none ${
+                                                    rawWage === 0 ? 'text-[var(--muted2)] opacity-40' : 'text-[var(--text)]'
+                                                  }`}
+                                                  title={`Hourly wage ($/hr) for Year ${y + 1}`}
+                                                />
+                                              </div>
+                                              <div className="flex items-center justify-center border-t border-[var(--border)]/60">
+                                                <span className="text-[9px] text-[var(--muted2)] select-none mr-0.5">×</span>
+                                                <input
+                                                  type="number"
+                                                  min="0"
+                                                  max="168"
+                                                  value={hrs}
+                                                  onChange={e => onUpdateWorker(wi, 'hours', num(e.target.value), y)}
+                                                  className="w-full min-w-0 text-center bg-transparent text-[10px] font-mono-custom text-[var(--muted)] focus:outline-none"
+                                                  title={`Hours per week for Year ${y + 1}`}
+                                                />
+                                                <span className="text-[9px] text-[var(--muted2)] select-none">h</span>
+                                              </div>
                                             </div>
                                           ) : (
-                                            <div className="relative flex items-center justify-center max-w-full mx-auto bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1.5 py-0.5 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
-                                              <span className="text-[11px] text-[var(--muted2)] select-none mr-0.5">$</span>
+                                            <div className="relative flex items-center justify-center max-w-full mx-auto bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1 py-0.5 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
+                                              <span className="text-[10px] text-[var(--muted2)] select-none">$</span>
                                               <input
                                                 type="number"
                                                 min="0"
@@ -398,14 +402,14 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
             <div>
               <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
                 <DragDropContext onDragEnd={handleOtherDragEnd}>
-                  <table className="w-max table-fixed text-xs border-collapse min-w-[700px]">
+                  <table className="table-fixed text-xs border-collapse min-w-[480px]" style={{ width: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
                     <colgroup>
                       {isEditMode && <col className="w-8 min-w-[32px]" />}
-                      <col className="w-[280px] min-w-[240px]" />
+                      <col className="w-[var(--label-col-w)] min-w-[var(--label-col-w)]" />
                       {Array.from({ length: years }).map((_, y) => (
                         <React.Fragment key={y}>
-                          <col className="w-[var(--yr-col-w)] min-w-[84px]" />
-                          <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                          <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
+                          <col className="w-[var(--yr-col-w)] min-w-[var(--yr-col-w)]" />
                         </React.Fragment>
                       ))}
                       {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -497,15 +501,15 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                           return (
                                             <React.Fragment key={y}>
                                               <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-[var(--col-divider)] text-center">
-                                                <div className="relative flex items-center justify-center max-w-[100px] mx-auto bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1.5 py-0.5 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
-                                                  <span className="text-[11px] text-[var(--muted2)] select-none mr-0.5">$</span>
+                                                <div className="relative flex items-center justify-center mx-auto bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1 py-0.5 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
+                                              <span className="text-[10px] text-[var(--muted2)] select-none">$</span>
                                                   <input
                                                     type="number"
                                                     min="0"
                                                     value={rawAmt === 0 && !item.amount?.[y] ? '' : rawAmt}
                                                     onChange={e => onUpdateOther(ri, 'amount', num(e.target.value), y)}
                                                     placeholder="0"
-                                                    className={`w-full text-center bg-transparent text-[var(--text)] text-xs font-mono-custom focus:outline-none ${
+                                                    className={`w-full min-w-0 text-center bg-transparent text-[11px] font-mono-custom focus:outline-none ${
                                                       rawAmt === 0 ? 'text-[var(--muted2)] opacity-40' : 'text-[var(--text)]'
                                                     }`}
                                                     title={`Raw payout per ${freq.toLowerCase()}`}

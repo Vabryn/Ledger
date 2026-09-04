@@ -27,14 +27,17 @@
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: 'IBM Plex Serif', Georgia, serif;
 
-  /* Single source of truth for the width of one projection sub-column.
-     Every section table column and the summary chart's per-year width use this,
-     so the chart's year axis always lines up with the table headers. */
-  --yr-col-w: 108px;
+  /* Single source of truth for table column widths. Every section table's
+     row-label column and per-year sub-column use these, and the summary chart
+     derives its left gutter + per-year width from them, so the chart axis
+     always lines up with the table headers.
+     Sized so a 5-year view fits a ~900px viewport without horizontal scroll. */
+  --label-col-w: 176px;
+  --yr-col-w: 64px;
 }
 
 @media (max-width: 639px) {
-  :root { --yr-col-w: 96px; }
+  :root { --label-col-w: 150px; --yr-col-w: 62px; }
 }
 
 .dark {
@@ -79,6 +82,22 @@ body {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* Compact, uniform horizontal padding for every projection-table cell so
+   values stay inside the slim year columns. Unlayered, so it overrides the
+   per-cell px-* utilities without !important. Vertical padding stays per-cell. */
+.category-table-scroll td,
+.category-table-scroll th,
+#sticky-year-bar-scroll td,
+#sticky-year-bar-scroll th {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
+.category-table-scroll tr > :first-child,
+#sticky-year-bar-scroll tr > :first-child {
+  padding-left: 0.625rem;
+  padding-right: 0.5rem;
 }
 
 .font-mono-custom {
