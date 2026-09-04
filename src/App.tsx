@@ -19,7 +19,6 @@ import { SummarySection } from './components/SummarySection';
 export default function App() {
   const [activeCategory, setActiveCategory] = useState<NavCategory>('all');
   const [scrolledCategory, setScrolledCategory] = useState<NavCategory>('income');
-  const [activeDescription, setActiveDescription] = useState<'income' | 'expenses' | null>(null);
   const [state, setState] = useState<PlannerState>(() => {
     const saved = safeStorage.getJson<any>(STORAGE_KEY, null);
     if (saved) {
@@ -530,34 +529,6 @@ export default function App() {
       const headerEl = document.getElementById('sticky-header-container');
       const headerBottom = headerEl ? headerEl.getBoundingClientRect().bottom : 120;
 
-      // Check which category table description is hit
-      // "only changes the header once it hits the description itself, otherwise the header will only show year."
-      let hitDesc: 'income' | 'expenses' | null = null;
-
-      // Check Income description row
-      const incomeDescEl = document.getElementById('income-table-desc') || document.getElementById('other-income-table-desc');
-      const incomeSecEl = document.getElementById('sec-income');
-      if (incomeDescEl && incomeSecEl) {
-        const descRect = incomeDescEl.getBoundingClientRect();
-        const secRect = incomeSecEl.getBoundingClientRect();
-        if (descRect.top <= headerBottom + 5 && secRect.bottom > headerBottom + 10) {
-          hitDesc = 'income';
-        }
-      }
-
-      // Check Expenses description row
-      const expDescEl = document.getElementById('expenses-table-desc');
-      const expSecEl = document.getElementById('sec-expenses');
-      if (expDescEl && expSecEl) {
-        const descRect = expDescEl.getBoundingClientRect();
-        const secRect = expSecEl.getBoundingClientRect();
-        if (descRect.top <= headerBottom + 5 && secRect.bottom > headerBottom + 10) {
-          hitDesc = 'expenses';
-        }
-      }
-
-      setActiveDescription(hitDesc);
-
       // 3. Update active scrolled category
       if (activeCategory === 'all') {
         const secOrder = state.sectionOrder || ['sec-income', 'sec-taxes', 'sec-expenses', 'sec-retire', 'sec-summary'];
@@ -774,7 +745,6 @@ export default function App() {
         state={safeState}
         activeCategory={activeCategory}
         effectiveCategory={activeCategory === 'all' ? scrolledCategory : activeCategory}
-        activeDescription={activeDescription}
         onSelectCategory={cat => setActiveCategory(cat)}
         onAddYear={handleAddYear}
         onRemoveYear={handleRemoveYear}

@@ -65,6 +65,13 @@
   color-scheme: dark;
 }
 
+html {
+  /* Always reserve the scrollbar gutter so switching to a short category
+     (page gets shorter, scrollbar disappears) doesn't change the layout
+     width and jolt every responsive table. */
+  scrollbar-gutter: stable;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg);

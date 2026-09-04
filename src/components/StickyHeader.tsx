@@ -25,7 +25,6 @@ interface StickyHeaderProps {
   state: PlannerState;
   activeCategory: NavCategory;
   effectiveCategory?: NavCategory;
-  activeDescription?: 'income' | 'expenses' | null;
   onSelectCategory: (category: NavCategory) => void;
   onAddYear: () => void;
   onRemoveYear: () => void;
@@ -40,7 +39,6 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   state,
   activeCategory,
   effectiveCategory,
-  activeDescription,
   onSelectCategory,
   onAddYear,
   onRemoveYear,
@@ -78,43 +76,15 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
 
   const currentCat = (activeCategory === 'all' ? (effectiveCategory || 'income') : activeCategory);
 
-  // Column description & sub-columns in header:
-  // "only changes the header once it hits the description itself, otherwise the header will only show year."
-  let activeCategoryLabel = 'Projection';
-  let lineItemLabel = '';
-  let hasSubColumns = false;
-  let subCol1Label = '';
-  let subCol2Label = '';
-
-  if (activeDescription === 'income') {
-    activeCategoryLabel = 'Income';
-    lineItemLabel = 'Income Earner / Source';
-    hasSubColumns = true;
-    subCol1Label = 'Rate / Wage';
-    subCol2Label = isMonths ? 'Gross Monthly' : 'Gross Annual';
-  } else if (activeDescription === 'expenses') {
-    activeCategoryLabel = 'Expenses';
-    lineItemLabel = 'Category / Item';
-    hasSubColumns = true;
-    subCol1Label = isMonths ? 'Month' : 'Monthly';
-    subCol2Label = isMonths ? 'Mo. Total' : 'Annual';
-  } else {
-    // "otherwise the header will only show year."
-    hasSubColumns = false;
-    if (currentCat === 'taxes') {
-      activeCategoryLabel = 'Taxes';
-    } else if (currentCat === 'retire') {
-      activeCategoryLabel = 'Retirement';
-    } else if (currentCat === 'income') {
-      activeCategoryLabel = 'Income';
-    } else if (currentCat === 'expenses') {
-      activeCategoryLabel = 'Expenses';
-    } else if (currentCat === 'summary') {
-      activeCategoryLabel = 'Summary & Projections';
-    } else {
-      activeCategoryLabel = 'Overview';
-    }
-  }
+  // The sticky year bar's left cell just names the category currently scrolled into view.
+  const CATEGORY_LABELS: Record<string, string> = {
+    taxes: 'Taxes',
+    retire: 'Retirement',
+    income: 'Income',
+    expenses: 'Expenses',
+    summary: 'Summary & Projections',
+  };
+  const activeCategoryLabel = CATEGORY_LABELS[currentCat] || 'Overview';
 
 
   // Close dropdowns on click outside
@@ -395,16 +365,9 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                     {/* Left Column: Category / Line Items Indicator + Start Year Picker */}
                     <th className="py-1 px-3 text-left align-middle">
                       <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 truncate">
-                          <span className="font-semibold text-xs text-[var(--text)] tracking-wide uppercase truncate">
-                            {activeCategoryLabel}
-                          </span>
-                          {hasSubColumns && (
-                            <span className="text-[10px] text-[var(--muted2)]">
-                              Columns
-                            </span>
-                          )}
-                        </div>
+                        <span className="font-semibold text-xs text-[var(--text)] tracking-wide uppercase truncate">
+                          {activeCategoryLabel}
+                        </span>
 
                         {/* Start Year Picker */}
                         {!isMonths && (
@@ -454,36 +417,6 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                     })}
                     {state.isEditMode && <th className="w-10"></th>}
                   </tr>
-                  {hasSubColumns && (
-                    <tr className="bg-[var(--row-alt)] text-[10px] text-[var(--muted2)] font-medium">
-                      {state.isEditMode && <th></th>}
-                      <th className="py-0.5 px-3 text-left font-sans-custom uppercase tracking-wider text-[10px] text-[var(--muted2)]">
-                        {lineItemLabel}
-                      </th>
-                      {Array.from({ length: years }).map((_, y) => {
-                        const isHovered = hoveredIdx === y;
-                        return (
-                          <React.Fragment key={y}>
-                            <th
-                              className={`py-0.5 px-1 text-center font-sans-custom border-l-2 border-[var(--col-divider)] ${
-                                isHovered ? 'bg-[var(--panel-alt)] text-[var(--text)]' : ''
-                              }`}
-                            >
-                              {subCol1Label}
-                            </th>
-                            <th
-                              className={`py-0.5 px-1 text-center font-sans-custom ${
-                                isHovered ? 'bg-[var(--panel-alt)] text-[var(--text)]' : ''
-                              }`}
-                            >
-                              {subCol2Label}
-                            </th>
-                          </React.Fragment>
-                        );
-                      })}
-                      {state.isEditMode && <th></th>}
-                    </tr>
-                  )}
                 </thead>
               </table>
             </div>
