@@ -160,17 +160,8 @@ export interface PlannerState {
  * Calculated financial results produced by `computePlanner(state)`.
  */
 export interface CalculationResult {
-  /** View mode used for calculation ('years' | 'months') */
-  viewMode: ViewMode;
-
-  /** Multiplier used to normalize annual to period (1 for years, 1/12 for months) */
-  periodScale: number;
-
   /** Gross Income per period */
   g: number[];
-
-  /** Annualized Gross Income */
-  grossAnnual: number[];
 
   /** Federal Income Tax per period */
   fed: number[];
@@ -229,12 +220,10 @@ export interface CalculationResult {
   /** Per-fund period values indexed by fund ID */
   fundValues: Record<string, number[]>;
 
-  /** Validation alerts per column for employee contribution caps */
+  /** Per-column flag: the target retirement rate exceeds the combined
+   *  individual contribution cap (Roth IRA + 401(k) employee). */
   retirementAlerts: {
-    column: number;
     hasError: boolean;
-    rothExceeded: boolean;
-    k401Exceeded: boolean;
     combinedExceeded: boolean;
     message?: string;
   }[];

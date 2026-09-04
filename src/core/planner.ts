@@ -126,7 +126,6 @@ export function computePlanner(state: PlannerState): CalculationResult {
   const periodScale = viewMode === 'months' ? 1 / 12 : 1;
 
   const g: number[] = [];
-  const grossAnnual: number[] = [];
   const fed: number[] = [];
   const stTax: number[] = [];
   const fica: number[] = [];
@@ -191,7 +190,6 @@ export function computePlanner(state: PlannerState): CalculationResult {
     }
 
     const annualGross = earnedAnnual + otherAnnual;
-    grossAnnual.push(annualGross);
     const periodGross = annualGross * periodScale;
     g.push(periodGross);
 
@@ -215,10 +213,8 @@ export function computePlanner(state: PlannerState): CalculationResult {
     const actualEmployerMatchAnnual = Math.max(0, total401kAnnual - k401EmployeeAnnual);
     const retireTotalAnnual = rothContribAnnual + total401kAnnual;
 
-    // Validation Guardrails: Check if target exceeds individual contribution caps
+    // Does the target exceed the combined individual contribution cap?
     const totalIndividualCap = maxRothAnnual + max401kEmployeeAnnual;
-    const rothExceeded = targetAnnual > maxRothAnnual && maxRothAnnual > 0;
-    const k401Exceeded = remainingFor401k > max401kEmployeeAnnual;
     const employeeExceeded = targetAnnual > totalIndividualCap;
 
     // Pre-tax deduction that reduces income-taxable wages (traditional 401k only; Roth IRA is post-tax).
@@ -290,18 +286,12 @@ export function computePlanner(state: PlannerState): CalculationResult {
     const periodNet = periodGross - periodTaxes;
     net.push(periodNet);
 
-    let alertMsg: string | undefined = undefined;
-    if (employeeExceeded) {
-      alertMsg = `Target exceeds legal annual limit ($${totalIndividualCap.toLocaleString()}/yr). Individual contributions are capped.`;
-    }
-
     retirementAlerts.push({
-      column: i,
       hasError: employeeExceeded,
-      rothExceeded,
-      k401Exceeded,
       combinedExceeded: employeeExceeded,
-      message: alertMsg,
+      message: employeeExceeded
+        ? `Target exceeds legal annual limit ($${totalIndividualCap.toLocaleString()}/yr). Individual contributions are capped.`
+        : undefined,
     });
 
     retireTarget.push(targetAnnual * periodScale);
@@ -355,10 +345,7 @@ export function computePlanner(state: PlannerState): CalculationResult {
   });
 
   return {
-    viewMode,
-    periodScale,
     g,
-    grossAnnual,
     fed,
     stTax,
     fica,
