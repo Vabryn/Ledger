@@ -120,11 +120,43 @@ body {
    specificity than the rules above so these actually win. */
 .category-table-scroll td.cat-rule-cell {
   padding: 0;
-  /* relative (not sticky) so it opts out of the frozen-first-column
-     treatment while still anchoring the thread-stem span inside it. */
-  position: relative;
+  position: static; /* opt out of the frozen-first-column sticky treatment */
 }
 .category-table-scroll td.cat-rule-cell::after {
+  content: none;
+}
+
+/* ── Year-column divider shading ─────────────────────────────────────
+   The first sub-column of each projection year carries `border-l-2
+   border-[var(--col-divider)]` in the markup — a crisp line. Add a soft
+   rightward fade next to it so it matches the frozen column's ::after
+   and the category rules. The very first year (2025) is skipped: its
+   left edge already has the frozen column's divider, and two lines there
+   read as a doubled rule. */
+.category-table-scroll td.border-l-2,
+.category-table-scroll th.border-l-2,
+#sticky-year-bar-scroll td.border-l-2,
+#sticky-year-bar-scroll th.border-l-2 {
+  position: relative;
+}
+.category-table-scroll td.border-l-2::before,
+.category-table-scroll th.border-l-2::before,
+#sticky-year-bar-scroll td.border-l-2::before,
+#sticky-year-bar-scroll th.border-l-2::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  pointer-events: none;
+  background: linear-gradient(to right, rgb(0 0 0 / 0.08), transparent);
+}
+/* First year: no year rule (border already zeroed above; drop the fade too). */
+.category-table-scroll tr > :nth-child(2)::before,
+#sticky-year-bar-scroll tr > :nth-child(2)::before,
+.category-table-scroll table.is-edit tr > :nth-child(3)::before,
+#sticky-year-bar-scroll table.is-edit tr > :nth-child(3)::before {
   content: none;
 }
 

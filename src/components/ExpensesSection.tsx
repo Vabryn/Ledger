@@ -271,15 +271,6 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                       >
                         {isEditMode && <td className="w-8"></td>}
                         <td className="py-2 px-3">
-                          {/* Thread stem — drops from the disclosure arrow into the
-                              item rows, so the whole group reads as one branch. */}
-                          {!isCollapsed && catRows.length > 0 && (
-                            <span
-                              aria-hidden="true"
-                              className="pointer-events-none absolute left-[17px] w-px bg-[var(--col-divider)]"
-                              style={{ top: '50%', bottom: 0 }}
-                            />
-                          )}
                           <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)] truncate">
                             {isCollapsed ? (
                               <ChevronRight className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
@@ -332,14 +323,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
 
                       {/* Underline under the category title — a crisp rule with a
                           soft downward fade, echoing the frozen column's vertical
-                          divider. Spans the full table width. The thread stem
-                          continues through it so the arrow connects to the items. */}
+                          divider. Spans the full table width. */}
                       {!isCollapsed && (
                         <tr aria-hidden="true">
                           <td colSpan={fullColSpan} className="cat-rule-cell">
-                            {catRows.length > 0 && (
-                              <span className="pointer-events-none absolute left-[17px] inset-y-0 w-px bg-[var(--col-divider)]" />
-                            )}
                             <div
                               className="h-1.5"
                               style={{
@@ -370,7 +357,6 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                               catRows.map((row, catRowIdx) => {
                                 const ri = col.findIndex(item => item.id === row.id);
                                 const draggableId = row.id || `exp-${cat}-${catRowIdx}`;
-                                const isLastInCat = catRowIdx === catRows.length - 1;
 
                                 return (
                                   <React.Fragment key={draggableId}>
@@ -391,20 +377,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                             </td>
                                           )}
 
-                                          <td className="py-1.5 pl-[29px] pr-2.5">
-                                            {/* Thread line — a faint vertical rail down the
-                                                left of a category's items. It runs unbroken
-                                                from the header arrow (via the title-rule stem)
-                                                and rounds off 7px above the last row, so the
-                                                whole group reads as one comment-style thread. */}
-                                            <span
-                                              aria-hidden="true"
-                                              className="pointer-events-none absolute left-[17px] w-px bg-[var(--col-divider)]"
-                                              style={{
-                                                top: 0,
-                                                bottom: isLastInCat ? '7px' : 0,
-                                              }}
-                                            />
+                                          <td className="py-1.5 px-2.5">
                                             <input
                                               type="text"
                                               value={row.name}
