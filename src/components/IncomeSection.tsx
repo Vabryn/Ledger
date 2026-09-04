@@ -110,6 +110,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
             </div>
           </div>
 
+          <div className="bg-[var(--row-alt)] border border-[var(--border)]/70 rounded-xl shadow-xs overflow-hidden">
           <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
             <DragDropContext onDragEnd={handleWorkerDragEnd}>
               <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
@@ -303,6 +304,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
               </table>
             </DragDropContext>
           </div>
+          </div>
 
           <button
             onClick={onAddWorker}
@@ -357,6 +359,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
             </div>
           ) : !isOtherCollapsed ? (
             <div>
+              <div className="bg-[var(--row-alt)] border border-[var(--border)]/70 rounded-xl shadow-xs overflow-hidden">
               <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
                 <DragDropContext onDragEnd={handleOtherDragEnd}>
                   <table className={`w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${isEditMode ? 72 : 0}px)` }}>
@@ -506,6 +509,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                     </Droppable>
                       </table>
                     </DragDropContext>
+                  </div>
                   </div>
 
                   <button

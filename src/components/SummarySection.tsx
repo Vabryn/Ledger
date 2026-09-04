@@ -117,6 +117,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         </div>
 
         {/* Aligned Projection Matrix Table */}
+        <div className="bg-[var(--row-alt)] border border-[var(--border)]/70 rounded-xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
           <table className={`w-full table-fixed text-xs border-collapse${state.isEditMode ? ' is-edit' : ''}`} style={{ minWidth: `calc(var(--label-col-w) + ${years * 2} * var(--yr-col-w) + ${state.isEditMode ? 72 : 0}px)` }}>
             <colgroup>
@@ -380,6 +381,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               </tr>
             </tbody>
           </table>
+        </div>
         </div>
 
         {/* Visual Graph Dashboard */}
