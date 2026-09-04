@@ -156,7 +156,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
   const yTicks = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <div className="relative bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded-xl mt-5 shadow-xs overflow-hidden transition-all">
+    <div className="relative bg-[var(--row-alt)] border border-[var(--border)]/70 rounded-xl mt-5 shadow-xs overflow-hidden transition-all">
       {/* Y-axis scale — anchored to the non-scrolling outer card at the canvas's
           left edge, so it stays put while the canvas scrolls horizontally. HTML,
           not SVG <text>, so the non-uniform SVG scale can't stretch the type. */}
@@ -166,7 +166,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
           return (
             <span
               key={pct}
-              className="absolute -translate-y-1/2 rounded bg-[var(--panel-alt)] px-1 text-[9px] font-semibold font-mono-custom text-[var(--muted2)] leading-none"
+              className="absolute -translate-y-1/2 rounded bg-[var(--row-alt)] px-1 text-[9px] font-semibold font-mono-custom text-[var(--muted2)] leading-none"
               style={{
                 top: `${padT + drawH * (1 - pct)}px`,
                 left: `calc(var(--label-col-w)${state.isEditMode ? ' + 32px' : ''} + 6px)`,
@@ -427,13 +427,21 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
           {/* GROUPED COMPARISON MODE */}
           {mode === 'grouped' &&
             Array.from({ length: years }).map((_, y) => {
+              // Bar width is fixed off the full series count so a bar keeps the
+              // same thickness across years, but only the series that actually
+              // have a value this year get a slot — and that visible cluster is
+              // centred in the column. Otherwise years where the savings funds
+              // are still $0 leave empty slots that shove the visible bars hard
+              // against the left gridline and it reads as misaligned.
               const barW = Math.min(36, (colW * 0.72) / Math.max(1, activeSeries.length));
+              const shown = activeSeries.filter(s => (s.v[y] ?? 0) > 0);
+              const cluster = shown.length ? shown : activeSeries;
               const cx = (y + 0.5) * colW;
-              const startX = cx - (barW * activeSeries.length) / 2;
+              const startX = cx - (barW * cluster.length) / 2;
 
               return (
                 <g key={y}>
-                  {activeSeries.map((s, sIdx) => {
+                  {cluster.map((s, sIdx) => {
                     const val = s.v[y] ?? 0;
                     const valY = getY(val);
                     const barH = Math.max(0, padT + drawH - valY);
