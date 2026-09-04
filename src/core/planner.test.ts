@@ -45,6 +45,7 @@ import type { PlannerState } from './';
  * 19. Hostile input: validateAndRepairState + computePlanner never throw and
  *     always return a finite, self-consistent shape (prototype-pollution,
  *     wrong types, NaN/Infinity, fractional years, bad enums, …)
+ * 20. Tax-table structural invariants (monotonic thresholds, rates in [0,1])
  */
 
 function runAllTests() {
@@ -991,6 +992,33 @@ function runAllTests() {
   assert(({} as any).polluted === undefined, '19 · Object.prototype was not polluted');
 
   console.log('✅ Suite 19 Passed: Hostile input is contained — no throws, all output finite.\n');
+
+  // =====================================================================
+  // SUITE 20: TAX TABLE STRUCTURAL INVARIANTS — catches a data-entry slip
+  // in a future <year>.ts before it silently skews every computed tax.
+  // =====================================================================
+  console.log('--- Suite 20: Tax Table Structural Invariants ---');
+
+  const bracketTables: Record<string, Record<string, { brackets: [number, number][]; stdDed?: number }>> = {
+    FED_2025, CA_2025, NY_2025, NYC_2025,
+  };
+  for (const [tableName, table] of Object.entries(bracketTables)) {
+    for (const [status, cfg] of Object.entries(table)) {
+      const b = cfg.brackets;
+      assert(Array.isArray(b) && b.length > 0, `20 · ${tableName}.${status} has brackets`);
+      assert(b[0][0] === 0, `20 · ${tableName}.${status} first threshold is 0`);
+      for (let i = 0; i < b.length; i++) {
+        assert(b[i][1] >= 0 && b[i][1] <= 1, `20 · ${tableName}.${status} rate ${i} in [0,1]`);
+        if (i > 0) {
+          assert(b[i][0] > b[i - 1][0], `20 · ${tableName}.${status} thresholds strictly increasing at ${i}`);
+        }
+      }
+      if (typeof cfg.stdDed === 'number') {
+        assert(cfg.stdDed >= 0, `20 · ${tableName}.${status} stdDed is non-negative`);
+      }
+    }
+  }
+  console.log('✅ Suite 20 Passed: Every bracket table is well-formed.\n');
 
   // =====================================================================
   // SUMMARY
