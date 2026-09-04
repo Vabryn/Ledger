@@ -134,10 +134,30 @@ body {
   left: 0;
   z-index: 4;
   background-color: inherit; /* take the row's own fill (banding / hover / totals) */
-  /* same divider as between year columns, plus a faint shadow so it reads
-     as pinned once content scrolls behind it */
-  border-right: 2px solid var(--col-divider);
-  box-shadow: 4px 0 6px -4px rgb(0 0 0 / 0.14);
+  border-right: 0;
+}
+/* The divider has to TRACK the sticky column while the year columns scroll
+   under it. A real border-right can't: the table is border-collapse, so cell
+   borders belong to the grid and stay at their original x. An outset
+   box-shadow would be clipped by the cell's own `overflow: hidden`. So paint
+   the line with an ::after pinned inside the cell's right edge — it rides
+   with the sticky cell and survives the clip. The gradient adds a soft fade
+   so content reads as sliding *behind* the frozen column. */
+.category-table-scroll tr > :first-child::after,
+#sticky-year-bar-scroll tr > :first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    var(--col-divider) 0 2px,
+    rgb(0 0 0 / 0.08) 2px,
+    transparent
+  );
 }
 .category-table-scroll thead tr > :first-child,
 #sticky-year-bar-scroll thead tr > :first-child {
@@ -167,8 +187,29 @@ body {
   left: 2rem;
   z-index: 4;
   background-color: inherit;
-  border-right: 2px solid var(--col-divider);
-  box-shadow: 4px 0 6px -4px rgb(0 0 0 / 0.14);
+  border-right: 0;
+}
+/* In edit mode the real label column is child 2 — move the ::after divider
+   there and cancel the one on the drag-handle spacer (child 1). */
+.category-table-scroll table.is-edit tr > :first-child::after,
+#sticky-year-bar-scroll table.is-edit tr > :first-child::after {
+  content: none;
+}
+.category-table-scroll table.is-edit tr > :nth-child(2)::after,
+#sticky-year-bar-scroll table.is-edit tr > :nth-child(2)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    var(--col-divider) 0 2px,
+    rgb(0 0 0 / 0.08) 2px,
+    transparent
+  );
 }
 /* the pinned drag-handle spacer in edit mode still needs an opaque fill */
 .category-table-scroll table.is-edit tr > :first-child,
