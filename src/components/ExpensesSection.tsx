@@ -355,6 +355,8 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                               catRows.map((row, catRowIdx) => {
                                 const ri = col.findIndex(item => item.id === row.id);
                                 const draggableId = row.id || `exp-${cat}-${catRowIdx}`;
+                                const isFirstInCat = catRowIdx === 0;
+                                const isLastInCat = catRowIdx === catRows.length - 1;
 
                                 return (
                                   <React.Fragment key={draggableId}>
@@ -375,7 +377,19 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                             </td>
                                           )}
 
-                                          <td className="py-1.5 px-2.5">
+                                          <td className="py-1.5 pl-[22px] pr-2.5">
+                                            {/* Thread line — a faint vertical rail down the
+                                                left of a category's items, capped at the first
+                                                and last row, so it reads like a comment thread:
+                                                one more cue that these rows sit inside a group. */}
+                                            <span
+                                              aria-hidden="true"
+                                              className="pointer-events-none absolute left-2.5 w-px bg-[var(--col-divider)]"
+                                              style={{
+                                                top: isFirstInCat ? '7px' : 0,
+                                                bottom: isLastInCat ? '7px' : 0,
+                                              }}
+                                            />
                                             <input
                                               type="text"
                                               value={row.name}
