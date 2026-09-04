@@ -16,6 +16,15 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: 'IBM Plex Serif', Georgia, serif;
+
+  /* Single source of truth for the width of one projection sub-column.
+     Every section table column and the summary chart's per-year width use this,
+     so the chart's year axis always lines up with the table headers. */
+  --yr-col-w: 108px;
+}
+
+@media (max-width: 639px) {
+  :root { --yr-col-w: 96px; }
 }
 
 .dark {

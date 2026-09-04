@@ -7,10 +7,12 @@ interface GraphDashboardProps {
   state: PlannerState;
   calc: CalculationResult;
   onChangeGraphType: (type: 'area' | 'grouped') => void;
-  onChangeGraphHeight: (h: number) => void;
   onToggleSeries: (key: string, val: boolean) => void;
   onChangeColor: (key: string, color: string) => void;
 }
+
+// Fixed chart height (matches the former "XL" preset).
+const CHART_HEIGHT = 460;
 
 function getSplinePath(pts: { x: number; y: number }[]): string {
   if (pts.length === 0) return '';
@@ -49,7 +51,6 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
   state,
   calc,
   onChangeGraphType,
-  onChangeGraphHeight,
   onToggleSeries,
   onChangeColor,
 }) => {
@@ -60,8 +61,16 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
   const years = state.years || 1;
   const isMonths = state.viewMode === 'months';
   const periodLabel = isMonths ? 'Month' : 'Year';
-  const height = state.graphHeight || 300;
+  const height = CHART_HEIGHT;
   const width = 1000; // ViewBox baseline
+
+  // Keep the chart's horizontal scroll in lockstep with the section tables.
+  const handleChartScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const headerScroll = document.getElementById('sticky-year-bar-scroll');
+    if (headerScroll && headerScroll.scrollLeft !== e.currentTarget.scrollLeft) {
+      headerScroll.scrollLeft = e.currentTarget.scrollLeft;
+    }
+  };
   const padT = 24;
   const padB = 36;
   const drawH = height - padT - padB;
@@ -150,12 +159,12 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
 
   return (
     <div className="bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded-xl mt-5 shadow-xs overflow-hidden transition-all">
-      <div className="overflow-x-auto pb-1">
+      <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleChartScroll}>
         <div className="w-full min-w-[700px] flex items-stretch">
           {/* Edit mode left spacer */}
           {state.isEditMode && <div className="w-8 min-w-[32px] flex-shrink-0 border-r border-[var(--border)]/40" />}
 
-          {/* Left Control Sidebar (matches w-[280px] min-w-[240px] left column of the table) */}
+          {/* Left Control Sidebar (matches the w-[280px] min-w-[240px] left column of the tables) */}
           <div className="w-[280px] min-w-[240px] flex-shrink-0 p-3.5 sm:p-4 border-r-2 border-stone-300 dark:border-stone-700 bg-[var(--panel)]/70 flex flex-col justify-between gap-4 select-none">
             <div className="space-y-4">
               {/* 1. Mode Switcher (Trend vs Comparison) */}
@@ -191,41 +200,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
                 </div>
               </div>
 
-              {/* 2. Height Selector directly under Trend / Comparison */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[10px] uppercase font-bold text-[var(--muted2)] tracking-wider">
-                    Height
-                  </span>
-                  <span className="text-[10px] font-mono-custom text-[var(--muted)]">
-                    {height}px
-                  </span>
-                </div>
-                <div className="grid grid-cols-4 gap-1 p-1 bg-[var(--panel-alt)] border border-[var(--border)] rounded-lg">
-                  {[
-                    { label: 'S', h: 220, title: 'Compact (220px)' },
-                    { label: 'M', h: 300, title: 'Default (300px)' },
-                    { label: 'L', h: 380, title: 'Tall (380px)' },
-                    { label: 'XL', h: 460, title: 'Expanded (460px)' },
-                  ].map(opt => (
-                    <button
-                      key={opt.h}
-                      type="button"
-                      onClick={() => onChangeGraphHeight(opt.h)}
-                      title={opt.title}
-                      className={`py-1 text-xs font-semibold rounded transition cursor-pointer text-center ${
-                        height === opt.h
-                          ? 'bg-[var(--accent)] text-white shadow-xs'
-                          : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--panel)]'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 3. Series Toggles & Color Pickers */}
+              {/* 2. Series Toggles & Color Pickers */}
               <div>
                 <div className="text-[10px] uppercase font-bold text-[var(--muted2)] tracking-wider mb-2">
                   Metrics & Colors
@@ -288,11 +263,13 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
             </div>
           </div>
 
-          {/* Right Canvas: Graph Area (aligned with the header year columns) */}
+          {/* Right Canvas: fixed to the same per-year width as the table columns
+              (2 x var(--yr-col-w)) so the year axis lines up exactly, and scrolls
+              with them via the shared .category-table-scroll wrapper. */}
           <div
             ref={containerRef}
-            className="flex-1 min-w-0 relative"
-            style={{ height: `${height}px` }}
+            className="flex-shrink-0 relative"
+            style={{ height: `${height}px`, width: `calc(${years} * 2 * var(--yr-col-w))` }}
           >
         <svg
           viewBox={`0 0 ${width} ${height}`}

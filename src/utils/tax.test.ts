@@ -110,7 +110,6 @@ export function runAllTests() {
     showOtherIncome: true,
     darkMode: false,
     isEditMode: false,
-    graphHeight: 280,
     graphType: 'area',
     graphToggles: { gross: true, colOnly: true, save: true, retire: true },
     barColors: { gross: '#8A978A', colOnly: '#8C3B33', save: '#3E5279', retire: '#2E7D4F' },

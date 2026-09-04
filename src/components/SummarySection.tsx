@@ -8,7 +8,6 @@ interface SummarySectionProps {
   state: PlannerState;
   calc: CalculationResult;
   onChangeGraphType: (type: 'area' | 'grouped') => void;
-  onChangeGraphHeight: (h: number) => void;
   onToggleSeries: (key: string, val: boolean) => void;
   onChangeColor: (key: string, color: string) => void;
   onMoveSection?: (dir: 'up' | 'down') => void;
@@ -19,7 +18,6 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   state,
   calc,
   onChangeGraphType,
-  onChangeGraphHeight,
   onToggleSeries,
   onChangeColor,
   onMoveSection,
@@ -120,8 +118,8 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
               {/* Year Columns matching sticky header */}
               {Array.from({ length: years }).map((_, y) => (
                 <React.Fragment key={y}>
-                  <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
-                  <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
+                  <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                  <col className="w-[var(--yr-col-w)] min-w-[84px]" />
                 </React.Fragment>
               ))}
               {state.isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -381,7 +379,6 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           state={state}
           calc={calc}
           onChangeGraphType={onChangeGraphType}
-          onChangeGraphHeight={onChangeGraphHeight}
           onToggleSeries={onToggleSeries}
           onChangeColor={onChangeColor}
         />

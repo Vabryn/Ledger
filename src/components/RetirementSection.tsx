@@ -115,8 +115,8 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 <col className="w-[280px] min-w-[240px]" />
                 {Array.from({ length: years }).map((_, y) => (
                   <React.Fragment key={y}>
-                    <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
-                    <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
+                    <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                    <col className="w-[var(--yr-col-w)] min-w-[84px]" />
                   </React.Fragment>
                 ))}
                 {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -287,8 +287,8 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 <col className="w-[280px] min-w-[240px]" />
                 {Array.from({ length: years }).map((_, y) => (
                   <React.Fragment key={y}>
-                    <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
-                    <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
+                    <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                    <col className="w-[var(--yr-col-w)] min-w-[84px]" />
                   </React.Fragment>
                 ))}
                 {isEditMode && <col className="w-10 min-w-[40px]" />}

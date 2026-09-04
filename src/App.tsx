@@ -824,7 +824,6 @@ export default function App() {
             state={safeState}
             calc={calc}
             onChangeGraphType={type => setState(prev => ({ ...prev, graphType: type }))}
-            onChangeGraphHeight={h => setState(prev => ({ ...prev, graphHeight: h }))}
             onToggleSeries={(k, val) =>
               setState(prev => ({
                 ...prev,
@@ -854,7 +853,6 @@ export default function App() {
       {/* Sticky Top Header Bar with Attached Category Navigation */}
       <StickyHeader
         state={safeState}
-        calc={calc}
         activeCategory={activeCategory}
         effectiveCategory={activeCategory === 'all' ? scrolledCategory : activeCategory}
         activeDescription={activeDescription}

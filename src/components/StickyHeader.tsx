@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { fmt$ } from '../utils/taxAndCalculations';
-import { CalculationResult, PlannerState, PageWidth, PAGE_WIDTH_CLASSES, PAGE_WIDTH_CONFIG } from '../types';
+import { PlannerState, PageWidth, PAGE_WIDTH_CLASSES, PAGE_WIDTH_CONFIG } from '../types';
 import {
   Sun,
   Moon,
@@ -29,7 +28,6 @@ export type NavCategory = 'all' | 'income' | 'expenses' | 'taxes' | 'retire' | '
 
 interface StickyHeaderProps {
   state: PlannerState;
-  calc: CalculationResult;
   activeCategory: NavCategory;
   effectiveCategory?: NavCategory;
   activeDescription?: 'income' | 'expenses' | null;
@@ -53,7 +51,6 @@ interface StickyHeaderProps {
 
 export const StickyHeader: React.FC<StickyHeaderProps> = ({
   state,
-  calc,
   activeCategory,
   effectiveCategory,
   activeDescription,
@@ -74,14 +71,13 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   const isMonths = state.viewMode === 'months';
   const startYear = state.startYear || 2025;
 
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null); // highlighted year column in the header
   const [isEditDropdownOpen, setIsEditDropdownOpen] = useState(false);
   const [isWidthDropdownOpen, setIsWidthDropdownOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const editDropdownRef = useRef<HTMLDivElement | null>(null);
   const widthDropdownRef = useRef<HTMLDivElement | null>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
   const isSyncingScrollRef = useRef(false);
 
   const handleHeaderScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -214,142 +210,6 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
     },
   ];
 
-  // Compute yearly and cumulative values
-  const yearlySavings: number[] = [];
-  const cumulativeSavings: number[] = [];
-  let runningTotal = 0;
-
-  for (let i = 0; i < years; i++) {
-    const val = calc.savings[i] ?? 0;
-    yearlySavings.push(val);
-    runningTotal += val;
-    cumulativeSavings.push(runningTotal);
-  }
-
-  // Chart dimensions - expanded to fill space with rich curves & visual depth
-  const chartWidth = Math.max(460, years * 90);
-  const chartHeight = 70;
-  const padX = 28;
-  const padY = 12;
-
-  // Dedicated Zoomed Scale for Yearly Series
-  const yearlyMin = Math.min(...yearlySavings, 0);
-  const yearlyMax = Math.max(...yearlySavings, 0);
-  const yearlyRange = yearlyMax === yearlyMin ? (Math.abs(yearlyMax) || 1000) * 0.4 : yearlyMax - yearlyMin;
-  const effYearlyMin = yearlyMin - yearlyRange * 0.15;
-  const effYearlyMax = yearlyMax + yearlyRange * 0.15;
-  const effYearlyRange = effYearlyMax - effYearlyMin;
-
-  const getYearlyY = (val: number) => {
-    const norm = (val - effYearlyMin) / effYearlyRange;
-    return chartHeight - padY - norm * (chartHeight - 2 * padY);
-  };
-
-  // Dedicated Scale for Cumulative Series
-  const cumulMin = Math.min(...cumulativeSavings, 0);
-  const cumulMax = Math.max(...cumulativeSavings, 0);
-  const cumulRange = cumulMax === cumulMin ? (Math.abs(cumulMax) || 1000) * 0.4 : cumulMax - cumulMin;
-  const effCumulMin = cumulMin - cumulRange * 0.15;
-  const effCumulMax = cumulMax + cumulRange * 0.15;
-  const effCumulRange = effCumulMax - effCumulMin;
-
-  const getCumulY = (val: number) => {
-    const norm = (val - effCumulMin) / effCumulRange;
-    return chartHeight - padY - norm * (chartHeight - 2 * padY);
-  };
-
-  const getX = (i: number) => {
-    if (years <= 1) return chartWidth / 2;
-    return padX + (i / (years - 1)) * (chartWidth - 2 * padX);
-  };
-
-  // Zero baseline for yearly zoom
-  const yZero = getYearlyY(0);
-
-  // Generate points (Yearly is zoomed to highlight annual variances)
-  const yearlyPoints = yearlySavings.map((val, i) => ({ x: getX(i), y: getYearlyY(val), val, index: i }));
-  const cumulativePoints = cumulativeSavings.map((val, i) => ({ x: getX(i), y: getCumulY(val), val, index: i }));
-
-  // Catmull-Rom or cubic bezier path builder for smooth lines
-  const createSmoothPath = (pts: { x: number; y: number }[]) => {
-    if (pts.length === 0) return '';
-    if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
-    if (pts.length === 2) return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
-
-    let d = `M ${pts[0].x} ${pts[0].y}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[i === 0 ? i : i - 1];
-      const p1 = pts[i];
-      const p2 = pts[i + 1];
-      const p3 = pts[i + 2] || p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
-    }
-    return d;
-  };
-
-  const yearlyPath = createSmoothPath(yearlyPoints);
-  const cumulativePath = createSmoothPath(cumulativePoints);
-
-  // Area under yearly path
-  const yearlyAreaPath =
-    yearlyPoints.length > 1
-      ? `${yearlyPath} L ${yearlyPoints[yearlyPoints.length - 1].x} ${yZero} L ${yearlyPoints[0].x} ${yZero} Z`
-      : '';
-
-  // Area under cumulative path
-  const cumulativeAreaPath =
-    cumulativePoints.length > 1
-      ? `${cumulativePath} L ${cumulativePoints[cumulativePoints.length - 1].x} ${chartHeight - padY} L ${cumulativePoints[0].x} ${chartHeight - padY} Z`
-      : '';
-
-  const activeIdx = hoveredIdx !== null ? hoveredIdx : years - 1;
-  const activeYearlyVal = yearlySavings[activeIdx] ?? 0;
-  const activeCumulativeVal = cumulativeSavings[activeIdx] ?? 0;
-
-  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (!svgRef.current || years <= 1) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const relX = (mouseX / rect.width) * chartWidth;
-
-    let closestIdx = 0;
-    let minDiff = Infinity;
-    for (let i = 0; i < years; i++) {
-      const px = getX(i);
-      const diff = Math.abs(px - relX);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIdx = i;
-      }
-    }
-    setHoveredIdx(closestIdx);
-  };
-
-  const handleTouch = (e: React.TouchEvent<SVGSVGElement>) => {
-    if (!svgRef.current || years <= 1 || e.touches.length === 0) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const touchX = e.touches[0].clientX - rect.left;
-    const relX = (touchX / rect.width) * chartWidth;
-
-    let closestIdx = 0;
-    let minDiff = Infinity;
-    for (let i = 0; i < years; i++) {
-      const px = getX(i);
-      const diff = Math.abs(px - relX);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIdx = i;
-      }
-    }
-    setHoveredIdx(closestIdx);
-  };
-
   return (
     <header
       id="sticky-header-container"
@@ -358,178 +218,6 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
       <div className={`${widthClass} w-full mx-auto flex flex-col gap-1.5 transition-all duration-300`}>
         {/* Top Row: Metrics & Toolbar - side by side so sparkline graph is left of Dark mode */}
         <div className="flex items-center justify-between gap-2.5 sm:gap-3">
-          {/* Savings Trend Chart & Live Stats Card (Expanded to fill space gracefully) */}
-          <div
-            id="header-metrics"
-            className="flex items-center gap-3 sm:gap-5 flex-1 min-w-0 bg-[var(--panel-alt)]/80 border border-[var(--border)] rounded-xl px-3.5 sm:px-4 py-1.5 shadow-xs overflow-hidden transition-colors"
-          >
-            {/* Interactive SVG Chart */}
-            <div className="relative flex-1 flex items-center min-w-0 overflow-hidden">
-              <svg
-                ref={svgRef}
-                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                className="w-full h-14 sm:h-16 overflow-visible select-none cursor-crosshair touch-none"
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() => setHoveredIdx(null)}
-                onTouchStart={handleTouch}
-                onTouchMove={handleTouch}
-                onTouchEnd={() => setHoveredIdx(null)}
-              >
-                <defs>
-                  <linearGradient id="yearlyGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#059669" stopOpacity="0.22" />
-                    <stop offset="100%" stopColor="#059669" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="cumulGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#2563EB" />
-                    <stop offset="60%" stopColor="#3B82F6" />
-                    <stop offset="100%" stopColor="#0284C7" />
-                  </linearGradient>
-                  <linearGradient id="cumulAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.12" />
-                    <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.0" />
-                  </linearGradient>
-                </defs>
-
-                {/* Zero reference baseline */}
-                <line
-                  x1={padX - 8}
-                  y1={yZero}
-                  x2={chartWidth - padX + 8}
-                  y2={yZero}
-                  stroke="var(--border)"
-                  strokeDasharray="3 3"
-                  strokeWidth="1.2"
-                  opacity="0.9"
-                />
-
-                {/* $0 label */}
-                <text
-                  x={padX - 10}
-                  y={yZero + 3}
-                  fill="var(--muted2)"
-                  fontSize="9"
-                  fontFamily="inherit"
-                  textAnchor="end"
-                  className="select-none font-mono-custom font-medium"
-                >
-                  $0
-                </text>
-
-                {/* Cumulative Soft Ambient Fill */}
-                {cumulativeAreaPath && (
-                  <path d={cumulativeAreaPath} fill="url(#cumulAreaGradient)" />
-                )}
-
-                {/* Yearly Area Fill */}
-                {yearlyAreaPath && (
-                  <path d={yearlyAreaPath} fill="url(#yearlyGradient)" />
-                )}
-
-                {/* Cumulative Line (Total Savings) */}
-                <path
-                  d={cumulativePath}
-                  fill="none"
-                  stroke="url(#cumulGradient)"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-
-                {/* Yearly Net Line (Annual Savings) */}
-                <path
-                  d={yearlyPath}
-                  fill="none"
-                  stroke="#059669"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-
-                {/* Hover vertical crosshair indicator */}
-                {hoveredIdx !== null && (
-                  <line
-                    x1={getX(hoveredIdx)}
-                    y1={padY - 4}
-                    x2={getX(hoveredIdx)}
-                    y2={chartHeight - padY + 4}
-                    stroke="var(--accent)"
-                    strokeWidth="1.2"
-                    strokeDasharray="2 2"
-                    opacity="0.8"
-                  />
-                )}
-
-                {/* Yearly Data Points (Clean solid circles) */}
-                {yearlyPoints.map((pt, i) => {
-                  const isHovered = hoveredIdx === i;
-                  return (
-                    <g key={`y-pt-${i}`} transform={`translate(${pt.x}, ${pt.y})`} className="transition-transform duration-150">
-                      <circle cx={0} cy={0} r={isHovered ? 5 : 3.5} fill="#059669" stroke="var(--panel)" strokeWidth="1.5" />
-                      {isHovered && <circle cx={0} cy={0} r={7.5} fill="#059669" opacity="0.25" />}
-                    </g>
-                  );
-                })}
-
-                {/* Cumulative Data Points (Clean solid circles) */}
-                {cumulativePoints.map((pt, i) => {
-                  const isHovered = hoveredIdx === i;
-                  return (
-                    <g key={`c-pt-${i}`} transform={`translate(${pt.x}, ${pt.y})`} className="transition-transform duration-150">
-                      <circle cx={0} cy={0} r={isHovered ? 5.5 : 3.5} fill="#2563EB" stroke="var(--panel)" strokeWidth="1.5" />
-                      {isHovered && <circle cx={0} cy={0} r={8} fill="#2563EB" opacity="0.25" />}
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-
-            {/* Live Stats - Stacked Vertically with clear legend labels */}
-            <div className="flex flex-col justify-center gap-0.5 font-mono-custom text-xs flex-shrink-0 border-l border-[var(--border)] pl-3.5 sm:pl-4.5">
-              <div className="flex items-center gap-3.5 sm:gap-5">
-                {/* Yearly Net Value (Stacked) */}
-                <div className="flex flex-col items-start leading-tight" title="Net savings or loss in this specific year">
-                  <span className="text-[10px] text-[var(--muted2)] uppercase tracking-wider font-semibold font-sans-custom">
-                    Year {activeIdx + 1} Net
-                  </span>
-                  <span
-                    className={`text-xs sm:text-sm font-bold ${
-                      activeYearlyVal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                    }`}
-                  >
-                    {fmt$(activeYearlyVal)}
-                  </span>
-                </div>
-
-                <div className="h-7 w-px bg-[var(--border)] select-none opacity-80" />
-
-                {/* Total Saved Value (Stacked) */}
-                <div className="flex flex-col items-start leading-tight" title="Accumulated total savings across all years">
-                  <span className="text-[10px] text-[var(--muted2)] uppercase tracking-wider font-semibold font-sans-custom">
-                    Total Saved
-                  </span>
-                  <span
-                    className={`text-xs sm:text-sm font-bold ${
-                      activeCumulativeVal >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400'
-                    }`}
-                  >
-                    {fmt$(activeCumulativeVal)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Hover indication if active */}
-              {hoveredIdx !== null && (
-                <div className="text-[9.5px] text-[var(--accent)] font-semibold font-sans-custom">
-                  Viewing Year {hoveredIdx + 1} projection
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Distinct Visual Separator Between Graph & Action Buttons */}
-          <div className="h-8 w-px bg-[var(--border)] hidden lg:block flex-shrink-0" />
-
           {/* Global Toolbar Controls */}
           <div id="planner-toolbar" className="flex items-center flex-wrap gap-1.5 sm:gap-2 flex-shrink-0">
             {/* Dark Mode Toggle */}
@@ -860,8 +548,8 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                   {/* Year sub-columns */}
                   {Array.from({ length: years }).map((_, y) => (
                     <React.Fragment key={y}>
-                      <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
-                      <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
+                      <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                      <col className="w-[var(--yr-col-w)] min-w-[84px]" />
                     </React.Fragment>
                   ))}
                   {state.isEditMode && <col className="w-10 min-w-[40px]" />}

@@ -137,8 +137,8 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                   <col className="w-[280px] min-w-[240px]" />
                   {Array.from({ length: years }).map((_, y) => (
                     <React.Fragment key={y}>
-                      <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
-                      <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
+                      <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                      <col className="w-[var(--yr-col-w)] min-w-[84px]" />
                     </React.Fragment>
                   ))}
                   {isEditMode && <col className="w-10 min-w-[40px]" />}
@@ -239,42 +239,36 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
 
                                     return (
                                       <React.Fragment key={y}>
-                                        <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-stone-300 dark:border-stone-700 text-center">
+                                        <td className="py-1.5 px-1 border-l-2 border-stone-300 dark:border-stone-700 text-center">
                                           {isHourly ? (
-                                            <div className="flex items-center justify-center gap-1 font-mono-custom text-xs">
-                                              {/* Wage input with dollar prefix */}
-                                              <div className="relative flex items-center bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1.5 py-0.5 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
-                                                <span className="text-[11px] text-[var(--muted2)] select-none mr-0.5">$</span>
-                                                <input
-                                                  type="number"
-                                                  min="0"
-                                                  step="0.5"
-                                                  value={rawWage === 0 && !w.wage?.[y] ? '' : rawWage}
-                                                  onChange={e => onUpdateWorker(wi, 'wage', num(e.target.value), y)}
-                                                  placeholder="0"
-                                                  className={`w-11 text-center bg-transparent text-[var(--text)] text-xs font-mono-custom focus:outline-none ${
-                                                    rawWage === 0 ? 'text-[var(--muted2)] opacity-40' : 'text-[var(--text)]'
-                                                  }`}
-                                                  title={`Hourly wage ($/hr) for Year ${y + 1}`}
-                                                />
-                                              </div>
+                                            <div className="flex items-center justify-center gap-0.5 mx-auto w-fit max-w-full bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1 py-0.5 font-mono-custom focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
+                                              <span className="text-[10px] text-[var(--muted2)] select-none">$</span>
+                                              <input
+                                                type="number"
+                                                min="0"
+                                                step="0.5"
+                                                value={rawWage === 0 && !w.wage?.[y] ? '' : rawWage}
+                                                onChange={e => onUpdateWorker(wi, 'wage', num(e.target.value), y)}
+                                                placeholder="0"
+                                                className={`w-9 text-right bg-transparent text-[11px] font-mono-custom focus:outline-none ${
+                                                  rawWage === 0 ? 'text-[var(--muted2)] opacity-40' : 'text-[var(--text)]'
+                                                }`}
+                                                title={`Hourly wage ($/hr) for Year ${y + 1}`}
+                                              />
                                               <span className="text-[10px] text-[var(--muted2)] select-none">/</span>
-                                              {/* Hours per week input */}
-                                              <div className="relative flex items-center bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1.5 py-0.5 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
-                                                <input
-                                                  type="number"
-                                                  min="0"
-                                                  max="168"
-                                                  value={hrs}
-                                                  onChange={e => onUpdateWorker(wi, 'hours', num(e.target.value), y)}
-                                                  className="w-8 text-center bg-transparent text-[var(--text)] text-xs font-mono-custom focus:outline-none"
-                                                  title={`Hours per week for Year ${y + 1}`}
-                                                />
-                                                <span className="text-[10px] text-[var(--muted2)] select-none ml-0.5">h</span>
-                                              </div>
+                                              <input
+                                                type="number"
+                                                min="0"
+                                                max="168"
+                                                value={hrs}
+                                                onChange={e => onUpdateWorker(wi, 'hours', num(e.target.value), y)}
+                                                className="w-6 text-right bg-transparent text-[11px] font-mono-custom text-[var(--text)] focus:outline-none"
+                                                title={`Hours per week for Year ${y + 1}`}
+                                              />
+                                              <span className="text-[10px] text-[var(--muted2)] select-none">h</span>
                                             </div>
                                           ) : (
-                                            <div className="relative flex items-center justify-center max-w-[100px] mx-auto bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1.5 py-0.5 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
+                                            <div className="relative flex items-center justify-center max-w-full mx-auto bg-[var(--panel-alt)] border border-[var(--border)]/70 rounded px-1.5 py-0.5 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]/30 transition-colors">
                                               <span className="text-[11px] text-[var(--muted2)] select-none mr-0.5">$</span>
                                               <input
                                                 type="number"
@@ -282,7 +276,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                                 value={rawWage === 0 && !w.wage?.[y] ? '' : rawWage}
                                                 onChange={e => onUpdateWorker(wi, 'wage', num(e.target.value), y)}
                                                 placeholder="0"
-                                                className={`w-full text-center bg-transparent text-[var(--text)] text-xs font-mono-custom focus:outline-none ${
+                                                className={`w-full min-w-0 text-center bg-transparent text-xs font-mono-custom focus:outline-none ${
                                                   rawWage === 0 ? 'text-[var(--muted2)] opacity-40' : 'text-[var(--text)]'
                                                 }`}
                                                 title={`Raw rate per ${freq.toLowerCase()}`}
@@ -290,7 +284,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                             </div>
                                           )}
                                         </td>
-                                        <td className="py-1.5 pl-1 pr-2.5 text-center font-mono-custom">
+                                        <td className="py-1.5 px-1 text-center font-mono-custom">
                                           <span className={`total-cell-text ${isNonZero ? 'active-total' : 'zero-total'} text-xs font-semibold`}>
                                             {fmt$(periodDisplay)}
                                           </span>
@@ -410,8 +404,8 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                       <col className="w-[280px] min-w-[240px]" />
                       {Array.from({ length: years }).map((_, y) => (
                         <React.Fragment key={y}>
-                          <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
-                          <col className="w-[85px] sm:w-[95px] min-w-[78px]" />
+                          <col className="w-[var(--yr-col-w)] min-w-[84px]" />
+                          <col className="w-[var(--yr-col-w)] min-w-[84px]" />
                         </React.Fragment>
                       ))}
                       {isEditMode && <col className="w-10 min-w-[40px]" />}

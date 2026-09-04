@@ -113,9 +113,6 @@ export interface PlannerState {
   /** Edit mode toggle (enables drag-and-drop reordering and structural table edits) */
   isEditMode: boolean;
 
-  /** SVG chart height in pixels */
-  graphHeight: number;
-
   /** SVG chart type: 'area' (trend curves) or 'grouped' (side-by-side bars) */
   graphType: 'area' | 'grouped';
 

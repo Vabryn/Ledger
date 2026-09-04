@@ -226,6 +226,5 @@ export function validateAndRepairState(raw: any): PlannerState {
     barColors: typeof raw.barColors === 'object' && raw.barColors ? raw.barColors : defaultState.barColors,
     graphToggles: typeof raw.graphToggles === 'object' && raw.graphToggles ? raw.graphToggles : defaultState.graphToggles,
     graphType: raw.graphType === 'grouped' ? 'grouped' : 'area',
-    graphHeight: typeof raw.graphHeight === 'number' ? raw.graphHeight : defaultState.graphHeight,
   };
 }
