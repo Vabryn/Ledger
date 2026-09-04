@@ -163,6 +163,17 @@ body {
 #sticky-year-bar-scroll thead tr > :first-child {
   z-index: 5;
 }
+/* The first year sub-column carries a border-left as its year divider, which
+   would sit right next to the frozen column's ::after line — a double rule.
+   Drop it; the ::after already separates the frozen column from year one.
+   (Edit mode shifts everything right by the drag-handle spacer, so the first
+   year cell is child 3 there.) */
+.category-table-scroll tr > :nth-child(2),
+#sticky-year-bar-scroll tr > :nth-child(2),
+.category-table-scroll table.is-edit tr > :nth-child(3),
+#sticky-year-bar-scroll table.is-edit tr > :nth-child(3) {
+  border-left: 0;
+}
 
 /* Same pinned-left treatment for non-table left rails (the chart sidebar). */
 .frozen-col {
