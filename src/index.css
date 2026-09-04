@@ -5,18 +5,18 @@
 :root {
   --bg: #F5F3EE;
   --panel: #FFFFFF;
-  --panel-alt: #F1EEE6;
-  --border: #E1DCCF;
-  --text: #20201C;
-  --muted: #6B675C;
-  --muted2: #9C978A;
+  --panel-alt: #ECE7DB;
+  --border: #D3CCBA;
+  --text: #1D1D19;
+  --muted: #59554B;
+  --muted2: #837E70;
   --accent: #26344F;
   --accent-soft: #3E5279;
   --danger: #8C3B33;
 
   /* Vertical separators between projection year columns — a touch firmer
      than --border so the grid reads clearly across a wide table. */
-  --col-divider: #D6D3D1;
+  --col-divider: #C3BEB6;
 
   /* Semantic colours for financial values (used for text, not fills). */
   --pos:   #059669; /* gains / positive cash flow */
@@ -25,8 +25,8 @@
 
   /* Opaque table-row fills (were --panel-alt at 30-40% opacity). Solid so the
      frozen first column can inherit a row's colour without bleed-through. */
-  --row-alt:   #F8F6F1;
-  --row-hover: #EDE9DF;
+  --row-alt:   #F6F3EC;
+  --row-hover: #E6DFCF;
 
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -48,20 +48,20 @@
 .dark {
   --bg: #121212;
   --panel: #1E1E1E;
-  --panel-alt: #2A2A2A;
-  --border: #3A3A3A;
-  --text: #F3F4F6;
-  --muted: #9CA3AF;
-  --muted2: #6B7280;
+  --panel-alt: #303030;
+  --border: #4A4A48;
+  --text: #F5F6F8;
+  --muted: #B2B8C2;
+  --muted2: #8A909C;
   --accent: #60A5FA;
   --accent-soft: #3B82F6;
   --danger: #EF4444;
-  --col-divider: #44403C;
+  --col-divider: #575049;
   --pos:   #34D399;
   --neg:   #FB7185;
   --accum: #60A5FA;
-  --row-alt:   #232320;
-  --row-hover: #2E2E2A;
+  --row-alt:   #262624;
+  --row-hover: #35352F;
   color-scheme: dark;
 }
 

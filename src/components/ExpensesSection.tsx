@@ -321,19 +321,12 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                         {isEditMode && <td className="w-10"></td>}
                       </tr>
 
-                      {/* Underline under the category title — a crisp rule with a
-                          soft downward fade, echoing the frozen column's vertical
-                          divider. Spans the full table width. */}
+                      {/* Underline under the category title — a plain thin rule
+                          spanning the full table width. */}
                       {!isCollapsed && (
                         <tr aria-hidden="true">
                           <td colSpan={fullColSpan} className="cat-rule-cell">
-                            <div
-                              className="h-1.5"
-                              style={{
-                                background:
-                                  'linear-gradient(to bottom, var(--col-divider) 0 2px, rgb(0 0 0 / 0.08) 2px, transparent)',
-                              }}
-                            />
+                            <div className="h-px bg-[var(--col-divider)]" />
                           </td>
                         </tr>
                       )}
