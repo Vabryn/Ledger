@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   X,
   ChevronLeft,
@@ -165,11 +165,42 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
   onSelectCategory,
 }) => {
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setCurrentStepIdx(0);
     }
+  }, [isOpen]);
+
+  // Focus management: move focus into the dialog on open, restore it on close,
+  // and keep Tab within the dialog while it is open.
+  useEffect(() => {
+    if (!isOpen) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+
+    const handleTrap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleTrap, true);
+    return () => {
+      document.removeEventListener('keydown', handleTrap, true);
+      previouslyFocused?.focus?.();
+    };
   }, [isOpen]);
 
   useEffect(() => {
@@ -238,9 +269,12 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
   return (
     <div
       id="tutorial-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 outline-none"
       aria-modal="true"
       role="dialog"
+      aria-label="Household Ledger tutorial walkthrough"
     >
       {/* Top Right Clear Exit Button */}
       <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50">

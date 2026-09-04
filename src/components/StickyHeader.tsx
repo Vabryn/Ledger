@@ -78,6 +78,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   const [isEditDropdownOpen, setIsEditDropdownOpen] = useState(false);
   const [isWidthDropdownOpen, setIsWidthDropdownOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const editDropdownRef = useRef<HTMLDivElement | null>(null);
   const widthDropdownRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -710,21 +711,47 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
 
                   <div className="h-px bg-[var(--border)]/70 my-1" />
 
-                  {/* Sample Planner Option */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onResetDefaults();
-                      setIsEditDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3.5 py-2 text-left hover:bg-[var(--panel-alt)] text-[var(--text)] transition cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    <div>
-                      <div className="font-medium">Sample Planner</div>
-                      <div className="text-[10px] text-[var(--muted2)]">Load example starter template</div>
+                  {/* Sample Planner Option — replaces all current data, so confirm first */}
+                  {!showResetConfirm ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowResetConfirm(true)}
+                      className="w-full flex items-center gap-2 px-3.5 py-2 text-left hover:bg-[var(--panel-alt)] text-[var(--text)] transition cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <div>
+                        <div className="font-medium">Sample Planner</div>
+                        <div className="text-[10px] text-[var(--muted2)]">Replace current data with the example template</div>
+                      </div>
+                    </button>
+                  ) : (
+                    <div className="px-3 py-2 bg-amber-50/80 dark:bg-amber-950/40 border-t border-b border-amber-200 dark:border-amber-900/50">
+                      <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 text-[11px] font-semibold mb-2">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                        <span>Replace all current data with the sample?</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onResetDefaults();
+                            setShowResetConfirm(false);
+                            setIsEditDropdownOpen(false);
+                          }}
+                          className="flex-1 py-1 px-2 rounded-md bg-amber-600 hover:bg-amber-700 text-white font-semibold text-[11px] transition text-center cursor-pointer shadow-xs"
+                        >
+                          Yes, Load Sample
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowResetConfirm(false)}
+                          className="py-1 px-2 rounded-md border border-[var(--border)] hover:bg-[var(--panel)] text-[var(--muted)] text-[11px] transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </button>
+                  )}
 
                   <div className="h-px bg-[var(--border)]/70 my-1" />
 

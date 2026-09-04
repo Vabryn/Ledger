@@ -36,7 +36,6 @@ export type FilingStatus = 'Married' | 'Single' | 'HeadOfHousehold' | 'MarriedSe
  * - `frequency`: Frequency of salary/wage: 'Hourly', 'Daily', 'Weekly', 'Biweekly', 'Monthly', 'Annually'
  * - `hours`: Array of hours worked per week (used when frequency === 'Hourly')
  * - `wage`: Wage/salary rate per frequency period for each column (raw value)
- * - `preTax`: Whether this income stream is pre-tax or post-tax
  */
 export interface WorkerItem {
   id: string;
@@ -44,38 +43,30 @@ export interface WorkerItem {
   frequency: IncomeFrequency;
   hours: number[];
   wage: number[];
-  preTax?: boolean;
 }
 
 /**
  * Represents an additional or non-wage income stream.
  * - `frequency`: Independent payout frequency (Weekly, Biweekly, Monthly, Annually, etc.)
  * - `amount`: Raw amount per frequency period for each column
- * - `preTax`: Whether this income stream is pre-tax or post-tax
  */
 export interface IncomeItem {
   id: string;
   name: string;
   frequency: PayoutFrequency;
   amount: number[];
-  preTax?: boolean;
 }
 
 /**
  * Represents an expense item.
  * - `cat`: The category group (e.g. 'Housing', 'Food', 'Transportation', 'Utilities', 'Subscriptions', 'Additional Payments', 'Health & Wellness', 'Lifestyle', 'Business Expenses', 'Entertainment')
  * - `monthly`: Base monthly amount for each column
- * - `auto`: True for system-generated retirement rows (Roth IRA, 401k)
- * - `kind`: 'roth' | 'k401'
  */
 export interface ExpenseItem {
   id: string;
   name: string;
   cat: string;
   monthly: number[];
-  auto?: boolean;
-  isSystem?: boolean;
-  kind?: 'roth' | 'k401';
 }
 
 /**
@@ -149,11 +140,8 @@ export interface PlannerState {
   /** Tax filing status */
   taxStatus: FilingStatus;
 
-  /** State tax jurisdiction for each column ('CA', 'NY', 'NYC', 'YONKERS') */
+  /** State/local tax jurisdiction for each column ('CA', 'NY', 'NYC', 'YONKERS', 'NONE') */
   st: string[];
-
-  /** Local tax jurisdiction for each column ('None', 'NYC', 'YONKERS') */
-  local: string[];
 
   /** Number of tax dependents for each column */
   deps: number[];
@@ -229,9 +217,6 @@ export interface CalculationResult {
 
   /** Overhead Living Expenses per period (excluding retirement & savings goals) */
   colOnly: number[];
-
-  /** Total Cost of living including living expenses */
-  colTotal: number[];
 
   /** Total Retirement contributions (Employee + Employer Match) per period */
   retireActual: number[];

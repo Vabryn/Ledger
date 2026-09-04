@@ -116,7 +116,6 @@ export function runAllTests() {
     barColors: { gross: '#8A978A', colOnly: '#8C3B33', save: '#3E5279', retire: '#2E7D4F' },
     taxStatus: 'Single',
     st: ['CA'],
-    local: ['None'],
     deps: [0],
     additionalDeductions: [0],
     fica: true,
@@ -139,7 +138,7 @@ export function runAllTests() {
       { id: 'c-1', name: 'Living Expenses', cat: 'Housing', monthly: [3000] }, // $36,000/yr
     ],
     customSavings: {},
-    retireRate: [10],
+    retireRate: [0],
     employerMatchRate: [0],
   };
 
@@ -192,7 +191,6 @@ export function runAllTests() {
     workers: [{ id: 'w-1', name: 'Earner', frequency: 'Annually', hours: [40], wage: [grossIncome] }],
     other: [],
     st: ['None'],
-    local: ['None'],
     fica: false,
   };
   const singleRes = computePlanner(singleState);
@@ -235,7 +233,6 @@ export function runAllTests() {
     ...singleState,
     taxStatus: 'Single',
     st: ['CA'],
-    local: ['None'],
   };
   const caRes = computePlanner(caState);
   const caTaxable = Math.max(0, 120000 - CA_2025.Single.stdDed);
@@ -258,28 +255,25 @@ export function runAllTests() {
   const nyState: PlannerState = {
     ...singleState,
     st: ['NY'],
-    local: ['None'],
   };
   const nyRes = computePlanner(nyState);
   const nyTaxable = Math.max(0, 120000 - NY_2025.Single.stdDed);
   const expectedNyTax = marginalTax(nyTaxable, NY_2025.Single.brackets);
   assertClose(nyRes.stTax[0], expectedNyTax, 0.01, 'New York State Tax');
 
-  // New York City Local Tax
+  // New York City Local Tax (jurisdiction 'NYC' = NY State + NYC resident tax)
   const nycState: PlannerState = {
     ...singleState,
-    st: ['NY'],
-    local: ['NYC'],
+    st: ['NYC'],
   };
   const nycRes = computePlanner(nycState);
   const expectedNycTax = marginalTax(nyTaxable, NYC_2025.Single.brackets);
   assertClose(nycRes.stTax[0], expectedNyTax + expectedNycTax, 0.01, 'New York City Local Tax Added');
 
-  // Yonkers 16.75% Surcharge
+  // Yonkers 16.75% Surcharge (jurisdiction 'YONKERS' = NY State + Yonkers surcharge)
   const yonkersState: PlannerState = {
     ...singleState,
-    st: ['NY'],
-    local: ['YONKERS'],
+    st: ['YONKERS'],
   };
   const yonkersRes = computePlanner(yonkersState);
   assertClose(yonkersRes.stTax[0], expectedNyTax * 1.1675, 0.01, 'Yonkers 16.75% Surcharge');
@@ -289,7 +283,6 @@ export function runAllTests() {
     const zeroState: PlannerState = {
       ...singleState,
       st: [stCode],
-      local: ['None'],
     };
     const zRes = computePlanner(zeroState);
     assert(zRes.stTax[0] === 0, `Zero tax state ${stCode} expected $0 tax, got ${zRes.stTax[0]}`);
@@ -388,8 +381,9 @@ export function runAllTests() {
   };
   const retDRes = computePlanner(retDState);
   assert(retDRes.k401Arr[0] === 23000, `Employee 401k contribution is $23,000`);
-  assert(retDRes.employerMatchAmount[0] === 47000, `Employer match correctly capped to reach $70,000 total`);
-  assert(retDRes.retireActual[0] === 7000 + 70000, `Total retirement is Roth ($7k) + 401k total ($70k) = $77,000`);
+  // Employer match cannot exceed the employee's own 401(k) deferral ($23,000).
+  assert(retDRes.employerMatchAmount[0] === 23000, `Employer match capped at employee deferral ($23,000)`);
+  assert(retDRes.retireActual[0] === 7000 + 46000, `Total retirement is Roth ($7k) + 401k ($23k employee + $23k match) = $53,000`);
 
   console.log('✅ Suite 6 Passed: Retirement waterfall, Roth prioritization, and IRS caps verified.\n');
 
@@ -469,7 +463,6 @@ export function runAllTests() {
     deps: [0, 0, 0],
     additionalDeductions: [0, 0, 0],
     st: ['CA', 'CA', 'CA'],
-    local: ['None', 'None', 'None'],
   };
 
   const multiRes = computePlanner(multiYearState);
@@ -524,7 +517,6 @@ export function runAllTests() {
       { id: 'w-1', name: 'Tester', frequency: 'Annually', hours: [40], wage: [60000] },
     ],
     st: ['CA'],
-    local: ['None'],
     deps: [0],
     additionalDeductions: [0],
     retireRate: [10],
@@ -618,7 +610,6 @@ export function runAllTests() {
         monthly: [...c.monthly, c.monthly[c.monthly.length - 1] ?? 0],
       })),
       st: [...s.st, s.st[s.st.length - 1] ?? 'CA'],
-      local: [...s.local, s.local[s.local.length - 1] ?? 'None'],
       deps: [...s.deps, s.deps[s.deps.length - 1] ?? 0],
       additionalDeductions: [...s.additionalDeductions, s.additionalDeductions[s.additionalDeductions.length - 1] ?? 0],
       retireRate: [...s.retireRate, s.retireRate[s.retireRate.length - 1] ?? 0],
@@ -647,7 +638,6 @@ export function runAllTests() {
         monthly: c.monthly.slice(0, nextY),
       })),
       st: s.st.slice(0, nextY),
-      local: s.local.slice(0, nextY),
       deps: s.deps.slice(0, nextY),
       additionalDeductions: s.additionalDeductions.slice(0, nextY),
       retireRate: s.retireRate.slice(0, nextY),
@@ -731,7 +721,7 @@ export function runAllTests() {
   assert(ultraRes.fed[0] > 35000000, 'Federal tax is in top bracket');
   assert(ultraRes.stTax[0] > 10000000, 'CA tax includes 1% mental health on >$1M');
   assert(ultraRes.employeeRetireContrib[0] === 30500, 'Retirement is strictly capped at legal limits even for billionaire');
-  assert(ultraRes.employerMatchAmount[0] === (CAP401K_TOTAL_ADDITIONS - CAP401K_EMPLOYEE), 'Employer match is capped');
+  assert(ultraRes.employerMatchAmount[0] === CAP401K_EMPLOYEE, 'Employer match capped at employee deferral ($23,500)');
   assert(ultraRes.retirementAlerts[0].hasError === true, 'Retirement alert warns of cap limit');
 
   // Negative / Credit expenses (reimbursements)
@@ -772,6 +762,91 @@ export function runAllTests() {
   assert(computeHeatOpacity(1, 100000, 10, 50) >= 0.04, 'Enforces minimum visible 0.04 floor');
 
   console.log('✅ Suite 16 Passed: Heat map mathematical formulas and contrast curves verified.\n');
+
+  // =====================================================================
+  // SUITE 17: PRE-TAX 401(k), EMPLOYER-MATCH CAP, CTC PHASE-OUT, MFS SURTAX
+  // =====================================================================
+  console.log('--- Suite 17: Pre-Tax 401(k), Match Cap, CTC Phase-out, MFS Surtax ---');
+
+  // 17a. Traditional 401(k) employee deferral reduces federal + CA taxable income,
+  //      but NOT the FICA wage base.
+  const preTaxBase: PlannerState = {
+    ...baseState,
+    taxStatus: 'Single',
+    workers: [{ id: 'w-1', name: 'E', frequency: 'Annually', hours: [40], wage: [150000] }],
+    other: [],
+    st: ['CA'],
+    fica: true,
+    employerMatchRate: [0],
+  };
+  const noDefer = computePlanner({ ...preTaxBase, retireRate: [0] });
+  const withDefer = computePlanner({ ...preTaxBase, retireRate: [20] }); // target 30k -> 7k Roth + 23k 401k
+
+  const traditional401k = withDefer.k401Arr[0];
+  assert(traditional401k === 23000, `401(k) employee deferral is $23,000 (got ${traditional401k})`);
+
+  const expectedFedWithDefer = marginalTax(150000 - 23000 - FED_2025.Single.stdDed, FED_2025.Single.brackets);
+  assertClose(withDefer.fed[0], expectedFedWithDefer, 0.01, 'Federal tax uses income minus traditional 401(k)');
+  assert(withDefer.fed[0] < noDefer.fed[0], 'Traditional 401(k) lowers federal tax');
+  assert(withDefer.stTax[0] < noDefer.stTax[0], 'Traditional 401(k) lowers CA state tax');
+  assertClose(withDefer.fica[0], noDefer.fica[0], 0.01, 'Traditional 401(k) does NOT change FICA');
+
+  // Roth-only contribution (target <= Roth cap) must NOT reduce taxable income.
+  const rothOnly = computePlanner({ ...preTaxBase, retireRate: [4] }); // target 6k, all Roth
+  assert(rothOnly.k401Arr[0] === 0, 'Roth-only scenario has no 401(k) deferral');
+  assertClose(rothOnly.fed[0], noDefer.fed[0], 0.01, 'Roth IRA contribution does not reduce federal tax');
+
+  // 17b. Employer match cannot exceed the employee's own 401(k) deferral.
+  const matchState: PlannerState = {
+    ...preTaxBase,
+    workers: [{ id: 'w-1', name: 'E', frequency: 'Annually', hours: [40], wage: [200000] }],
+    retireRate: [8],           // target 16k -> 7k Roth + 9k 401k employee
+    employerMatchRate: [50],    // 50% of 200k = 100k, but capped to the 9k deferral
+  };
+  const matchRes = computePlanner(matchState);
+  assert(matchRes.k401Arr[0] === 9000, `Employee 401(k) deferral is $9,000 (got ${matchRes.k401Arr[0]})`);
+  assert(matchRes.employerMatchAmount[0] === 9000, `Employer match capped at deferral $9,000 (got ${matchRes.employerMatchAmount[0]})`);
+  const zeroDeferMatch = computePlanner({ ...matchState, retireRate: [0], employerMatchRate: [50] });
+  assert(zeroDeferMatch.employerMatchAmount[0] === 0, 'No employee deferral => no employer match');
+
+  // 17c. Child Tax Credit phases out $50 per $1,000 of gross over $400k (MFJ).
+  const ctcBase: PlannerState = {
+    ...baseState,
+    taxStatus: 'Married',
+    workers: [{ id: 'w-1', name: 'E', frequency: 'Annually', hours: [40], wage: [430000] }],
+    other: [],
+    st: ['NONE'],
+    fica: false,
+    retireRate: [0],
+    deps: [2],
+  };
+  const ctcRes = computePlanner(ctcBase);
+  const grossFed = marginalTax(430000 - FED_2025.Married.stdDed, FED_2025.Married.brackets);
+  // $30k over threshold -> 30 * $50 = $1,500 phase-out; credit = max(0, 4000 - 1500) = 2500
+  assertClose(ctcRes.fed[0], grossFed - 2500, 0.01, 'CTC phased out by $1,500 at $430k MFJ income');
+
+  // 17d. Additional Medicare surtax threshold for Married Filing Separately is $125,000.
+  const mfsState: PlannerState = {
+    ...baseState,
+    taxStatus: 'MarriedSeparate',
+    workers: [{ id: 'w-1', name: 'E', frequency: 'Annually', hours: [40], wage: [150000] }],
+    other: [],
+    st: ['NONE'],
+    fica: true,
+    retireRate: [0],
+  };
+  const mfsRes = computePlanner(mfsState);
+  const expectedMfsFica =
+    Math.min(150000, SS_WAGE_CAP) * SS_RATE +
+    150000 * MEDICARE_RATE +
+    (150000 - 125000) * 0.009;
+  assertClose(mfsRes.fica[0], expectedMfsFica, 0.01, 'MFS additional Medicare surtax kicks in at $125k');
+
+  // 17e. 'NONE' / unknown jurisdictions produce zero state tax.
+  const noneState = computePlanner({ ...preTaxBase, st: ['NONE'], retireRate: [0] });
+  assert(noneState.stTax[0] === 0, "Jurisdiction 'NONE' produces $0 state tax");
+
+  console.log('✅ Suite 17 Passed: Pre-tax 401(k), match cap, CTC phase-out, and MFS surtax verified.\n');
 
   // =====================================================================
   // SUMMARY

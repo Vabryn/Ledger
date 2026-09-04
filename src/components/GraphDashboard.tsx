@@ -259,13 +259,14 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
                               } mt-[1px]`}
                             />
                           </button>
-                          <span
+                          <button
+                            type="button"
                             onClick={() => onToggleSeries(s.k, !active)}
-                            className="cursor-pointer font-medium truncate text-[11px]"
-                            title={s.l}
+                            className="cursor-pointer font-medium truncate text-[11px] text-left bg-transparent border-0 p-0"
+                            title={`Toggle ${s.l}`}
                           >
                             {s.l}
-                          </span>
+                          </button>
                         </div>
 
                         <input
@@ -297,6 +298,13 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-full block select-none"
           preserveAspectRatio="none"
+          role="img"
+          aria-label={
+            `${mode === 'area' ? 'Trend' : 'Comparison'} chart over ${years} ${isMonths ? 'months' : 'years'}` +
+            (isMonths ? '' : ` (${startYearNum}–${startYearNum + years - 1})`) +
+            `. Series: ${activeSeries.map(s => s.l).join(', ') || 'none'}. ` +
+            `The projection matrix table above lists every value.`
+          }
         >
           <defs>
             {activeSeries.map(s => {

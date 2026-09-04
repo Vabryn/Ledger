@@ -11,7 +11,6 @@ interface TaxSectionProps {
   taxStatus: FilingStatus;
   fica: boolean;
   st: string[];
-  local: string[];
   deps: number[];
   additionalDeductions: number[];
   calc: CalculationResult;
@@ -151,6 +150,12 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
           </div>
         </div>
 
+        <p className="text-[11px] text-[var(--muted2)] -mt-2">
+          State income tax is modeled for <strong>California</strong> and <strong>New York</strong> (incl. NYC / Yonkers) only.
+          Choose <em>“No state income tax”</em> for every other state. Federal figures use 2025 IRS brackets;
+          verify against official IRS / FTB / NY DTF tables before relying on exact amounts.
+        </p>
+
         {/* Tax Table */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
           <table className="w-full table-fixed text-[12px] border-collapse min-w-[700px]">
@@ -179,6 +184,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                         onChange={e => onChangeState(y, e.target.value)}
                         className="w-full max-w-[140px] mx-auto bg-[var(--panel)] border border-[var(--border)]/80 text-[var(--text)] rounded-md px-2 py-1 text-xs text-center focus:outline-none focus:border-[var(--accent)] cursor-pointer"
                       >
+                        <option value="NONE">No state income tax</option>
                         <option value="CA">California</option>
                         <optgroup label="New York">
                           <option value="NY">NY (State Only)</option>
@@ -205,7 +211,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                         min="0"
                         max="15"
                         value={depCount === 0 && !deps[y] ? '' : depCount}
-                        onChange={e => onChangeDeps(y, parseInt(e.target.value, 10) || 0)}
+                        onChange={e => onChangeDeps(y, Math.max(0, Math.min(15, parseInt(e.target.value, 10) || 0)))}
                         placeholder="0"
                         className="w-16 mx-auto text-center bg-[var(--panel)] border border-[var(--border)]/80 text-[var(--text)] rounded-md px-2 py-0.5 text-xs font-mono-custom focus:outline-none focus:border-[var(--accent)]"
                       />

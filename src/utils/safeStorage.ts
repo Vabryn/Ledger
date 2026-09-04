@@ -1,5 +1,5 @@
 import { PlannerState, CustomSavingsFund, IncomeFrequency } from '../types';
-import { getDefaultSampleState, ensureSystemExpenseRows } from './taxRulesAndStarterData';
+import { getDefaultSampleState } from './taxRulesAndStarterData';
 
 /**
  * In-memory fallback map when localStorage is blocked, restricted, or unavailable
@@ -121,7 +121,6 @@ export function validateAndRepairState(raw: any): PlannerState {
         frequency: 'Annually' as IncomeFrequency,
         hours: Array(years).fill(40),
         wage: Array(years).fill(60000),
-        preTax: false,
       };
     }
     return {
@@ -130,7 +129,6 @@ export function validateAndRepairState(raw: any): PlannerState {
       frequency: (w.frequency || 'Annually') as IncomeFrequency,
       hours: padArray(w.hours, 40).map(v => (typeof v === 'number' && !isNaN(v) ? v : 40)),
       wage: padArray(w.wage, 0).map(v => (typeof v === 'number' && !isNaN(v) ? v : 0)),
-      preTax: Boolean(w.preTax),
     };
   });
 
@@ -143,7 +141,6 @@ export function validateAndRepairState(raw: any): PlannerState {
         name: `Other Income ${idx + 1}`,
         frequency: 'Monthly',
         amount: Array(years).fill(0),
-        preTax: false,
       };
     }
     return {
@@ -151,15 +148,16 @@ export function validateAndRepairState(raw: any): PlannerState {
       name: String(o.name || `Income Stream ${idx + 1}`),
       frequency: o.frequency || 'Monthly',
       amount: padArray(o.amount, 0).map(v => (typeof v === 'number' && !isNaN(v) ? v : 0)),
-      preTax: Boolean(o.preTax),
     };
   });
 
-  // Ensure system rows in Cost of Living
+  // Normalize Cost of Living rows
   const rawCol = Array.isArray(raw.col) ? raw.col : defaultState.col;
-  const safeCol = ensureSystemExpenseRows(rawCol, years).map((c: any) => ({
-    ...c,
-    monthly: padArray(c.monthly, 0).map((v: any) => (typeof v === 'number' && !isNaN(v) ? v : 0)),
+  const safeCol = rawCol.map((c: any) => ({
+    id: String(c?.id || `c-${Math.random().toString(36).slice(2, 9)}`),
+    name: String(c?.name ?? ''),
+    cat: String(c?.cat || 'Other'),
+    monthly: padArray(c?.monthly, 0).map((v: any) => (typeof v === 'number' && !isNaN(v) ? v : 0)),
   }));
 
   // Validate custom savings funds
@@ -181,7 +179,6 @@ export function validateAndRepairState(raw: any): PlannerState {
 
   // Validate taxes arrays
   const st = padArray(raw.st, 'CA').map(s => String(s || 'CA'));
-  const local = padArray(raw.local, 'None').map(l => String(l || 'None'));
   const deps = padArray(raw.deps, 0).map(d => (typeof d === 'number' && !isNaN(d) ? d : 0));
   const additionalDeductions = padArray(raw.additionalDeductions, 0).map(d => (typeof d === 'number' && !isNaN(d) ? d : 0));
   const retireRate = padArray(raw.retireRate, 10).map(r => (typeof r === 'number' && !isNaN(r) ? r : 10));
@@ -204,9 +201,11 @@ export function validateAndRepairState(raw: any): PlannerState {
     ? raw.startYear
     : (defaultState.startYear || 2025);
 
+  const { local: _legacyLocal, ...rawRest } = raw as Record<string, unknown>;
+
   return {
     ...defaultState,
-    ...raw,
+    ...rawRest,
     pageWidth,
     years,
     startYear,
@@ -215,7 +214,6 @@ export function validateAndRepairState(raw: any): PlannerState {
     col: safeCol,
     customSavings: safeCustomSavings,
     st,
-    local,
     deps,
     additionalDeductions,
     retireRate,

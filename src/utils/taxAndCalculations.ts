@@ -5,6 +5,9 @@ import {
   NY_2025,
   NYC_2025,
   CTC_PER_DEP,
+  CA_DEP_EXEMPTION_CREDIT,
+  ADDL_MEDICARE_RATE,
+  ADDL_MEDICARE_THRESHOLDS,
   SS_WAGE_CAP,
   SS_RATE,
   MEDICARE_RATE,
@@ -15,14 +18,12 @@ import {
   STORAGE_KEY,
   getDefaultSampleState,
   getCleanEmptyState,
-  ensureSystemExpenseRows,
 } from './taxRulesAndStarterData';
 
 export {
   STORAGE_KEY,
   getDefaultSampleState,
   getCleanEmptyState,
-  ensureSystemExpenseRows,
 };
 
 export { safeStorage, validateAndRepairState } from './safeStorage';
@@ -119,7 +120,6 @@ export function computePlanner(state: PlannerState): CalculationResult {
   const fica: number[] = [];
   const net: number[] = [];
   const colOnly: number[] = [];
-  const colTotal: number[] = [];
   const retireActual: number[] = [];
   const employeeRetireContrib: number[] = [];
   const employerMatchAmount: number[] = [];
@@ -143,12 +143,17 @@ export function computePlanner(state: PlannerState): CalculationResult {
   let sOT = 0;
   let rOT = 0;
 
-  const isSingle = state.taxStatus === 'Single' || state.taxStatus === 'MarriedSeparate';
   const statusKey = state.taxStatus || 'Married';
-  const multiplierMultiplier = (state.taxStatus === 'Married') ? 2 : 1;
-  const maxRothAnnual = ROTH_CAP * multiplierMultiplier;
-  const max401kEmployeeAnnual = CAP401K_EMPLOYEE * multiplierMultiplier;
-  const max401kTotalAnnual = CAP401K_TOTAL_ADDITIONS * multiplierMultiplier;
+  // Household is modeled as two contributors only when Married Filing Jointly.
+  const contributorMultiplier = (statusKey === 'Married') ? 2 : 1;
+  const maxRothAnnual = ROTH_CAP * contributorMultiplier;
+  const max401kEmployeeAnnual = CAP401K_EMPLOYEE * contributorMultiplier;
+  const max401kTotalAnnual = CAP401K_TOTAL_ADDITIONS * contributorMultiplier;
+  // Additional Medicare surtax threshold (household combined wages) by filing status.
+  const addlMedThresh = ADDL_MEDICARE_THRESHOLDS[statusKey as keyof typeof ADDL_MEDICARE_THRESHOLDS]
+    ?? ADDL_MEDICARE_THRESHOLDS.Single;
+  // Child Tax Credit phase-out: credit reduced $50 per $1,000 of gross over the threshold.
+  const ctcPhaseoutStart = statusKey === 'Married' ? 400000 : 200000;
 
   for (let i = 0; i < years; i++) {
     const deps = num(state.deps?.[i]);
@@ -178,43 +183,78 @@ export function computePlanner(state: PlannerState): CalculationResult {
     const periodGross = annualGross * periodScale;
     g.push(periodGross);
 
-    // 3. Federal Income Tax Calculation (Annual -> scaled to period)
+    // 3. Retirement waterfall — computed before taxes because the traditional
+    //    401(k) employee deferral is pre-tax for federal and CA/NY income tax.
+    const targetAnnual = annualGross * (num(state.retireRate?.[i]) / 100);
+    const employerMatchPct = num(state.employerMatchRate?.[i]);
+
+    // Waterfall allocation: Roth IRA first up to maxRoth, then 401(k) up to employee limit
+    const rothContribAnnual = Math.min(targetAnnual, maxRothAnnual);
+    const remainingFor401k = Math.max(0, targetAnnual - maxRothAnnual);
+    const k401EmployeeAnnual = Math.min(remainingFor401k, max401kEmployeeAnnual);
+    const employeeTotalAnnual = rothContribAnnual + k401EmployeeAnnual;
+
+    // Employer match: a "% of gross" match is only paid against what the employee
+    // actually defers, so it can never exceed the employee 401(k) contribution.
+    const empMatchAnnual = Math.min(annualGross * (employerMatchPct / 100), k401EmployeeAnnual);
+
+    // Combined 401(k) employee + employer match (capped at total-additions limit)
+    const total401kAnnual = Math.min(k401EmployeeAnnual + empMatchAnnual, max401kTotalAnnual);
+    const actualEmployerMatchAnnual = Math.max(0, total401kAnnual - k401EmployeeAnnual);
+    const retireTotalAnnual = rothContribAnnual + total401kAnnual;
+
+    // Validation Guardrails: Check if target exceeds individual contribution caps
+    const totalIndividualCap = maxRothAnnual + max401kEmployeeAnnual;
+    const rothExceeded = targetAnnual > maxRothAnnual && maxRothAnnual > 0;
+    const k401Exceeded = remainingFor401k > max401kEmployeeAnnual;
+    const employeeExceeded = targetAnnual > totalIndividualCap;
+
+    // Pre-tax deduction that reduces income-taxable wages (traditional 401k only; Roth IRA is post-tax).
+    const preTaxRetirement = k401EmployeeAnnual;
+
+    // 4. Federal Income Tax Calculation (Annual -> scaled to period)
     const fedConfig = FED_2025[statusKey as keyof typeof FED_2025] || FED_2025.Married;
-    const fedTaxable = Math.max(0, annualGross - fedConfig.stdDed - addlDeduction);
-    let ftAnnual = marginalTax(fedTaxable, fedConfig.brackets) - (CTC_PER_DEP * deps);
+    const fedTaxable = Math.max(0, annualGross - preTaxRetirement - fedConfig.stdDed - addlDeduction);
+    // Child Tax Credit with phase-out ($50 lost per $1,000 of gross over the threshold).
+    const ctcRaw = CTC_PER_DEP * deps;
+    const ctcPhaseout = annualGross > ctcPhaseoutStart
+      ? Math.ceil((annualGross - ctcPhaseoutStart) / 1000) * 50
+      : 0;
+    const ctcApplied = Math.max(0, ctcRaw - ctcPhaseout);
+    let ftAnnual = marginalTax(fedTaxable, fedConfig.brackets) - ctcApplied;
     ftAnnual = Math.max(0, ftAnnual);
     fed.push(ftAnnual * periodScale);
 
-    // 4. State & Local Income Tax Calculation
-    const regionKey = state.st?.[i] || 'CA';
-    const loc = state.local?.[i] || 'None';
+    // 5. State & Local Income Tax Calculation
+    const regionKey = (state.st?.[i] || 'CA').toUpperCase();
     let stxAnnual = 0;
 
     if (regionKey === 'CA') {
       const cfg = CA_2025[statusKey as keyof typeof CA_2025] || CA_2025.Married;
-      const taxable = Math.max(0, annualGross - cfg.stdDed - addlDeduction);
+      const taxable = Math.max(0, annualGross - preTaxRetirement - cfg.stdDed - addlDeduction);
       stxAnnual = marginalTax(taxable, cfg.brackets);
-      stxAnnual -= (cfg.ex + (475 * deps));
+      stxAnnual -= (cfg.ex + (CA_DEP_EXEMPTION_CREDIT * deps));
       stxAnnual = Math.max(0, stxAnnual);
       // Mental Health Services Tax for taxable income > $1M
       if (taxable > 1000000) stxAnnual += (taxable - 1000000) * 0.01;
-    } else if (['NY', 'NYC', 'YONKERS'].includes(regionKey)) {
+    } else if (regionKey === 'NY' || regionKey === 'NYC' || regionKey === 'YONKERS') {
       const cfg = NY_2025[statusKey as keyof typeof NY_2025] || NY_2025.Married;
-      const taxable = Math.max(0, annualGross - cfg.stdDed - addlDeduction - (1000 * deps));
+      const taxable = Math.max(0, annualGross - preTaxRetirement - cfg.stdDed - addlDeduction - (1000 * deps));
       stxAnnual = marginalTax(taxable, cfg.brackets);
       stxAnnual = Math.max(0, stxAnnual);
-      if (loc === 'NYC' || regionKey === 'NYC') {
+      if (regionKey === 'NYC') {
         stxAnnual += marginalTax(taxable, (NYC_2025[statusKey as keyof typeof NYC_2025] || NYC_2025.Married).brackets);
-      } else if (loc === 'YONKERS' || regionKey === 'YONKERS') {
-        stxAnnual += stxAnnual * 0.1675; // 16.75% surcharge for Yonkers
+      } else if (regionKey === 'YONKERS') {
+        stxAnnual += stxAnnual * 0.1675; // 16.75% resident surcharge on NY State tax
       }
     }
+    // Any other jurisdiction (incl. 'NONE' and the no-income-tax states) = $0 state tax.
     stTax.push(stxAnnual * periodScale);
 
-    // 5. FICA Taxes (Social Security 6.2% + Medicare 1.45% + Add'l Medicare 0.9%)
+    // 6. FICA Taxes (Social Security 6.2% + Medicare 1.45% + Add'l Medicare 0.9%).
+    //    Traditional 401(k) deferrals do NOT reduce the FICA wage base.
     let fcAnnual = 0;
     if (state.fica) {
-      const addlMedThresh = isSingle ? 200000 : 250000;
       let combinedWage = 0;
       (state.workers || []).forEach(w => {
         const wageVal = num(w.wage?.[i]);
@@ -226,37 +266,15 @@ export function computePlanner(state: PlannerState): CalculationResult {
         fcAnnual += earnerAnnual * MEDICARE_RATE;
       });
       if (combinedWage > addlMedThresh) {
-        fcAnnual += (combinedWage - addlMedThresh) * 0.009;
+        fcAnnual += (combinedWage - addlMedThresh) * ADDL_MEDICARE_RATE;
       }
     }
     fica.push(fcAnnual * periodScale);
 
-    // 6. Net Take-Home Pay
+    // 7. Net Take-Home Pay
     const periodTaxes = (ftAnnual + stxAnnual + fcAnnual) * periodScale;
     const periodNet = periodGross - periodTaxes;
     net.push(periodNet);
-
-    // 7. Retirement Calculations & Legal Guardrails
-    const targetAnnual = annualGross * (num(state.retireRate?.[i]) / 100);
-    const employerMatchPct = num(state.employerMatchRate?.[i]);
-    const empMatchAnnual = annualGross * (employerMatchPct / 100);
-
-    // Waterfall allocation: Roth IRA first up to maxRoth, then 401(k) up to employee limit
-    const rothContribAnnual = Math.min(targetAnnual, maxRothAnnual);
-    const remainingFor401k = Math.max(0, targetAnnual - maxRothAnnual);
-    const k401EmployeeAnnual = Math.min(remainingFor401k, max401kEmployeeAnnual);
-    const employeeTotalAnnual = rothContribAnnual + k401EmployeeAnnual;
-
-    // Combined 401(k) employee + employer match (capped at $70,000 / individual)
-    const total401kAnnual = Math.min(k401EmployeeAnnual + empMatchAnnual, max401kTotalAnnual);
-    const actualEmployerMatchAnnual = Math.max(0, total401kAnnual - k401EmployeeAnnual);
-    const retireTotalAnnual = rothContribAnnual + total401kAnnual;
-
-    // Validation Guardrails: Check if target exceeds individual contribution caps
-    const totalIndividualCap = maxRothAnnual + max401kEmployeeAnnual;
-    const rothExceeded = targetAnnual > maxRothAnnual && maxRothAnnual > 0;
-    const k401Exceeded = remainingFor401k > max401kEmployeeAnnual;
-    const employeeExceeded = targetAnnual > totalIndividualCap;
 
     let alertMsg: string | undefined = undefined;
     if (employeeExceeded) {
@@ -296,14 +314,13 @@ export function computePlanner(state: PlannerState): CalculationResult {
 
     // 9. Cost-of-Living Overhead Expenses (excluding retirement & savings goals)
     const periodCol = (state.col || [])
-      .filter(r => !r.auto && r.cat !== 'Retirement' && r.cat !== 'Savings Goals')
+      .filter(r => r.cat !== 'Retirement' && r.cat !== 'Savings Goals')
       .reduce((s, r) => {
         const m = num(r.monthly?.[i]);
         return s + (viewMode === 'years' ? m * 12 : m);
       }, 0);
 
     colOnly.push(periodCol);
-    colTotal.push(periodCol);
 
     // 10. Savings Accumulator & Remaining Unallocated Balance
     // Net Income minus overhead living expenses = Net Savings generated
@@ -333,7 +350,6 @@ export function computePlanner(state: PlannerState): CalculationResult {
     fica,
     net,
     colOnly,
-    colTotal,
     retireActual,
     employeeRetireContrib,
     employerMatchAmount,

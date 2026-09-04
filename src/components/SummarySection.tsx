@@ -228,7 +228,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     Living Expenses
                   </div>
                   <div className="text-[10px] font-mono-custom text-[var(--muted2)] mt-0.5">
-                    {kpiPeriodName} Total: <span className="font-semibold text-rose-600 dark:text-rose-400">-{fmt$(calc.colTotal.reduce((a, b) => a + b, 0))}</span>
+                    {kpiPeriodName} Total: <span className="font-semibold text-rose-600 dark:text-rose-400">-{fmt$(calc.colOnly.reduce((a, b) => a + b, 0))}</span>
                   </div>
                 </td>
                 {Array.from({ length: years }).map((_, y) => (
@@ -237,7 +237,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
                     colSpan={2}
                     className="py-2 px-2 text-center border-l-2 border-stone-300 dark:border-stone-700 font-mono-custom text-xs text-rose-600 dark:text-rose-400"
                   >
-                    -{fmt$(calc.colTotal[y] ?? 0)}
+                    -{fmt$(calc.colOnly[y] ?? 0)}
                   </td>
                 ))}
                 {state.isEditMode && <td></td>}

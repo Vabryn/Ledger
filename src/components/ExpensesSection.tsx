@@ -29,8 +29,7 @@ interface ExpensesSectionProps {
   onChangeIntensity: (val: number) => void;
   onChangeContrast: (val: number) => void;
   onChangeHue: (val: string) => void;
-  onAutoPopulateExpenseCol: (targetCol: number) => void;
-  onCopyExpenseCol?: (fromYear: number, toYear: number | 'all') => void;
+  onCopyExpenseCol: (fromYear: number, toYear: number | 'all') => void;
   onMoveSection?: (dir: 'up' | 'down') => void;
   isHighlighted?: boolean;
 }
@@ -59,7 +58,6 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   onChangeIntensity,
   onChangeContrast,
   onChangeHue,
-  onAutoPopulateExpenseCol,
   onCopyExpenseCol,
   onMoveSection,
   isHighlighted,
@@ -96,7 +94,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   };
 
   // Filter out any automated retirement/savings rows (those belong in Retirement & Saving Goals)
-  const nonRetireRows = col.filter(r => !r.auto && r.cat !== 'Retirement' && r.cat !== 'Savings Goals');
+  const nonRetireRows = col.filter(r => r.cat !== 'Retirement' && r.cat !== 'Savings Goals');
 
   // Ensure unique categories
   const categoriesInUse: string[] = Array.from(new Set(nonRetireRows.map(r => r.cat || 'Other')));
@@ -226,17 +224,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
               <CopyYearControl
                 years={years}
                 periodLabel={periodLabel}
-                onCopy={(fromY, toY) => {
-                  if (onCopyExpenseCol) {
-                    onCopyExpenseCol(fromY, toY);
-                  } else if (toY === 'all') {
-                    for (let i = 1; i < years; i++) {
-                      onAutoPopulateExpenseCol(i);
-                    }
-                  } else {
-                    onAutoPopulateExpenseCol(toY);
-                  }
-                }}
+                onCopy={(fromY, toY) => onCopyExpenseCol(fromY, toY)}
               />
             </div>
           )}
@@ -476,7 +464,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                     Total Living Expenses
                   </td>
                   {Array.from({ length: years }).map((_, y) => {
-                    const annualCol = calc.colTotal[y] ?? 0;
+                    const annualCol = calc.colOnly[y] ?? 0;
                     const displayTotal = isMonths ? annualCol / 12 : annualCol;
                     return (
                       <React.Fragment key={y}>

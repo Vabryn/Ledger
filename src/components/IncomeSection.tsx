@@ -13,19 +13,17 @@ interface IncomeSectionProps {
   workers: WorkerItem[];
   other: IncomeItem[];
   showOtherIncome: boolean;
-  onUpdateWorker: (idx: number, field: 'name' | 'frequency' | 'hours' | 'wage' | 'preTax', value: any, yearIdx?: number) => void;
+  onUpdateWorker: (idx: number, field: 'name' | 'frequency' | 'hours' | 'wage', value: string | number, yearIdx?: number) => void;
   onAddWorker: () => void;
   onRemoveWorker: (idx: number) => void;
   onReorderWorkers: (startIndex: number, endIndex: number) => void;
-  onUpdateOther: (idx: number, field: 'name' | 'frequency' | 'amount' | 'preTax', value: any, yearIdx?: number) => void;
+  onUpdateOther: (idx: number, field: 'name' | 'frequency' | 'amount', value: string | number, yearIdx?: number) => void;
   onAddOther: () => void;
   onRemoveOther: (idx: number) => void;
   onReorderOther: (startIndex: number, endIndex: number) => void;
   onToggleOtherIncome: (show: boolean) => void;
-  onAutoPopulateWorkerCol: (targetCol: number) => void;
-  onAutoPopulateOtherCol: (targetCol: number) => void;
-  onCopyWorkerCol?: (fromYear: number, toYear: number | 'all') => void;
-  onCopyOtherCol?: (fromYear: number, toYear: number | 'all') => void;
+  onCopyWorkerCol: (fromYear: number, toYear: number | 'all') => void;
+  onCopyOtherCol: (fromYear: number, toYear: number | 'all') => void;
   onMoveSection?: (dir: 'up' | 'down') => void;
   isHighlighted?: boolean;
 }
@@ -47,8 +45,6 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
   onRemoveOther,
   onReorderOther,
   onToggleOtherIncome,
-  onAutoPopulateWorkerCol,
-  onAutoPopulateOtherCol,
   onCopyWorkerCol,
   onCopyOtherCol,
   onMoveSection,
@@ -127,17 +123,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                 <CopyYearControl
                   years={years}
                   periodLabel={periodLabel}
-                  onCopy={(fromY, toY) => {
-                    if (onCopyWorkerCol) {
-                      onCopyWorkerCol(fromY, toY);
-                    } else if (toY === 'all') {
-                      for (let i = 1; i < years; i++) {
-                        onAutoPopulateWorkerCol(i);
-                      }
-                    } else {
-                      onAutoPopulateWorkerCol(toY);
-                    }
-                  }}
+                  onCopy={(fromY, toY) => onCopyWorkerCol(fromY, toY)}
                 />
               </div>
             )}
@@ -225,30 +211,20 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                         </div>
                                         <div className="flex items-center gap-2">
                                           <select
-                                            value={w.frequency === 'Biweekly' ? 'Bi-Monthly' : (w.frequency || '')}
+                                            value={w.frequency || ''}
                                             onChange={e => onUpdateWorker(wi, 'frequency', e.target.value as IncomeFrequency)}
                                             className="bg-[var(--panel-alt)] border border-[var(--border)] text-[var(--text)] text-[11px] rounded-md px-2 py-0.5 focus:outline-none cursor-pointer font-sans-custom"
                                             title="Income payment frequency"
                                           >
                                             <option value="" disabled>Income Frequency</option>
+                                            <option value="Hourly">Hourly</option>
+                                            <option value="Daily">Daily</option>
                                             <option value="Weekly">Weekly</option>
-                                            <option value="Bi-Monthly">Bi-Monthly</option>
+                                            <option value="Biweekly">Bi-weekly (every 2 wks)</option>
+                                            <option value="Bi-Monthly">Semi-monthly (2x/mo)</option>
                                             <option value="Monthly">Monthly</option>
                                             <option value="Annually">Annually</option>
-                                            <option value="Hourly" hidden>Hourly</option>
-                                            <option value="Daily" hidden>Daily</option>
-                                            <option value="Biweekly" hidden>Biweekly</option>
                                           </select>
-
-                                          <label className="flex items-center gap-1 text-[10px] text-[var(--muted2)] cursor-pointer select-none">
-                                            <input
-                                              type="checkbox"
-                                              checked={!!w.preTax}
-                                              onChange={e => onUpdateWorker(wi, 'preTax', e.target.checked)}
-                                              className="rounded border-[var(--border)] text-[var(--accent)] focus:ring-0 cursor-pointer"
-                                            />
-                                            <span>Pre-Tax</span>
-                                          </label>
                                         </div>
                                       </div>
                                     </div>
@@ -389,17 +365,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                 <CopyYearControl
                   years={years}
                   periodLabel={periodLabel}
-                  onCopy={(fromY, toY) => {
-                    if (onCopyOtherCol) {
-                      onCopyOtherCol(fromY, toY);
-                    } else if (toY === 'all') {
-                      for (let i = 1; i < years; i++) {
-                        onAutoPopulateOtherCol(i);
-                      }
-                    } else {
-                      onAutoPopulateOtherCol(toY);
-                    }
-                  }}
+                  onCopy={(fromY, toY) => onCopyOtherCol(fromY, toY)}
                 />
               )}
 
@@ -524,16 +490,6 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                                                 <option value="Monthly">Monthly ($/mo)</option>
                                                 <option value="Annually">Annually ($/yr)</option>
                                               </select>
-
-                                              <label className="flex items-center gap-1 text-[10px] text-[var(--muted2)] cursor-pointer select-none">
-                                                <input
-                                                  type="checkbox"
-                                                  checked={!!item.preTax}
-                                                  onChange={e => onUpdateOther(ri, 'preTax', e.target.checked)}
-                                                  className="rounded border-[var(--border)] text-[var(--accent)] focus:ring-0 cursor-pointer"
-                                                />
-                                                <span>Pre-Tax</span>
-                                              </label>
                                             </div>
                                           </div>
                                         </td>

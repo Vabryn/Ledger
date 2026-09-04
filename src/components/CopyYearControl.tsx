@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Copy } from 'lucide-react';
 
 interface CopyYearControlProps {
@@ -16,6 +16,12 @@ export const CopyYearControl: React.FC<CopyYearControlProps> = ({
 }) => {
   const [fromYear, setFromYear] = useState<number>(0);
   const [toYear, setToYear] = useState<number | 'all'>(years > 1 ? 1 : 'all');
+
+  // Keep the selected source/target in range when the number of years shrinks.
+  useEffect(() => {
+    setFromYear(f => Math.min(f, Math.max(0, years - 1)));
+    setToYear(t => (t === 'all' ? 'all' : Math.min(t, Math.max(0, years - 1))));
+  }, [years]);
 
   if (years <= 1) return null;
 

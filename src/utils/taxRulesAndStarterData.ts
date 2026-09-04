@@ -58,67 +58,63 @@ export const FED_2025 = {
   },
 };
 
-// California State Income Tax Brackets & Exemptions (2025)
+// California State Income Tax Brackets & Exemptions — 2025 tax year.
+// Source: Tax Foundation "State Individual Income Tax Rates and Brackets, 2025"
+// (single & MFJ figures) with MFS = single and MFJ = 2x single per CA statute.
+// VERIFY against the FTB 2025 Form 540 tax rate schedules before relying on
+// exact dollar figures — inflation indexing is finalized late each year.
+const CA_SINGLE_BRACKETS = [
+  [0, 0.01],
+  [10756, 0.02],
+  [25499, 0.04],
+  [40245, 0.06],
+  [55866, 0.08],
+  [70606, 0.093],
+  [360659, 0.103],
+  [432787, 0.113],
+  [721314, 0.123],
+] as [number, number][];
+
 export const CA_2025 = {
   Single: {
-    stdDed: 5706,
-    ex: 158,
-    brackets: [
-      [0, 0.01],
-      [10099, 0.02],
-      [23942, 0.04],
-      [37788, 0.06],
-      [52455, 0.08],
-      [66295, 0.093],
-      [338639, 0.103],
-      [406364, 0.113],
-      [677275, 0.123],
-    ] as [number, number][],
+    stdDed: 5540,
+    ex: 149, // personal exemption credit (dollars of credit, not a deduction)
+    brackets: CA_SINGLE_BRACKETS,
   },
   Married: {
-    stdDed: 11412,
-    ex: 316,
+    stdDed: 11080,
+    ex: 298,
     brackets: [
       [0, 0.01],
-      [20198, 0.02],
-      [47884, 0.04],
-      [75576, 0.06],
-      [104910, 0.08],
-      [132590, 0.093],
-      [677278, 0.103],
-      [812728, 0.113],
-      [1354550, 0.123],
+      [21512, 0.02],
+      [50998, 0.04],
+      [80490, 0.06],
+      [111732, 0.08],
+      [141212, 0.093],
+      [721318, 0.103],
+      [865574, 0.113],
+      [1442628, 0.123],
     ] as [number, number][],
   },
   HeadOfHousehold: {
-    stdDed: 11412,
-    ex: 316,
+    stdDed: 11080,
+    ex: 298,
     brackets: [
       [0, 0.01],
-      [20212, 0.02],
-      [47884, 0.04],
-      [61729, 0.06],
-      [76395, 0.08],
-      [90237, 0.093],
-      [460548, 0.103],
-      [552654, 0.113],
-      [921094, 0.123],
+      [21527, 0.02],
+      [51000, 0.04],
+      [65744, 0.06],
+      [81364, 0.08],
+      [96107, 0.093],
+      [490493, 0.103],
+      [588593, 0.113],
+      [980987, 0.123],
     ] as [number, number][],
   },
   MarriedSeparate: {
-    stdDed: 5706,
-    ex: 158,
-    brackets: [
-      [0, 0.01],
-      [10099, 0.02],
-      [23942, 0.04],
-      [37788, 0.06],
-      [52455, 0.08],
-      [66295, 0.093],
-      [338639, 0.103],
-      [406364, 0.113],
-      [677275, 0.123],
-    ] as [number, number][],
+    stdDed: 5540,
+    ex: 149,
+    brackets: CA_SINGLE_BRACKETS,
   },
 };
 
@@ -218,11 +214,24 @@ export const NYC_2025 = {
   },
 };
 
-// Federal Credits & FICA Rates
+// Federal Credits & FICA Rates (2025)
+// CTC is a simplification: applied per dependent regardless of the dependent's
+// age (the real Child Tax Credit requires a qualifying child under 17; other
+// dependents get the $500 Credit for Other Dependents). Phase-out is modeled
+// in computePlanner ($50 lost per $1,000 of income over $400k MFJ / $200k other).
 export const CTC_PER_DEP = 2000;       // Child Tax Credit per dependent
+export const CA_DEP_EXEMPTION_CREDIT = 461; // CA dependent exemption credit (2025), dollars of credit
 export const SS_WAGE_CAP = 176100;      // Social Security Maximum Taxable Wage Base (2025)
 export const SS_RATE = 0.062;           // Social Security Tax Rate (6.2%)
 export const MEDICARE_RATE = 0.0145;    // Medicare Base Tax Rate (1.45%)
+export const ADDL_MEDICARE_RATE = 0.009; // Additional Medicare Tax Rate (0.9%) on wages over threshold
+// Additional Medicare Tax thresholds by filing status (combined household wages).
+export const ADDL_MEDICARE_THRESHOLDS = {
+  Single: 200000,
+  Married: 250000,
+  HeadOfHousehold: 200000,
+  MarriedSeparate: 125000,
+} as const;
 
 // Annual Retirement Contribution Limits (2025 Legal Caps per individual)
 export const ROTH_CAP = 7000;                    // Maximum annual Roth IRA contribution per person
@@ -233,7 +242,11 @@ export const CAP401K_TOTAL_ADDITIONS = 70000;    // Combined employer + employee
 export const STORAGE_KEY = 'household_ledger_state_v3';
 
 /**
- * Multiplier factors to normalize any frequency to Annual Gross.
+ * Multiplier factors to normalize a frequency to Annual Gross.
+ * Canonical keys match the IncomeFrequency / PayoutFrequency unions; the extra
+ * spelling aliases are accepted for imported/legacy state and are all
+ * unambiguous (`Biweekly` = every 2 weeks = 26/yr; `Bi-Monthly` here is used in
+ * the semi-monthly sense = twice a month = 24/yr, per the app's own labels).
  */
 export const ANNUAL_MULTIPLIERS: Record<string, number> = {
   Hourly: 52, // hours * wage * 52
@@ -241,7 +254,7 @@ export const ANNUAL_MULTIPLIERS: Record<string, number> = {
   Weekly: 52,
   Biweekly: 26,
   'Bi-weekly': 26,
-  'Bi-Monthly': 24, // 2 times per month * 12 months = 24
+  'Bi-Monthly': 24,
   'Bi-monthly': 24,
   'Semi-monthly': 24,
   'Semi-Monthly': 24,
@@ -317,7 +330,6 @@ export function getDefaultSampleState(): PlannerState {
     },
     taxStatus: 'Married',
     st: Array(YEARS).fill('CA'),
-    local: Array(YEARS).fill('None'),
     deps: Array(YEARS).fill(0),
     additionalDeductions: Array(YEARS).fill(0),
     fica: true,
@@ -346,7 +358,6 @@ export function getDefaultSampleState(): PlannerState {
         frequency: 'Hourly',
         hours: [40, 40, 40, 45, 45, 50],
         wage: [65, 65, 65, 70, 70, 75],
-        preTax: false,
       },
     ],
     other: [
@@ -355,21 +366,18 @@ export function getDefaultSampleState(): PlannerState {
         name: 'Side Hustle',
         frequency: 'Monthly',
         amount: [100, 100, 125, 125, 150, 166.67], // $1,200 - $2,000 / yr
-        preTax: false,
       },
       {
         id: 'o-2',
         name: 'Stock Dividends',
         frequency: 'Annually',
         amount: [150, 150, 150, 150, 150, 150],
-        preTax: false,
       },
       {
         id: 'o-3',
         name: 'Consulting Bonus',
         frequency: 'Annually',
         amount: [0, 0, 5000, 0, 0, 2500],
-        preTax: false,
       },
     ],
     col: [
@@ -422,7 +430,6 @@ export function getCleanEmptyState(years: number = 3, viewMode: 'years' | 'month
     barColors: { gross: '#8A978A', colOnly: '#8C3B33', save: '#3E5279', retire: '#2E7D4F' },
     taxStatus: 'Single',
     st: Array(years).fill('CA'),
-    local: Array(years).fill('None'),
     deps: Array(years).fill(0),
     additionalDeductions: Array(years).fill(0),
     fica: true,
@@ -434,7 +441,7 @@ export function getCleanEmptyState(years: number = 3, viewMode: 'years' | 'month
     subText: 'A multi-period income, cost-of-living, and tax projection — fully editable, all figures recalculate live.',
     catOrder: ['Housing', 'Food', 'Transportation', 'Utilities', 'Subscriptions', 'Additional Payments'],
     workers: [
-      { id: 'w-1', name: 'Income Earner 1', frequency: 'Hourly', hours: Array(years).fill(0), wage: Array(years).fill(0), preTax: false },
+      { id: 'w-1', name: 'Income Earner 1', frequency: 'Hourly', hours: Array(years).fill(0), wage: Array(years).fill(0) },
     ],
     other: [],
     col: [
@@ -444,11 +451,4 @@ export function getCleanEmptyState(years: number = 3, viewMode: 'years' | 'month
     employerMatchRate: Array(years).fill(0),
     customSavings: {},
   };
-}
-
-/**
- * Ensures system expense rows or cleans up obsolete rows safely.
- */
-export function ensureSystemExpenseRows(col: any[] = [], _years?: number): any[] {
-  return [...col];
 }

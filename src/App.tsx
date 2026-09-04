@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useDeferredValue, lazy, Suspense } from 'react';
 import { PlannerState, ExpenseItem, FilingStatus, CustomSavingsFund, ViewMode, IncomeFrequency, PayoutFrequency, PageWidth, PAGE_WIDTH_CLASSES } from './types';
 import {
   getDefaultSampleState,
   getCleanEmptyState,
   computePlanner,
-  ensureSystemExpenseRows,
   num,
   STORAGE_KEY,
   safeStorage,
@@ -16,7 +15,11 @@ import { TaxSection } from './components/TaxSection';
 import { ExpensesSection } from './components/ExpensesSection';
 import { RetirementSection } from './components/RetirementSection';
 import { SummarySection } from './components/SummarySection';
-import { TutorialModal } from './components/TutorialModal';
+
+// Tutorial is a large, rarely-opened walkthrough — load it on demand.
+const TutorialModal = lazy(() =>
+  import('./components/TutorialModal').then(m => ({ default: m.TutorialModal }))
+);
 
 export default function App() {
   const [activeCategory, setActiveCategory] = useState<NavCategory>('all');
@@ -44,19 +47,33 @@ export default function App() {
     }
   }, [state.darkMode]);
 
-  // Persist to safe storage
+  // Follow OS light/dark changes until the user explicitly picks a theme this session.
+  const userChoseThemeRef = useRef(false);
   useEffect(() => {
-    safeStorage.setJson(STORAGE_KEY, state);
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e: MediaQueryListEvent) => {
+      if (userChoseThemeRef.current) return;
+      setState(prev => (prev.darkMode === e.matches ? prev : { ...prev, darkMode: e.matches }));
+    };
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  // Persist to safe storage — debounced so typing in a cell doesn't serialize
+  // the entire planner and hit localStorage on every keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => safeStorage.setJson(STORAGE_KEY, state), 400);
+    return () => clearTimeout(t);
   }, [state]);
 
-  // Ensure system expense rows exist
+  // Normalize optional fields for a stable shape before computing.
   const safeState = useMemo(() => {
-    const updatedCol = ensureSystemExpenseRows(state.col || [], state.years || 1);
     return {
       ...state,
       pageWidth: state.pageWidth || 'standard',
       startYear: state.startYear || 2025,
-      col: updatedCol,
+      col: state.col || [],
       customSavings: state.customSavings || {},
       employerMatchRate: state.employerMatchRate || Array(state.years || 1).fill(0),
       additionalDeductions: state.additionalDeductions || Array(state.years || 1).fill(0),
@@ -64,10 +81,10 @@ export default function App() {
     };
   }, [state]);
 
-  // Compute live calculations
-  const calc = useMemo(() => {
-    return computePlanner(safeState);
-  }, [safeState]);
+  // Compute live calculations. Deferred so keystrokes stay responsive while the
+  // (heavier) chart + summary re-render catches up on the next idle frame.
+  const calcNow = useMemo(() => computePlanner(safeState), [safeState]);
+  const calc = useDeferredValue(calcNow);
 
   // Page Width Handler
   const handleChangePageWidth = (width: PageWidth) => {
@@ -122,7 +139,6 @@ export default function App() {
         other: newOther,
         col: newCol,
         st: [...prev.st, prev.st[prev.st.length - 1] || 'CA'],
-        local: [...prev.local, prev.local[prev.local.length - 1] || 'None'],
         deps: [...prev.deps, prev.deps[prev.deps.length - 1] ?? 0],
         additionalDeductions: [...(prev.additionalDeductions || []), 0],
         retireRate: [...prev.retireRate, prev.retireRate[prev.retireRate.length - 1] ?? 0],
@@ -162,7 +178,6 @@ export default function App() {
           monthly: c.monthly.slice(0, newYears),
         })),
         st: prev.st.slice(0, newYears),
-        local: prev.local.slice(0, newYears),
         deps: prev.deps.slice(0, newYears),
         additionalDeductions: (prev.additionalDeductions || []).slice(0, newYears),
         retireRate: prev.retireRate.slice(0, newYears),
@@ -193,8 +208,8 @@ export default function App() {
   // Workers
   const handleUpdateWorker = (
     idx: number,
-    field: 'name' | 'frequency' | 'hours' | 'wage' | 'preTax',
-    value: any,
+    field: 'name' | 'frequency' | 'hours' | 'wage',
+    value: string | number,
     yearIdx?: number
   ) => {
     setState(prev => {
@@ -204,8 +219,6 @@ export default function App() {
         updated[idx] = { ...updated[idx], name: String(value) };
       } else if (field === 'frequency') {
         updated[idx] = { ...updated[idx], frequency: value as IncomeFrequency };
-      } else if (field === 'preTax') {
-        updated[idx] = { ...updated[idx], preTax: Boolean(value) };
       } else if (yearIdx !== undefined && (field === 'wage' || field === 'hours')) {
         const arr = [...updated[idx][field]];
         arr[yearIdx] = num(value);
@@ -226,17 +239,17 @@ export default function App() {
           frequency: 'Annually',
           hours: Array(prev.years).fill(40),
           wage: Array(prev.years).fill(60000),
-          preTax: false,
         },
       ],
     }));
   };
 
   const handleRemoveWorker = (idx: number) => {
-    setState(prev => ({
-      ...prev,
-      workers: prev.workers.filter((_, i) => i !== idx),
-    }));
+    setState(prev => {
+      // Keep at least one income earner so the table and derived counts stay valid.
+      if (prev.workers.length <= 1) return prev;
+      return { ...prev, workers: prev.workers.filter((_, i) => i !== idx) };
+    });
   };
 
   const handleReorderWorkers = (startIndex: number, endIndex: number) => {
@@ -246,11 +259,6 @@ export default function App() {
       result.splice(endIndex, 0, removed);
       return { ...prev, workers: result };
     });
-  };
-
-  const handleAutoPopulateWorkerCol = (targetCol: number) => {
-    if (targetCol <= 0) return;
-    handleCopyWorkerCol(targetCol - 1, targetCol);
   };
 
   const handleCopyWorkerCol = (fromYear: number, toYear: number | 'all') => {
@@ -280,8 +288,8 @@ export default function App() {
   // Other Income
   const handleUpdateOther = (
     idx: number,
-    field: 'name' | 'frequency' | 'amount' | 'preTax',
-    value: any,
+    field: 'name' | 'frequency' | 'amount',
+    value: string | number,
     yearIdx?: number
   ) => {
     setState(prev => {
@@ -291,8 +299,6 @@ export default function App() {
         updated[idx] = { ...updated[idx], name: String(value) };
       } else if (field === 'frequency') {
         updated[idx] = { ...updated[idx], frequency: value as PayoutFrequency };
-      } else if (field === 'preTax') {
-        updated[idx] = { ...updated[idx], preTax: Boolean(value) };
       } else if (yearIdx !== undefined && field === 'amount') {
         const arr = [...updated[idx].amount];
         arr[yearIdx] = num(value);
@@ -312,7 +318,6 @@ export default function App() {
           name: 'New Income Source',
           frequency: 'Monthly',
           amount: Array(prev.years).fill(0),
-          preTax: false,
         },
       ],
     }));
@@ -332,11 +337,6 @@ export default function App() {
       result.splice(endIndex, 0, removed);
       return { ...prev, other: result };
     });
-  };
-
-  const handleAutoPopulateOtherCol = (targetCol: number) => {
-    if (targetCol <= 0) return;
-    handleCopyOtherCol(targetCol - 1, targetCol);
   };
 
   const handleCopyOtherCol = (fromYear: number, toYear: number | 'all') => {
@@ -498,11 +498,6 @@ export default function App() {
     });
   };
 
-  const handleAutoPopulateExpenseCol = (targetCol: number) => {
-    if (targetCol <= 0) return;
-    handleCopyExpenseCol(targetCol - 1, targetCol);
-  };
-
   const handleCopyExpenseCol = (fromYear: number, toYear: number | 'all') => {
     setState(prev => {
       const updatedCol = prev.col.map(c => {
@@ -599,6 +594,15 @@ export default function App() {
 
   // Dynamically update column descriptions based on which category is scrolled into view
   useEffect(() => {
+    let rafPending = false;
+    const onScrollOrResize = () => {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(() => {
+        rafPending = false;
+        checkVisibleCategory();
+      });
+    };
     const checkVisibleCategory = () => {
       const headerEl = document.getElementById('sticky-header-container');
       const headerBottom = headerEl ? headerEl.getBoundingClientRect().bottom : 120;
@@ -663,13 +667,13 @@ export default function App() {
       }
     };
 
-    window.addEventListener('scroll', checkVisibleCategory, { passive: true });
-    window.addEventListener('resize', checkVisibleCategory, { passive: true });
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize, { passive: true });
     checkVisibleCategory();
 
     return () => {
-      window.removeEventListener('scroll', checkVisibleCategory);
-      window.removeEventListener('resize', checkVisibleCategory);
+      window.removeEventListener('scroll', onScrollOrResize);
+      window.removeEventListener('resize', onScrollOrResize);
     };
   }, [activeCategory, state.sectionOrder]);
 
@@ -697,8 +701,6 @@ export default function App() {
             onRemoveOther={handleRemoveOther}
             onReorderOther={handleReorderOther}
             onToggleOtherIncome={show => setState(prev => ({ ...prev, showOtherIncome: show }))}
-            onAutoPopulateWorkerCol={handleAutoPopulateWorkerCol}
-            onAutoPopulateOtherCol={handleAutoPopulateOtherCol}
             onCopyWorkerCol={handleCopyWorkerCol}
             onCopyOtherCol={handleCopyOtherCol}
             onMoveSection={dir => handleMoveSection('sec-income', dir)}
@@ -717,7 +719,6 @@ export default function App() {
             taxStatus={state.taxStatus}
             fica={state.fica}
             st={state.st}
-            local={state.local}
             deps={state.deps}
             additionalDeductions={safeState.additionalDeductions}
             calc={calc}
@@ -776,7 +777,6 @@ export default function App() {
             onChangeIntensity={val => setState(prev => ({ ...prev, colIntensity: val }))}
             onChangeContrast={val => setState(prev => ({ ...prev, colContrast: val }))}
             onChangeHue={val => setState(prev => ({ ...prev, colHue: val }))}
-            onAutoPopulateExpenseCol={handleAutoPopulateExpenseCol}
             onCopyExpenseCol={handleCopyExpenseCol}
             onMoveSection={dir => handleMoveSection('sec-expenses', dir)}
             isHighlighted={isHighlighted}
@@ -861,22 +861,18 @@ export default function App() {
         onSelectCategory={cat => setActiveCategory(cat)}
         counts={{
           incomeWorkers: state.workers.length,
-          expenseItems: state.col.filter(c => !c.isSystem).length,
+          expenseItems: state.col.length,
           savingsFunds: Object.keys(state.customSavings || {}).length,
         }}
         onAddYear={handleAddYear}
         onRemoveYear={handleRemoveYear}
-        onToggleDarkMode={() => setState(prev => ({ ...prev, darkMode: !prev.darkMode }))}
+        onToggleDarkMode={() => {
+          userChoseThemeRef.current = true;
+          setState(prev => ({ ...prev, darkMode: !prev.darkMode }));
+        }}
         onToggleEditMode={() => setState(prev => ({ ...prev, isEditMode: !prev.isEditMode }))}
-        onResetDefaults={() => {
-          safeStorage.removeItem(STORAGE_KEY);
-          setState(getDefaultSampleState());
-        }}
-        onClearToBlank={() => {
-          const freshEmpty = getCleanEmptyState(state.years || 3);
-          safeStorage.setJson(STORAGE_KEY, freshEmpty);
-          setState(freshEmpty);
-        }}
+        onResetDefaults={() => setState(getDefaultSampleState())}
+        onClearToBlank={() => setState(getCleanEmptyState(state.years || 3))}
         onOpenTutorial={() => setIsTutorialOpen(true)}
         pageWidth={safeState.pageWidth}
         onChangePageWidth={handleChangePageWidth}
@@ -905,11 +901,12 @@ export default function App() {
         </footer>
       </main>
 
-      {/* Dimmed Interactive Step-by-Step Tutorial Walkthrough */}
-      <TutorialModal
-        isOpen={isTutorialOpen}
-        onClose={() => setIsTutorialOpen(false)}
-      />
+      {/* Dimmed Interactive Step-by-Step Tutorial Walkthrough (lazy-loaded) */}
+      {isTutorialOpen && (
+        <Suspense fallback={null}>
+          <TutorialModal isOpen={isTutorialOpen} onClose={() => setIsTutorialOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }
