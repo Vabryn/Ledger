@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PlannerState, PageWidth, PAGE_WIDTH_CLASSES, PAGE_WIDTH_CONFIG } from '../types';
+import { PlannerState } from '../types';
 import {
   Sun,
   Moon,
   Edit3,
-  Check,
   Plus,
   Minus,
   RotateCcw,
@@ -18,9 +17,6 @@ import {
   ChevronDown,
   HelpCircle,
   AlertTriangle,
-  Minimize2,
-  Maximize2,
-  Columns,
   Calendar,
 } from 'lucide-react';
 
@@ -44,8 +40,6 @@ interface StickyHeaderProps {
   onResetDefaults: () => void;
   onClearToBlank: () => void;
   onOpenTutorial: () => void;
-  pageWidth?: PageWidth;
-  onChangePageWidth: (width: PageWidth) => void;
   onChangeStartYear?: (startYear: number) => void;
 }
 
@@ -63,8 +57,6 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   onResetDefaults,
   onClearToBlank,
   onOpenTutorial,
-  pageWidth,
-  onChangePageWidth,
   onChangeStartYear,
 }) => {
   const years = state.years || 1;
@@ -73,11 +65,9 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
 
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null); // highlighted year column in the header
   const [isEditDropdownOpen, setIsEditDropdownOpen] = useState(false);
-  const [isWidthDropdownOpen, setIsWidthDropdownOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const editDropdownRef = useRef<HTMLDivElement | null>(null);
-  const widthDropdownRef = useRef<HTMLDivElement | null>(null);
   const isSyncingScrollRef = useRef(false);
 
   const handleHeaderScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -135,26 +125,6 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
     }
   }
 
-  const activePageWidth: PageWidth = pageWidth || state.pageWidth || 'standard';
-  const widthClass = PAGE_WIDTH_CLASSES[activePageWidth] || 'max-w-[1360px]';
-  const widthConfig = PAGE_WIDTH_CONFIG[activePageWidth] || PAGE_WIDTH_CONFIG.standard;
-
-  const WIDTH_ORDER: PageWidth[] = ['slim', 'compact', 'standard', 'wide', 'full'];
-  const currentWidthIdx = WIDTH_ORDER.indexOf(activePageWidth);
-  const isAtMin = currentWidthIdx <= 0;
-  const isAtMax = currentWidthIdx >= WIDTH_ORDER.length - 1;
-
-  const handleShrinkWidth = () => {
-    if (!isAtMin) {
-      onChangePageWidth(WIDTH_ORDER[currentWidthIdx - 1]);
-    }
-  };
-
-  const handleExpandWidth = () => {
-    if (!isAtMax) {
-      onChangePageWidth(WIDTH_ORDER[currentWidthIdx + 1]);
-    }
-  };
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -163,11 +133,8 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
         setIsEditDropdownOpen(false);
         setShowClearConfirm(false);
       }
-      if (widthDropdownRef.current && !widthDropdownRef.current.contains(event.target as Node)) {
-        setIsWidthDropdownOpen(false);
-      }
     };
-    if (isEditDropdownOpen || isWidthDropdownOpen) {
+    if (isEditDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleClickOutside);
     }
@@ -175,7 +142,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isEditDropdownOpen, isWidthDropdownOpen]);
+  }, [isEditDropdownOpen]);
 
   const navItems: { id: NavCategory; label: string; icon: React.ReactNode }[] = [
     {
@@ -213,9 +180,9 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   return (
     <header
       id="sticky-header-container"
-      className="sticky top-0 z-50 bg-[var(--panel)] border-b border-[var(--border)] shadow-sm px-3 sm:px-5 lg:px-6 pt-2 pb-1.5 mb-4 transition-colors duration-200"
+      className="sticky top-0 z-50 bg-[var(--panel)] border-b border-[var(--border)] shadow-sm pt-2 pb-1.5 mb-4 transition-colors duration-200"
     >
-      <div className={`${widthClass} w-full mx-auto flex flex-col gap-1.5 transition-all duration-300`}>
+      <div className="max-w-[1850px] w-full mx-auto px-3 sm:px-5 lg:px-6 flex flex-col gap-1.5 transition-all duration-300">
         {/* Top Row: Metrics & Toolbar - side by side so sparkline graph is left of Dark mode */}
         <div className="flex items-center justify-between gap-2.5 sm:gap-3">
           {/* Global Toolbar Controls */}
@@ -238,90 +205,6 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                 </>
               )}
             </button>
-
-            {/* Page Width Stepper & Dropdown Selector */}
-            <div className="relative" ref={widthDropdownRef}>
-              <div className="flex items-center rounded-lg border border-[var(--border)]/80 bg-[var(--panel)] shadow-xs">
-                {/* Direct Shrink Button */}
-                <button
-                  type="button"
-                  onClick={handleShrinkWidth}
-                  disabled={isAtMin}
-                  className="p-1.5 hover:text-[var(--accent)] hover:bg-[var(--panel-alt)] disabled:opacity-25 disabled:cursor-not-allowed rounded-l-lg transition cursor-pointer"
-                  title={`Shrink page width${!isAtMin ? ` to ${PAGE_WIDTH_CONFIG[WIDTH_ORDER[currentWidthIdx - 1]].label} (${PAGE_WIDTH_CONFIG[WIDTH_ORDER[currentWidthIdx - 1]].width})` : ' (Narrowest preset reached)'}`}
-                >
-                  <Minimize2 className="w-3.5 h-3.5 text-[var(--muted)]" />
-                </button>
-
-                {/* Dropdown Menu Trigger */}
-                <button
-                  type="button"
-                  onClick={() => setIsWidthDropdownOpen(prev => !prev)}
-                  className="flex items-center gap-1 px-2 py-1 text-xs text-[var(--muted)] hover:text-[var(--accent)] transition cursor-pointer border-x border-[var(--border)]/60"
-                  title="Choose page width preset"
-                >
-                  <Columns className="w-3 h-3 text-[var(--muted2)]" />
-                  <span className="font-semibold text-[11px] font-mono-custom">
-                    {widthConfig.label}
-                  </span>
-                  <ChevronDown
-                    className={`w-3 h-3 text-[var(--muted2)] transition-transform duration-200 ${
-                      isWidthDropdownOpen ? 'rotate-180 text-[var(--accent)]' : ''
-                    }`}
-                  />
-                </button>
-
-                {/* Direct Expand Button */}
-                <button
-                  type="button"
-                  onClick={handleExpandWidth}
-                  disabled={isAtMax}
-                  className="p-1.5 hover:text-[var(--accent)] hover:bg-[var(--panel-alt)] disabled:opacity-25 disabled:cursor-not-allowed rounded-r-lg transition cursor-pointer"
-                  title={`Expand page width${!isAtMax ? ` to ${PAGE_WIDTH_CONFIG[WIDTH_ORDER[currentWidthIdx + 1]].label} (${PAGE_WIDTH_CONFIG[WIDTH_ORDER[currentWidthIdx + 1]].width})` : ' (Widest preset reached)'}`}
-                >
-                  <Maximize2 className="w-3.5 h-3.5 text-[var(--muted)]" />
-                </button>
-              </div>
-
-              {/* Width Presets Dropdown Menu */}
-              {isWidthDropdownOpen && (
-                <div className="absolute right-0 mt-1.5 w-64 rounded-xl bg-[var(--panel)] border border-[var(--border)] shadow-xl z-50 py-1.5 text-xs animate-in fade-in slide-in-from-top-1 duration-150">
-                  <div className="px-3.5 py-1 text-[10px] uppercase font-bold text-[var(--muted2)] tracking-wider border-b border-[var(--border)]/60 mb-1 flex items-center justify-between">
-                    <span>Page Layout Width</span>
-                    <span className="font-mono-custom text-[9px] lowercase font-normal">{widthConfig.width}</span>
-                  </div>
-
-                  {WIDTH_ORDER.map(wKey => {
-                    const conf = PAGE_WIDTH_CONFIG[wKey];
-                    const isSelected = activePageWidth === wKey;
-                    return (
-                      <button
-                        key={wKey}
-                        type="button"
-                        onClick={() => {
-                          onChangePageWidth(wKey);
-                          setIsWidthDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3.5 py-2 text-left hover:bg-[var(--panel-alt)] transition cursor-pointer ${
-                          isSelected ? 'bg-[var(--panel-alt)]/60 text-[var(--accent)] font-semibold' : 'text-[var(--text)]'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-xs">{conf.label}</span>
-                            <span className="text-[10px] font-mono-custom text-[var(--muted2)] bg-[var(--border)]/40 px-1.5 py-0.2 rounded">
-                              {conf.width}
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-[var(--muted2)] font-sans-custom mt-0.5">{conf.description}</div>
-                        </div>
-                        {isSelected && <Check className="w-4 h-4 text-[var(--accent)] flex-shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
 
             {/* Years counter + Add/Remove */}
             <div className="flex items-center gap-1.5 px-2.5 py-1 border border-[var(--border)]/80 rounded-lg bg-[var(--panel)] shadow-xs">
@@ -534,14 +417,14 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
         {/* Aligned Sticky Year Columns Bar */}
         <div
           id="sticky-year-bar-container"
-          className="border-t border-[var(--border)]/70 pt-1.5 mt-1 select-none px-4 sm:px-5 border-x border-transparent"
+          className="border-t border-[var(--border)]/70 pt-1.5 mt-1 select-none px-4 sm:px-5"
         >
             <div
               id="sticky-year-bar-scroll"
               className="overflow-x-auto scrollbar-none"
               onScroll={handleHeaderScroll}
             >
-              <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
+              <table className="w-max table-fixed text-xs border-collapse min-w-[700px]">
                 <colgroup>
                   {state.isEditMode && <col className="w-8 min-w-[32px]" />}
                   {/* Name / Category Column */}

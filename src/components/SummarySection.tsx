@@ -38,6 +38,15 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
   const effectiveTaxPct = totalGross > 0 ? (totalTax / totalGross) * 100 : 0;
 
+  // Keep this table's horizontal scroll in lockstep with the sticky year bar
+  // (and, through it, every other section table).
+  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const headerScroll = document.getElementById('sticky-year-bar-scroll');
+    if (headerScroll && headerScroll.scrollLeft !== e.currentTarget.scrollLeft) {
+      headerScroll.scrollLeft = e.currentTarget.scrollLeft;
+    }
+  };
+
   return (
     <details
       open
@@ -109,8 +118,8 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         </div>
 
         {/* Aligned Projection Matrix Table */}
-        <div className="overflow-x-auto pb-1">
-          <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
+        <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
+          <table className="w-max table-fixed text-xs border-collapse min-w-[700px]">
             <colgroup>
               {state.isEditMode && <col className="w-8 min-w-[32px]" />}
               {/* Left Overview & Metrics Column */}

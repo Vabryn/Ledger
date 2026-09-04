@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useDeferredValue, lazy, Suspense } from 'react';
-import { PlannerState, ExpenseItem, FilingStatus, CustomSavingsFund, ViewMode, IncomeFrequency, PayoutFrequency, PageWidth, PAGE_WIDTH_CLASSES } from './types';
+import { PlannerState, ExpenseItem, FilingStatus, CustomSavingsFund, ViewMode, IncomeFrequency, PayoutFrequency } from './types';
 import {
   getDefaultSampleState,
   getCleanEmptyState,
@@ -71,7 +71,6 @@ export default function App() {
   const safeState = useMemo(() => {
     return {
       ...state,
-      pageWidth: state.pageWidth || 'standard',
       startYear: state.startYear || 2025,
       col: state.col || [],
       customSavings: state.customSavings || {},
@@ -85,11 +84,6 @@ export default function App() {
   // (heavier) chart + summary re-render catches up on the next idle frame.
   const calcNow = useMemo(() => computePlanner(safeState), [safeState]);
   const calc = useDeferredValue(calcNow);
-
-  // Page Width Handler
-  const handleChangePageWidth = (width: PageWidth) => {
-    setState(prev => ({ ...prev, pageWidth: width }));
-  };
 
   // Start Year Handler
   const handleChangeStartYear = (newStartYear: number) => {
@@ -846,7 +840,6 @@ export default function App() {
     }
   };
 
-  const widthClass = PAGE_WIDTH_CLASSES[safeState.pageWidth || 'standard'] || 'max-w-[1360px]';
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-200">
@@ -872,13 +865,11 @@ export default function App() {
         onResetDefaults={() => setState(getDefaultSampleState())}
         onClearToBlank={() => setState(getCleanEmptyState(state.years || 3))}
         onOpenTutorial={() => setIsTutorialOpen(true)}
-        pageWidth={safeState.pageWidth}
-        onChangePageWidth={handleChangePageWidth}
         onChangeStartYear={handleChangeStartYear}
       />
 
       {/* Main Container */}
-      <main className={`${widthClass} w-full mx-auto px-3 sm:px-5 lg:px-6 pt-2 pb-20 transition-all duration-300`}>
+      <main className="max-w-[1850px] w-full mx-auto px-3 sm:px-5 lg:px-6 pt-2 pb-20 transition-all duration-300">
         {/* Dynamic Ordered Sections / Filtered by Category */}
         <div className="flex flex-col">
           {activeCategory === 'all' && state.sectionOrder.map(secId => (

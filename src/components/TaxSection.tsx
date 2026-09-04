@@ -158,7 +158,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
 
         {/* Tax Table */}
         <div className="overflow-x-auto pb-1 category-table-scroll" onScroll={handleTableScroll}>
-          <table className="w-full table-fixed text-xs border-collapse min-w-[700px]">
+          <table className="w-max table-fixed text-xs border-collapse min-w-[700px]">
             <colgroup>
               {isEditMode && <col className="w-8 min-w-[32px]" />}
               <col className="w-[280px] min-w-[240px]" />
