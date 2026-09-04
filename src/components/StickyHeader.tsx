@@ -52,7 +52,6 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   const isMonths = state.viewMode === 'months';
   const startYear = state.startYear || 2025;
 
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null); // highlighted year column in the header
   const [isEditDropdownOpen, setIsEditDropdownOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -402,16 +401,11 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                     {/* Year Column Headers Aligned with Every Table */}
                     {Array.from({ length: years }).map((_, y) => {
                       const displayYear = isMonths ? `Mo ${y + 1}` : `${startYear + y}`;
-                      const isHovered = hoveredIdx === y;
                       return (
                         <th
                           key={y}
                           colSpan={2}
-                          onMouseEnter={() => setHoveredIdx(y)}
-                          onMouseLeave={() => setHoveredIdx(null)}
-                          className={`py-1 px-2 text-center border-l-2 border-[var(--col-divider)] transition-colors ${
-                            isHovered ? 'bg-[var(--panel-alt)]' : 'bg-[var(--panel-alt)]/50'
-                          }`}
+                          className="py-1 px-2 text-center border-l-2 border-[var(--col-divider)] bg-[var(--panel-alt)]"
                         >
                           <span className="font-mono text-xs font-bold tracking-tight text-[var(--text)]">
                             {displayYear}

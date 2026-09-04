@@ -325,7 +325,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
                 lines — the SVG counterpart of the tables' divider ::before. */}
             <linearGradient id="vdiv-shadow" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#000" stopOpacity="0" />
-              <stop offset="50%" stopColor="#000" stopOpacity="0.045" />
+              <stop offset="50%" stopColor="#000" stopOpacity="0.028" />
               <stop offset="100%" stopColor="#000" stopOpacity="0" />
             </linearGradient>
           </defs>
@@ -357,8 +357,8 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
             const y2 = height - padB + 6;
             return (
               <g key={`vgrid-${y}`}>
-                <rect x={xPos - 3.5} y={0} width={7} height={y2} fill="url(#vdiv-shadow)" />
-                <line x1={xPos} y1={0} x2={xPos} y2={y2} stroke="var(--col-divider)" strokeWidth="2" />
+                <rect x={xPos - 3} y={0} width={6} height={y2} fill="url(#vdiv-shadow)" />
+                <line x1={xPos} y1={0} x2={xPos} y2={y2} stroke="var(--col-divider)" strokeWidth="1.25" />
               </g>
             );
           })}

@@ -151,15 +151,15 @@ body {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 7px;
+  width: 6px;
   pointer-events: none;
   background: linear-gradient(
     to right,
     transparent 0,
-    rgb(0 0 0 / 0.045) 14%,
-    var(--col-divider) 29%,
-    var(--col-divider) 57%,
-    rgb(0 0 0 / 0.045) 72%,
+    rgb(0 0 0 / 0.028) 18%,
+    var(--col-divider) 42%,
+    var(--col-divider) 58%,
+    rgb(0 0 0 / 0.028) 82%,
     transparent 100%
   );
 }
@@ -207,15 +207,15 @@ body {
   top: 0;
   bottom: 0;
   right: 0;
-  width: 7px;
+  width: 6px;
   pointer-events: none;
   background: linear-gradient(
     to left,
     transparent 0,
-    rgb(0 0 0 / 0.045) 14%,
-    var(--col-divider) 29%,
-    var(--col-divider) 57%,
-    rgb(0 0 0 / 0.045) 72%,
+    rgb(0 0 0 / 0.028) 18%,
+    var(--col-divider) 42%,
+    var(--col-divider) 58%,
+    rgb(0 0 0 / 0.028) 82%,
     transparent 100%
   );
 }
@@ -277,15 +277,15 @@ body {
   top: 0;
   bottom: 0;
   right: 0;
-  width: 7px;
+  width: 6px;
   pointer-events: none;
   background: linear-gradient(
     to left,
     transparent 0,
-    rgb(0 0 0 / 0.045) 14%,
-    var(--col-divider) 29%,
-    var(--col-divider) 57%,
-    rgb(0 0 0 / 0.045) 72%,
+    rgb(0 0 0 / 0.028) 18%,
+    var(--col-divider) 42%,
+    var(--col-divider) 58%,
+    rgb(0 0 0 / 0.028) 82%,
     transparent 100%
   );
 }
