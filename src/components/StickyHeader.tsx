@@ -119,9 +119,13 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
       id="sticky-header-container"
       className="sticky top-0 z-50 bg-[var(--bg)] mb-4 transition-colors duration-200"
     >
+      {/* Gutter wrapper — mirrors <main>'s max width + horizontal padding so the
+          panel box below is inset from the viewport edges exactly like the
+          section cards, making its left/right borders visible. */}
+      <div className="max-w-[1850px] w-full mx-auto px-3 sm:px-5 lg:px-6">
       {/* Panel box that matches the section cards: left/right/bottom borders,
-          rounded bottom corners, no top edge. */}
-      <div className="max-w-[1850px] w-full mx-auto px-3 sm:px-5 lg:px-6 pt-2 pb-2 bg-[var(--panel)] border-x border-b border-[var(--border)] rounded-b-xl shadow-sm flex flex-col gap-1.5">
+          rounded bottom corners, no top edge, same p-4/p-5 inset. */}
+      <div className="px-4 sm:px-5 pt-2 pb-2 bg-[var(--panel)] border-x border-b border-[var(--border)] rounded-b-xl shadow-sm flex flex-col gap-1.5">
         {/* Category nav + planner toolbar share one line, separated. */}
         <div className="flex items-center justify-between flex-wrap gap-x-5 gap-y-1.5">
           <nav aria-label="Planner sections" className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
@@ -338,7 +342,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
         {/* Aligned Sticky Year Columns Bar */}
         <div
           id="sticky-year-bar-container"
-          className="border-t border-[var(--border)]/70 pt-1.5 mt-1 select-none px-4 sm:px-5"
+          className="border-t border-[var(--border)]/70 pt-1.5 mt-1 select-none"
         >
             <div
               id="sticky-year-bar-scroll"
@@ -421,6 +425,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
               </table>
             </div>
           </div>
+      </div>
       </div>
     </header>
   );
