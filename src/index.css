@@ -114,6 +114,18 @@ body {
   padding-right: 0.5rem;
 }
 
+/* Full-bleed rule cell (the underline under an expenses category title):
+   no padding so the divider spans edge to edge, and it opts out of the
+   frozen-first-column treatment (sticky + vertical ::after divider). Higher
+   specificity than the rules above so these actually win. */
+.category-table-scroll td.cat-rule-cell {
+  padding: 0;
+  position: static;
+}
+.category-table-scroll td.cat-rule-cell::after {
+  content: none;
+}
+
 /* Hard guarantee that no value ever spills across a column line: every cell
    clips its own overflow. Values use the compact k/M formatter so this
    almost never actually triggers. (A cell's own box-shadow is unaffected.) */

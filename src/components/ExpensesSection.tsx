@@ -59,25 +59,8 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   const isMonths = viewMode === 'months';
   const totalColLabel = isMonths ? 'Month Total' : 'Annual Total';
 
-  // ── Category accent system ──────────────────────────────────────────
-  // Each expense category is given a colour from a small curated palette,
-  // assigned by its position so neighbouring categories never share one.
-  // It appears only on the frozen label column — a left "spine" on every
-  // row plus a dot on the category header — so Utilities rows read as a
-  // distinct group from Subscriptions rows at a glance, and it keeps
-  // working while the year columns scroll. Deliberately kept off the
-  // amount columns so it never fights the heat map.
-  const CAT_PALETTE = [
-    '#3E6B89', // slate blue
-    '#9B5060', // dusty rose
-    '#5F7A4B', // sage
-    '#7A5C86', // muted violet
-    '#8A6D3B', // ochre
-    '#4E7C82', // teal
-    '#88643C', // warm brown
-    '#6E6E8A', // grey-violet
-  ];
-  const catColor = (idx: number): string => CAT_PALETTE[((idx % CAT_PALETTE.length) + CAT_PALETTE.length) % CAT_PALETTE.length];
+  // Column count for full-width rows (category rule + empty state).
+  const fullColSpan = (isEditMode ? 2 : 1) + years * 2 + (isEditMode ? 1 : 0);
 
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const headerScroll = document.getElementById('sticky-year-bar-scroll');
@@ -271,9 +254,8 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
               </thead>
 
 
-              {orderedCats.map((cat, catIdx) => {
+              {orderedCats.map((cat) => {
                 const isCollapsed = !!collapsedCats[cat];
-                const accent = catColor(catIdx);
                 const catRows = nonRetireRows.filter(r => (r.cat || 'Other') === cat);
                 const catMonthlyTotals = Array.from({ length: years }).map((_, y) => {
                   return catRows.reduce((sum, r) => sum + (r.monthly?.[y] ?? 0), 0);
@@ -282,29 +264,19 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                 return (
                   <React.Fragment key={cat}>
                     {/* Category Header Row with Quick-Add (+) Button */}
-                    <tbody className="border-t-2 border-[var(--col-divider)]">
+                    <tbody className="border-t border-[var(--border)]/60">
                       <tr
                         onClick={() => onToggleCategoryCollapse(cat)}
-                        className="group cursor-pointer select-none transition-colors"
-                        style={{ backgroundColor: `color-mix(in srgb, ${accent} 12%, var(--panel-alt))` }}
+                        className="group bg-[var(--panel-alt)] cursor-pointer select-none transition-colors"
                       >
                         {isEditMode && <td className="w-8"></td>}
-                        <td
-                          className="py-2 px-3"
-                          style={{
-                            boxShadow: `inset 4px 0 0 0 ${accent}, inset 0 -2px 0 0 color-mix(in srgb, ${accent} 45%, transparent)`,
-                          }}
-                        >
+                        <td className="py-2 px-3">
                           <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)] truncate">
                             {isCollapsed ? (
                               <ChevronRight className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
                             ) : (
                               <ChevronDown className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
                             )}
-                            <span
-                              className="w-2 h-2 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: accent }}
-                            />
                             {isEditMode ? (
                               <input
                                 type="text"
@@ -348,6 +320,21 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                         })}
                         {isEditMode && <td className="w-10"></td>}
                       </tr>
+
+                      {/* Underline under the category title — a crisp rule with a
+                          soft downward fade, echoing the frozen column's vertical
+                          divider. Spans the full table width. */}
+                      <tr aria-hidden="true">
+                        <td colSpan={fullColSpan} className="cat-rule-cell">
+                          <div
+                            className="h-1.5"
+                            style={{
+                              background:
+                                'linear-gradient(to bottom, var(--col-divider) 0 2px, rgb(0 0 0 / 0.08) 2px, transparent)',
+                            }}
+                          />
+                        </td>
+                      </tr>
                     </tbody>
 
                     {/* Scoped Drag-and-Drop Droppable for this category only */}
@@ -358,9 +345,8 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                             {catRows.length === 0 ? (
                               <tr className="border-b border-[var(--border)]/40">
                                 <td
-                                  colSpan={(isEditMode ? 2 : 1) + years * 2 + (isEditMode ? 1 : 0)}
+                                  colSpan={fullColSpan}
                                   className="py-3 px-3 text-center text-xs text-[var(--muted2)] italic bg-[var(--panel)]"
-                                  style={{ boxShadow: `inset 3px 0 0 0 ${accent}` }}
                                 >
                                   No expense items in {cat}. Click &quot;+&quot; above to add an item.
                                 </td>
@@ -389,10 +375,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                             </td>
                                           )}
 
-                                          <td
-                                            className="py-1.5 pl-5 pr-2.5"
-                                            style={{ boxShadow: `inset 3px 0 0 0 ${accent}` }}
-                                          >
+                                          <td className="py-1.5 px-2.5">
                                             <input
                                               type="text"
                                               value={row.name}
