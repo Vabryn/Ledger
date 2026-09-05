@@ -14,6 +14,12 @@
   --accent-soft: #3E5279;
   --danger: #8C3B33;
 
+  /* Wrapper outlines carry an accent tint (navy in light, blue in dark, since
+     they resolve --accent per theme): stronger on the section cards, fainter
+     on the inner sub-cards. */
+  --card-line: color-mix(in srgb, var(--accent) 42%, var(--border));
+  --sub-line:  color-mix(in srgb, var(--accent) 20%, var(--border));
+
   /* Vertical separators between projection year columns — a touch firmer
      than --border so the grid reads clearly across a wide table. */
   --col-divider: #C3BEB6;
@@ -283,7 +289,7 @@ body {
    it reads as a raised surface. */
 .sub-card {
   background-color: var(--row-alt);
-  border: 1px solid var(--border);
+  border: 1px solid var(--sub-line);
   border-radius: 0.75rem;
   overflow: hidden;
   /* A faint, even shadow all the way around — just enough to lift the panel
@@ -426,13 +432,13 @@ input[type=number] {
 
 /* Subtle illuminated category card focus */
 .section-glow-active {
-  border-color: var(--border) !important;
+  border-color: var(--card-line) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dark .section-glow-active {
-  border-color: var(--border) !important;
+  border-color: var(--card-line) !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 

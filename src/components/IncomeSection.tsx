@@ -65,7 +65,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
       className={`bg-[var(--panel)] border rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 ${
         isHighlighted
           ? 'section-glow-active'
-          : 'border-[var(--border)] shadow-sm'
+          : 'border-[var(--card-line)] shadow-sm'
       }`}
     >
       <summary className="cursor-pointer list-none flex items-center justify-between font-serif-custom text-base font-semibold text-[var(--text)] select-none">
