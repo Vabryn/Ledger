@@ -269,10 +269,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                 value={cat}
                                 onClick={e => e.stopPropagation()}
                                 onChange={e => onRenameCategory(cat, e.target.value)}
-                                className="bg-[var(--panel)] border border-[var(--border)] px-2 py-0.5 rounded-md text-xs font-semibold text-[var(--text)] focus:outline-none"
+                                className="bg-[var(--panel)] border border-[var(--border)] px-2 py-0.5 rounded-md text-xs font-bold text-[var(--text)] focus:outline-none"
                               />
                             ) : (
-                              <span className="truncate uppercase tracking-wide text-[11px]">{cat}</span>
+                              <span className="truncate uppercase tracking-wide text-[11px] font-bold">{cat}</span>
                             )}
 
                             {/* Quick-Add (+) Button inside Category Header */}
@@ -282,7 +282,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                 e.stopPropagation();
                                 onAddExpense(cat);
                               }}
-                              className="flex items-center justify-center w-5 h-5 ml-1 rounded text-[var(--muted2)] hover:text-[var(--accent)] hover:bg-[var(--panel)] opacity-0 group-hover:opacity-100 focus:opacity-100 transition cursor-pointer flex-shrink-0"
+                              className="hidden group-hover:flex focus:flex items-center justify-center w-5 h-5 ml-1 rounded text-[var(--muted2)] hover:text-[var(--accent)] hover:bg-[var(--panel)] transition cursor-pointer flex-shrink-0"
                               title={`Add item to ${cat}`}
                             >
                               <Plus className="w-3.5 h-3.5" />
@@ -295,10 +295,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                           const aTotal = isMonths ? mTotal : mTotal * 12;
                           return (
                             <React.Fragment key={y}>
-                              <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-[var(--col-divider)] text-right font-mono text-[11px] font-semibold text-[var(--text)]">
+                              <td className="py-1.5 pl-2.5 pr-1 border-l-2 border-[var(--col-divider)] text-right font-mono text-[11px] font-medium text-[var(--muted)]">
                                 {mTotal > 0 ? fmtCompact$(mTotal) : '—'}
                               </td>
-                              <td className="py-1.5 pl-1 pr-2.5 text-right font-mono text-[11px] font-semibold text-[var(--muted)]">
+                              <td className="py-1.5 pl-1 pr-2.5 text-right font-mono text-[11px] font-medium text-[var(--muted2)]">
                                 {aTotal > 0 ? fmtCompact$(aTotal) : '—'}
                               </td>
                             </React.Fragment>
@@ -362,7 +362,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                               value={row.name}
                                               onChange={e => onUpdateExpense(ri, 'name', e.target.value)}
                                               placeholder="Expense Item"
-                                              className="ledger-text-input text-xs font-semibold text-[var(--text)]"
+                                              className="ledger-text-input text-xs font-medium text-[var(--text)]"
                                             />
                                           </td>
 
@@ -455,7 +455,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
               })}
 
               <tfoot>
-                <tr className="bg-[var(--panel-alt)] font-bold border-t-2 border-[var(--border)] font-mono-custom">
+                <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom">
                   {isEditMode && <td></td>}
                   <td className="py-2.5 px-3 font-sans-custom text-xs text-[var(--text)] font-bold uppercase tracking-wider">
                     Total Living Expenses
@@ -465,10 +465,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                     const displayTotal = isMonths ? annualCol / 12 : annualCol;
                     return (
                       <React.Fragment key={y}>
-                        <td className="py-2 pl-2.5 pr-1 text-right text-[var(--muted)] text-xs font-semibold border-l-2 border-[var(--col-divider)]">
+                        <td className="py-2 pl-2.5 pr-1 text-right text-[var(--muted2)] text-[11px] font-medium border-l-2 border-[var(--col-divider)]">
                           {fmtCompact$(annualCol / 12)}
                         </td>
-                        <td className="py-2 pl-1 pr-2.5 text-right text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-bold">
+                        <td className="py-2 pl-1 pr-2.5 text-right text-sm sm:text-base text-emerald-700 dark:text-emerald-400 font-extrabold">
                           {fmtCompact$(displayTotal)}
                         </td>
                       </React.Fragment>

@@ -233,13 +233,13 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 </tr>
 
                 {/* Total Contributed */}
-                <tr className="bg-[var(--panel-alt)] font-bold border-t border-[var(--border)]/60 font-mono-custom">
+                <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom">
                   {isEditMode && <td></td>}
-                  <td className="py-2 px-3 font-sans-custom text-[var(--text)]">
+                  <td className="py-2.5 px-3 font-sans-custom text-xs font-bold uppercase tracking-wider text-[var(--text)]">
                     Total Retirement Contributed
                   </td>
                   {Array.from({ length: years }).map((_, y) => (
-                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--text)] font-bold border-l-2 border-[var(--col-divider)]">
+                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-sm text-[var(--text)] font-extrabold border-l-2 border-[var(--col-divider)]">
                       {fmtCompact$(calc.retireActual[y] ?? 0)}
                     </td>
                   ))}
@@ -345,11 +345,11 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 )}
               </tbody>
               <tfoot>
-                <tr className="bg-[var(--panel-alt)] font-bold border-t border-[var(--border)]/60 font-mono-custom">
+                <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom">
                   {isEditMode && <td></td>}
-                  <td className="py-2 px-3 font-sans-custom text-[var(--text)]">Total Custom Savings</td>
+                  <td className="py-2.5 px-3 font-sans-custom text-xs font-bold uppercase tracking-wider text-[var(--text)]">Total Custom Savings</td>
                   {Array.from({ length: years }).map((_, y) => (
-                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--accent)] font-bold border-l-2 border-[var(--col-divider)]">
+                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-sm text-[var(--accent)] font-extrabold border-l-2 border-[var(--col-divider)]">
                       {fmtCompact$(calc.customSavingsTotal[y] ?? 0)}
                     </td>
                   ))}

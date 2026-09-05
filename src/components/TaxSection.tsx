@@ -258,13 +258,13 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
               </tr>
 
               {/* Total Tax */}
-              <tr className="bg-[var(--panel-alt)] font-bold border-t border-[var(--border)]/60 font-mono-custom">
+              <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom">
                 {isEditMode && <td></td>}
-                <td className="py-2 px-3 font-sans-custom text-[var(--text)]">Total Tax Liability</td>
+                <td className="py-2.5 px-3 font-sans-custom text-xs font-bold uppercase tracking-wider text-[var(--text)]">Total Tax Liability</td>
                 {Array.from({ length: years }).map((_, y) => {
                   const totalT = (calc.fed[y] ?? 0) + (calc.stTax[y] ?? 0) + (calc.fica[y] ?? 0);
                   return (
-                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-[var(--neg)] font-bold border-l-2 border-[var(--col-divider)]">
+                    <td key={y} colSpan={2} className="py-2 px-2 text-center text-sm text-[var(--neg)] font-extrabold border-l-2 border-[var(--col-divider)]">
                       {fmtCompact$(totalT)}
                     </td>
                   );
