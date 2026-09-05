@@ -219,7 +219,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
               <thead>
                 <tr
                   id="expenses-table-desc"
-                  className="border-b-2 border-[var(--col-divider)] bg-[var(--panel-alt)] text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
+                  className="bg-[var(--panel-alt)] text-[10px] text-[var(--muted2)] uppercase font-semibold select-none"
                 >
                   {isEditMode && <th className="w-8"></th>}
                   <th className="py-2 px-3 text-left font-sans-custom tracking-wider">
@@ -239,6 +239,14 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                 </tr>
               </thead>
 
+              {/* Gap between the column-label strip and the first category panel. */}
+              <tbody aria-hidden="true">
+                <tr>
+                  <td colSpan={fullColSpan} className="cat-rule-cell">
+                    <div className="h-2" />
+                  </td>
+                </tr>
+              </tbody>
 
               {orderedCats.map((cat) => {
                 const isCollapsed = !!collapsedCats[cat];
@@ -249,8 +257,8 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
 
                 return (
                   <React.Fragment key={cat}>
-                    {/* Category Header Row with Quick-Add (+) Button */}
-                    <tbody>
+                    {/* Category panel — header row is the "lid". */}
+                    <tbody className="border-t border-[var(--border)]/70">
                       <tr
                         onClick={() => onToggleCategoryCollapse(cat)}
                         className="group bg-[var(--panel-alt)] cursor-pointer select-none transition-colors"
@@ -348,7 +356,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                         <tr
                                           ref={dragProvided.innerRef}
                                           {...dragProvided.draggableProps}
-                                          className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors"
+                                          className="bg-[var(--panel)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors"
                                         >
                                           {isEditMode && (
                                             <td className="py-1.5 px-1 text-center" {...dragProvided.dragHandleProps}>
@@ -433,18 +441,16 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                       </Droppable>
                     )}
 
-                    {/* Closing rule — the mirror of the title underline: a faint
-                        line with an upward fade that caps the bottom of this
-                        category and sits flush against the top of the next, so
-                        the group is bounded on both sides. */}
+                    {/* Panel foot: a soft drop shadow under the category panel
+                        fading into the gap before the next one. */}
                     <tbody>
                       <tr aria-hidden="true">
                         <td colSpan={fullColSpan} className="cat-rule-cell">
                           <div
-                            className="h-1.5"
+                            className="h-3"
                             style={{
                               background:
-                                'linear-gradient(to top, var(--col-divider) 0 1px, rgb(0 0 0 / 0.05) 1px, transparent)',
+                                'linear-gradient(to bottom, rgb(0 0 0 / 0.06), rgb(0 0 0 / 0.015) 45%, transparent 75%)',
                             }}
                           />
                         </td>
