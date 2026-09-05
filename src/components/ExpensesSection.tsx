@@ -114,10 +114,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   return (
     <details
       open
-      className={`bg-[var(--panel)] border rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 ${
+      className={`bg-[var(--panel)] border-[1.5px] rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 ${
         isHighlighted
           ? 'section-glow-active'
-          : 'border-[var(--card-line)] shadow-sm'
+          : 'border-[var(--card-line)] shadow'
       }`}
     >
       <summary className="cursor-pointer list-none flex items-center justify-between font-serif-custom text-base font-semibold text-[var(--text)] select-none">
