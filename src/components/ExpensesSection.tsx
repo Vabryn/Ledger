@@ -259,37 +259,41 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                   <React.Fragment key={cat}>
                     {/* Category panel — header row is the "lid". */}
                     <tbody className="border-t border-[var(--border)]/70">
-                      <tr
-                        onClick={() => onToggleCategoryCollapse(cat)}
-                        className="group bg-[var(--panel-alt)] cursor-pointer select-none transition-colors"
-                      >
+                      <tr className="group bg-[var(--panel-alt)] select-none transition-colors">
                         {isEditMode && <td className="w-8"></td>}
                         <td className="py-2 px-3">
-                          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)] truncate">
-                            {isCollapsed ? (
-                              <ChevronRight className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
-                            ) : (
-                              <ChevronDown className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
-                            )}
-                            {isEditMode ? (
+                          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)]">
+                            {/* Collapse target: only the chevron + title (everything left
+                                of the + button), so clicking a subtotal never folds it. */}
+                            <button
+                              type="button"
+                              onClick={() => onToggleCategoryCollapse(cat)}
+                              className="flex items-center gap-2 min-w-0 cursor-pointer text-left"
+                              title={isCollapsed ? `Expand ${cat}` : `Collapse ${cat}`}
+                            >
+                              {isCollapsed ? (
+                                <ChevronRight className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5 text-[var(--muted2)] flex-shrink-0" />
+                              )}
+                              {!isEditMode && (
+                                <span className="truncate uppercase tracking-wide text-[11px] font-bold">{cat}</span>
+                              )}
+                            </button>
+
+                            {isEditMode && (
                               <input
                                 type="text"
                                 value={cat}
-                                onClick={e => e.stopPropagation()}
                                 onChange={e => onRenameCategory(cat, e.target.value)}
-                                className="bg-[var(--panel)] border border-[var(--border)] px-2 py-0.5 rounded-md text-xs font-bold text-[var(--text)] focus:outline-none"
+                                className="min-w-0 bg-[var(--panel)] border border-[var(--border)] px-2 py-0.5 rounded-md text-xs font-bold text-[var(--text)] focus:outline-none"
                               />
-                            ) : (
-                              <span className="truncate uppercase tracking-wide text-[11px] font-bold">{cat}</span>
                             )}
 
                             {/* Quick-Add (+) Button inside Category Header */}
                             <button
                               type="button"
-                              onClick={e => {
-                                e.stopPropagation();
-                                onAddExpense(cat);
-                              }}
+                              onClick={() => onAddExpense(cat)}
                               className="hidden group-hover:flex focus:flex items-center justify-center w-3.5 h-3.5 ml-1 rounded-sm text-[var(--muted2)] hover:text-[var(--accent)] transition cursor-pointer flex-shrink-0"
                               title={`Add item to ${cat}`}
                             >
