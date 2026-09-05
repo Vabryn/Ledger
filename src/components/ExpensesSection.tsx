@@ -290,7 +290,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                                 e.stopPropagation();
                                 onAddExpense(cat);
                               }}
-                              className="hidden group-hover:flex focus:flex items-center justify-center w-5 h-5 ml-1 rounded text-[var(--muted2)] hover:text-[var(--accent)] hover:bg-[var(--panel)] transition cursor-pointer flex-shrink-0"
+                              className="hidden group-hover:flex focus:flex items-center justify-center w-3.5 h-3.5 ml-1 rounded-sm text-[var(--muted2)] hover:text-[var(--accent)] transition cursor-pointer flex-shrink-0"
                               title={`Add item to ${cat}`}
                             >
                               <Plus className="w-3.5 h-3.5" />
