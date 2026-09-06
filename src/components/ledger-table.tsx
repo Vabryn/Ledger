@@ -76,6 +76,10 @@ let resetTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function syncScrollToYearBar(e: React.UIEvent<HTMLElement>): void {
   const current = e.currentTarget;
+  if (current.scrollLeft < 0) {
+    current.scrollLeft = 0;
+  }
+
   if (activeScroller && activeScroller !== current) {
     return;
   }
@@ -83,9 +87,17 @@ export function syncScrollToYearBar(e: React.UIEvent<HTMLElement>): void {
   if (resetTimer) clearTimeout(resetTimer);
   resetTimer = setTimeout(() => {
     activeScroller = null;
-  }, 120);
+    const bar = document.getElementById('sticky-year-bar-scroll');
+    const targetX = bar ? Math.max(0, bar.scrollLeft) : 0;
+    if (targetX < 1) {
+      if (bar && bar.scrollLeft !== 0) bar.scrollLeft = 0;
+      document.querySelectorAll<HTMLElement>('.category-table-scroll').forEach(tbl => {
+        if (tbl.scrollLeft !== 0) tbl.scrollLeft = 0;
+      });
+    }
+  }, 100);
 
-  const scrollX = current.scrollLeft;
+  const scrollX = Math.max(0, current.scrollLeft);
 
   // Sync the sticky year bar if it wasn't the source
   const bar = document.getElementById('sticky-year-bar-scroll');

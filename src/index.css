@@ -87,13 +87,13 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   -webkit-text-size-adjust: 100%;
-  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
-/* Contain horizontal scrolling to prevent triggering browser back/forward swipe gestures */
+/* Disable horizontal rubber-band bounce to prevent revealing empty space past limits */
 .category-table-scroll,
 #sticky-year-bar-scroll {
-  overscroll-behavior-x: contain;
+  overscroll-behavior-x: none;
 }
 
 /* Hide scrollbar utility for clean category tabs while retaining full touch swipe */
