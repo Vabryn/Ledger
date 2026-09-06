@@ -313,7 +313,7 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                 {isOtherCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </span>
               <h3 className="font-serif-custom text-xs font-semibold text-[var(--muted2)] uppercase tracking-wider group-hover:text-[var(--text)] transition-colors">
-                Other Income (Side Hustles, Dividends, Bonuses)
+                Other Income
               </h3>
               {!showOtherIncome && (
                 <span className="text-[10px] text-[var(--muted2)] italic">(Hidden)</span>

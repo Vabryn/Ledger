@@ -553,7 +553,7 @@ function runAllTests() {
   const sample = getDefaultSampleState();
   assert(sample.years === 6, 'Sample state has 6 projection years');
   assert(sample.workers.length >= 1, 'Sample state contains primary income earner');
-  assert(sample.other.length >= 2, 'Sample state contains additional income streams');
+  assert(sample.other.length >= 1, 'Sample state contains an additional income stream');
   assert(sample.col.length >= 15, 'Sample state contains realistic expense rows');
   assert(sample.catOrder.length >= 5, 'Sample state has rich category taxonomy');
   assert(Object.keys(sample.customSavings).length >= 1, 'Sample state includes savings goals');

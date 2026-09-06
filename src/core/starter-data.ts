@@ -121,22 +121,10 @@ export function getDefaultSampleState(): PlannerState {
     ],
     other: [
       {
-        id: 'o-1',
-        name: 'Side Hustle',
-        frequency: 'Monthly',
-        amount: [100, 100, 125, 125, 150, 166.67], // $1,200 - $2,000 / yr
-      },
-      {
         id: 'o-2',
         name: 'Stock Dividends',
         frequency: 'Annually',
         amount: [150, 150, 150, 150, 150, 150],
-      },
-      {
-        id: 'o-3',
-        name: 'Consulting Bonus',
-        frequency: 'Annually',
-        amount: [0, 0, 5000, 0, 0, 2500],
       },
     ],
     col: [
@@ -152,13 +140,10 @@ export function getDefaultSampleState(): PlannerState {
       { id: 'c-10', name: 'Trash Pickup', cat: 'Utilities', monthly: [30, 30, 30, 30, 30, 30] },
       { id: 'c-11', name: 'Mobile Plan', cat: 'Utilities', monthly: [85, 85, 85, 85, 85, 85] },
       { id: 'c-12', name: 'Internet Fibre', cat: 'Utilities', monthly: [79, 79, 79, 79, 79, 79] },
-      { id: 'c-sub-1', name: 'Streaming Pack', cat: 'Subscriptions', monthly: [45, 45, 45, 45, 45, 45] },
       { id: 'c-sub-2', name: 'Software Licenses', cat: 'Subscriptions', monthly: [65, 65, 65, 120, 120, 120] },
       { id: 'c-13', name: 'Health Insurance', cat: 'Health & Wellness', monthly: [310, 310, 310, 310, 310, 310] },
       { id: 'c-14', name: 'Gym Membership', cat: 'Health & Wellness', monthly: [80, 80, 80, 80, 80, 80] },
       { id: 'c-15', name: 'Credit Card A', cat: 'Additional Payments', monthly: [200, 200, 200, 200, 0, 0] },
-      { id: 'c-16', name: 'Credit Card B', cat: 'Additional Payments', monthly: [150, 150, 150, 0, 0, 0] },
-      { id: 'c-17', name: 'Laptop Loan', cat: 'Additional Payments', monthly: [85, 85, 85, 85, 85, 0] },
       { id: 'c-20', name: 'Server Hosting', cat: 'Business Expenses', monthly: [40, 40, 40, 40, 40, 40] },
       { id: 'c-22', name: 'Pet Care', cat: 'Lifestyle', monthly: [120, 150, 120, 120, 220, 120] },
       { id: 'c-24', name: 'Concerts / Events', cat: 'Entertainment', monthly: [0, 120, 250, 0, 85, 150] },
