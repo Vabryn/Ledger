@@ -233,7 +233,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 </tr>
 
                 {/* Total Contributed */}
-                <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom">
+                <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom bg-[var(--panel)]">
                   {isEditMode && <td></td>}
                   <td className="py-2.5 px-3 font-sans-custom text-xs font-bold uppercase tracking-wider text-[var(--text)]">
                     Total Retirement Contributed
@@ -345,7 +345,7 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                 )}
               </tbody>
               <tfoot>
-                <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom">
+                <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom bg-[var(--panel)]">
                   {isEditMode && <td></td>}
                   <td className="py-2.5 px-3 font-sans-custom text-xs font-bold uppercase tracking-wider text-[var(--text)]">Total Custom Savings</td>
                   {Array.from({ length: years }).map((_, y) => (

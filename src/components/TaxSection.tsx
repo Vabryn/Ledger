@@ -258,7 +258,7 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
               </tr>
 
               {/* Total Tax */}
-              <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom">
+              <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom bg-[var(--panel)]">
                 {isEditMode && <td></td>}
                 <td className="py-2.5 px-3 font-sans-custom text-xs font-bold uppercase tracking-wider text-[var(--text)]">Total Tax Liability</td>
                 {Array.from({ length: years }).map((_, y) => {

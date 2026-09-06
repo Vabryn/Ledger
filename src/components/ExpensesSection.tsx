@@ -465,7 +465,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
               })}
 
               <tfoot>
-                <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom">
+                <tr className="border-t-2 border-[var(--text)]/25 font-mono-custom bg-[var(--panel)]">
                   {isEditMode && <td></td>}
                   <td className="py-2.5 px-3 font-sans-custom text-xs text-[var(--text)] font-bold uppercase tracking-wider">
                     Total Living Expenses
