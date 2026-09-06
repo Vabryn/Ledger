@@ -471,7 +471,7 @@ export const GraphDashboard: React.FC<GraphDashboardProps> = ({
                 width={colW}
                 height={height}
                 fill="transparent"
-                className="cursor-crosshair touch-none"
+                className="cursor-crosshair touch-pan-x touch-pan-y"
                 onMouseEnter={e => handleMouseMove(e, y)}
                 onMouseMove={e => handleMouseMove(e, y)}
                 onMouseLeave={() => setHoverYear(null)}
