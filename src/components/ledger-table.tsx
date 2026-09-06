@@ -66,13 +66,39 @@ export function ledgerTableClass(isEditMode: boolean): string {
 }
 
 /**
- * onScroll handler that keeps a section table (or the chart) in horizontal
- * lockstep with the sticky year bar. The year bar's own handler (which pushes
- * the other way, to every table at once) lives in StickyHeader.
+ * Universal, loop-free horizontal scroll synchronization.
+ *
+ * Tracks the actively scrolling element so secondary programmatic scroll events
+ * never trigger echo updates or overwrite the element currently receiving touch gestures.
  */
+let activeScroller: HTMLElement | null = null;
+let resetTimer: ReturnType<typeof setTimeout> | null = null;
+
 export function syncScrollToYearBar(e: React.UIEvent<HTMLElement>): void {
-  const bar = document.getElementById('sticky-year-bar-scroll');
-  if (bar && bar.scrollLeft !== e.currentTarget.scrollLeft) {
-    bar.scrollLeft = e.currentTarget.scrollLeft;
+  const current = e.currentTarget;
+  if (activeScroller && activeScroller !== current) {
+    return;
   }
+  activeScroller = current;
+  if (resetTimer) clearTimeout(resetTimer);
+  resetTimer = setTimeout(() => {
+    activeScroller = null;
+  }, 120);
+
+  const scrollX = current.scrollLeft;
+
+  // Sync the sticky year bar if it wasn't the source
+  const bar = document.getElementById('sticky-year-bar-scroll');
+  if (bar && bar !== current && Math.abs(bar.scrollLeft - scrollX) > 0.5) {
+    bar.scrollLeft = scrollX;
+  }
+
+  // Sync all category tables that weren't the source
+  const tables = document.querySelectorAll<HTMLElement>('.category-table-scroll');
+  tables.forEach(tbl => {
+    if (tbl !== current && Math.abs(tbl.scrollLeft - scrollX) > 0.5) {
+      tbl.scrollLeft = scrollX;
+    }
+  });
 }
+

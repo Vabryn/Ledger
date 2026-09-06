@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ExpenseItem, CalculationResult, ViewMode, fmtCompact$, num } from '@/core';
 import { ReceiptText, Plus, Trash2, ArrowUp, ArrowDown, FolderPlus, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
 import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
@@ -63,19 +63,48 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   // Column count for full-width rows (category rule + empty state).
   const fullColSpan = (isEditMode ? 2 : 1) + years * 2 + (isEditMode ? 1 : 0);
 
+  // Local state for sliders so touch-dragging is immediate (120fps) and doesn't freeze the UI
+  const [localIntensity, setLocalIntensity] = useState(colIntensity);
+  const [localContrast, setLocalContrast] = useState(colContrast);
+
+  useEffect(() => {
+    setLocalIntensity(colIntensity);
+  }, [colIntensity]);
+
+  useEffect(() => {
+    setLocalContrast(colContrast);
+  }, [colContrast]);
+
+  const intensityRafRef = useRef<number | null>(null);
+  const handleIntensityChange = (val: number) => {
+    setLocalIntensity(val);
+    if (intensityRafRef.current) cancelAnimationFrame(intensityRafRef.current);
+    intensityRafRef.current = requestAnimationFrame(() => {
+      onChangeIntensity(val);
+    });
+  };
+
+  const contrastRafRef = useRef<number | null>(null);
+  const handleContrastChange = (val: number) => {
+    setLocalContrast(val);
+    if (contrastRafRef.current) cancelAnimationFrame(contrastRafRef.current);
+    contrastRafRef.current = requestAnimationFrame(() => {
+      onChangeContrast(val);
+    });
+  };
 
   // Compute heat map color
   const hex = (colHue || '#8C3B33').replace('#', '');
   const hr = parseInt(hex.slice(0, 2), 16) || 140;
   const hg = parseInt(hex.slice(2, 4), 16) || 59;
   const hb = parseInt(hex.slice(4, 6), 16) || 51;
-  const exp = Math.pow(4, (50 - colContrast) / 50);
+  const exp = Math.pow(4, (50 - localContrast) / 50);
 
   const getHeatStyle = (periodVal: number): React.CSSProperties => {
-    if (periodVal <= 0 || colIntensity === 0) return {};
+    if (periodVal <= 0 || localIntensity === 0) return {};
     const maxCost = Math.max(1, calc.maxGlobalCost || 1);
     const ratio = Math.min(1, Math.max(0, periodVal / maxCost));
-    let t = Math.pow(ratio, exp) * (colIntensity / 100);
+    let t = Math.pow(ratio, exp) * (localIntensity / 100);
     if (t > 0 && t < 0.04) t = 0.04;
     return {
       backgroundColor: `rgba(${hr}, ${hg}, ${hb}, ${t.toFixed(3)})`,
@@ -174,8 +203,8 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                   type="range"
                   min="0"
                   max="100"
-                  value={colIntensity}
-                  onChange={e => onChangeIntensity(parseInt(e.target.value, 10))}
+                  value={localIntensity}
+                  onChange={e => handleIntensityChange(parseInt(e.target.value, 10))}
                   className="heat-range"
                   title="Heat map intensity"
                 />
@@ -187,8 +216,8 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                   type="range"
                   min="0"
                   max="100"
-                  value={colContrast}
-                  onChange={e => onChangeContrast(parseInt(e.target.value, 10))}
+                  value={localContrast}
+                  onChange={e => handleContrastChange(parseInt(e.target.value, 10))}
                   className="heat-range"
                   title="Heat map contrast"
                 />

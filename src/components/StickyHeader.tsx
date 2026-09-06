@@ -18,7 +18,7 @@ import {
   AlertTriangle,
   Calendar,
 } from 'lucide-react';
-import { YearColgroup, ledgerTableClass, tableMinWidth } from './ledger-table';
+import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
 
 export type NavCategory = 'all' | 'income' | 'expenses' | 'taxes' | 'retire' | 'summary';
 
@@ -57,21 +57,8 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const editDropdownRef = useRef<HTMLDivElement | null>(null);
-  const isSyncingScrollRef = useRef(false);
-
   const handleHeaderScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (isSyncingScrollRef.current) return;
-    isSyncingScrollRef.current = true;
-    const target = e.currentTarget;
-    const tables = document.querySelectorAll<HTMLDivElement>('.category-table-scroll');
-    tables.forEach(tbl => {
-      if (tbl !== target && tbl.scrollLeft !== target.scrollLeft) {
-        tbl.scrollLeft = target.scrollLeft;
-      }
-    });
-    requestAnimationFrame(() => {
-      isSyncingScrollRef.current = false;
-    });
+    syncScrollToYearBar(e);
   };
 
   const currentCat = (activeCategory === 'all' ? (effectiveCategory || 'income') : activeCategory);

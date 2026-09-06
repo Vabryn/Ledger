@@ -90,9 +90,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Smooth momentum scrolling across iOS and Android */
-.overflow-x-auto, [class*="overflow-x-"] {
-  -webkit-overflow-scrolling: touch;
+/* Contain horizontal scrolling to prevent triggering browser back/forward swipe gestures */
+.category-table-scroll,
+#sticky-year-bar-scroll {
+  overscroll-behavior-x: contain;
 }
 
 /* Hide scrollbar utility for clean category tabs while retaining full touch swipe */
@@ -444,31 +445,32 @@ input[type=number] {
 .heat-range {
   -webkit-appearance: none;
   appearance: none;
-  width: 54px;
-  height: 4px;
+  width: 64px;
+  height: 6px;
   background: var(--border);
-  border-radius: 2px;
+  border-radius: 3px;
   outline: none;
-  cursor: ew-resize;
+  cursor: pointer;
+  touch-action: none;
 }
 .heat-range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid var(--panel);
-  cursor: ew-resize;
-  box-shadow: 0 1px 3px rgba(32,32,28,.3);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(32,32,28,.35);
 }
 .heat-range::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid var(--panel);
-  cursor: ew-resize;
-  box-shadow: 0 1px 3px rgba(32,32,28,.3);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(32,32,28,.35);
 }
 
 /* Subtle illuminated category card focus */
