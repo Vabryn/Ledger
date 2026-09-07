@@ -1,7 +1,7 @@
 import React from 'react';
 import { WorkerItem, IncomeItem, ViewMode, IncomeFrequency, PayoutFrequency, fmtCompact$, num, getAnnualIncome, toPeriodValue } from '@/core';
-import { TrendingUp, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
-import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
+import { TrendingUp, Plus, Trash2, Eye, EyeOff, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
+import { SectionShell, ScrollBox, ProjectionTable } from './ledger-table';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface IncomeSectionProps {
@@ -60,41 +60,13 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
   };
 
   return (
-    <details
-      open
-      className={`bg-[var(--panel)] border-[1.5px] rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 ${
-        isHighlighted
-          ? 'section-glow-active'
-          : 'border-[var(--card-line)] shadow'
-      }`}
+    <SectionShell
+      title="Income"
+      icon={TrendingUp}
+      isEditMode={isEditMode}
+      onMoveSection={onMoveSection}
+      isHighlighted={isHighlighted}
     >
-      <summary className="cursor-pointer list-none flex items-center justify-between font-serif-custom text-base font-semibold text-[var(--text)] select-none">
-        <div className="flex items-center gap-2">
-          <span className="text-xs transition-transform duration-150 inline-block text-[var(--muted2)]">▼</span>
-          <TrendingUp className="w-4 h-4 text-[var(--muted2)]" />
-          <span>Income</span>
-        </div>
-        {isEditMode && onMoveSection && (
-          <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-            <button
-              onClick={() => onMoveSection('up')}
-              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
-              title="Move section up"
-            >
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onMoveSection('down')}
-              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
-              title="Move section down"
-            >
-              <ArrowDown className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-      </summary>
-
-      <div className="mt-4 space-y-6">
         {/* Wages / Income Earners Table */}
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -105,11 +77,9 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
             </div>
           </div>
 
-          <div className="sub-card">
-          <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
+          <ScrollBox>
             <DragDropContext onDragEnd={handleWorkerDragEnd}>
-              <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
-                <YearColgroup years={years} isEditMode={isEditMode} />
+              <ProjectionTable years={years} isEditMode={isEditMode}>
 
                 <thead>
                   <tr
@@ -286,10 +256,9 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                     </tbody>
                   )}
                 </Droppable>
-              </table>
+              </ProjectionTable>
             </DragDropContext>
-          </div>
-          </div>
+          </ScrollBox>
 
           <button
             onClick={onAddWorker}
@@ -344,11 +313,9 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
             </div>
           ) : !isOtherCollapsed ? (
             <div>
-              <div className="sub-card">
-              <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
+              <ScrollBox>
                 <DragDropContext onDragEnd={handleOtherDragEnd}>
-                  <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
-                    <YearColgroup years={years} isEditMode={isEditMode} />
+                  <ProjectionTable years={years} isEditMode={isEditMode}>
 
                     <thead>
                       <tr
@@ -482,10 +449,9 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                         </tbody>
                       )}
                     </Droppable>
-                      </table>
+                      </ProjectionTable>
                     </DragDropContext>
-                  </div>
-                  </div>
+                  </ScrollBox>
 
                   <button
                     onClick={onAddOther}
@@ -497,7 +463,6 @@ export const IncomeSection: React.FC<IncomeSectionProps> = ({
                 </div>
               ) : null}
             </div>
-          </div>
-        </details>
+    </SectionShell>
       );
     };
