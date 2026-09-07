@@ -419,6 +419,19 @@ input[type=number] {
   box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
 }
 
+/* iOS Safari zooms the page whenever a control under 16px is focused. The
+   projection cells render at text-xs; force 16px on touch devices only so
+   tapping a cell no longer yanks the viewport. Desktop is unaffected. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea,
+  .ledger-input,
+  .ledger-text-input {
+    font-size: 16px !important;
+  }
+}
+
 /* Subtle Total Cell Display - Clean financial typography without loud fills */
 .total-cell-text {
   font-family: var(--font-mono);
