@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CalculationResult, CustomSavingsFund, ViewMode, fmt$, fmtCompact$, num } from '@/core';
-import { ShieldCheck, ArrowUp, ArrowDown, Plus, Trash2, AlertCircle } from 'lucide-react';
-import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
+import { ShieldCheck, Plus, Trash2, AlertCircle } from 'lucide-react';
+import { SectionShell, ScrollBox, ProjectionTable } from './ledger-table';
 
 interface RetirementSectionProps {
   years: number;
@@ -52,41 +52,13 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
   const fundIds = Object.keys(customSavings || {});
 
   return (
-    <details
-      open
-      className={`bg-[var(--panel)] border-[1.5px] rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 ${
-        isHighlighted
-          ? 'section-glow-active'
-          : 'border-[var(--card-line)] shadow'
-      }`}
+    <SectionShell
+      title="Retirement & Saving Goals"
+      icon={ShieldCheck}
+      isEditMode={isEditMode}
+      onMoveSection={onMoveSection}
+      isHighlighted={isHighlighted}
     >
-      <summary className="cursor-pointer list-none flex items-center justify-between font-serif-custom text-base font-semibold text-[var(--text)] select-none">
-        <div className="flex items-center gap-2">
-          <span className="text-xs transition-transform duration-150 inline-block text-[var(--muted2)]">▼</span>
-          <ShieldCheck className="w-4 h-4 text-[var(--muted2)]" />
-          <span>Retirement & Saving Goals</span>
-        </div>
-        {isEditMode && onMoveSection && (
-          <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-            <button
-              onClick={() => onMoveSection('up')}
-              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
-              title="Move section up"
-            >
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onMoveSection('down')}
-              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
-              title="Move section down"
-            >
-              <ArrowDown className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-      </summary>
-
-      <div className="mt-4 space-y-6">
         {/* Retirement Calculation Block */}
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -98,10 +70,8 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
             </span>
           </div>
 
-          <div className="sub-card">
-          <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
-            <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
-              <YearColgroup years={years} isEditMode={isEditMode} />
+          <ScrollBox>
+            <ProjectionTable years={years} isEditMode={isEditMode}>
               <tbody>
                 {/* Target Employee Rate Row */}
                 <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors">
@@ -246,9 +216,8 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   {isEditMode && <td></td>}
                 </tr>
               </tbody>
-            </table>
-          </div>
-          </div>
+            </ProjectionTable>
+          </ScrollBox>
         </div>
 
         {/* Custom Savings Accounts & Goals */}
@@ -262,10 +231,8 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
             </span>
           </div>
 
-          <div className="sub-card">
-          <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
-            <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
-              <YearColgroup years={years} isEditMode={isEditMode} />
+          <ScrollBox>
+            <ProjectionTable years={years} isEditMode={isEditMode}>
               <tbody>
                 {fundIds.length === 0 ? (
                   <tr>
@@ -356,9 +323,8 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
                   {isEditMode && <td></td>}
                 </tr>
               </tfoot>
-            </table>
-          </div>
-          </div>
+            </ProjectionTable>
+          </ScrollBox>
 
           {/* Add Custom Goal Form */}
           <form onSubmit={handleAddFund} className="flex flex-wrap items-center gap-2 mt-3 pt-2">
@@ -386,7 +352,6 @@ export const RetirementSection: React.FC<RetirementSectionProps> = ({
             </button>
           </form>
         </div>
-      </div>
-    </details>
+    </SectionShell>
   );
 };
