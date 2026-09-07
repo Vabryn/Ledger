@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
 /**
  * Single source of truth for projection-table geometry.
@@ -63,6 +64,109 @@ export function YearColgroup({
  *  can never be forgotten on one table). */
 export function ledgerTableClass(isEditMode: boolean): string {
   return `w-full table-fixed text-xs border-collapse${isEditMode ? ' is-edit' : ''}`;
+}
+
+type IconType = React.ComponentType<{ className?: string }>;
+
+/**
+ * The collapsible `<details>` card every projection section renders: the
+ * chevron + icon + title `<summary>`, the edit-mode move up/down buttons, and
+ * the `mt-4` body wrapper. Section-specific controls and tables go in `children`.
+ */
+export function SectionShell({
+  title,
+  icon: Icon,
+  isEditMode,
+  onMoveSection,
+  isHighlighted,
+  bodyClassName = 'space-y-6',
+  children,
+}: {
+  title: React.ReactNode;
+  icon: IconType;
+  isEditMode: boolean;
+  onMoveSection?: (dir: 'up' | 'down') => void;
+  isHighlighted?: boolean;
+  bodyClassName?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details
+      open
+      className={`bg-[var(--panel)] border-[1.5px] rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 ${
+        isHighlighted ? 'section-glow-active' : 'border-[var(--card-line)] shadow'
+      }`}
+    >
+      <summary className="cursor-pointer list-none flex items-center justify-between font-serif-custom text-base font-semibold text-[var(--text)] select-none">
+        <div className="flex items-center gap-2">
+          <span className="text-xs transition-transform duration-150 inline-block text-[var(--muted2)]">▼</span>
+          <Icon className="w-4 h-4 text-[var(--muted2)]" />
+          <span>{title}</span>
+        </div>
+        {isEditMode && onMoveSection && (
+          <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => onMoveSection('up')}
+              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
+              title="Move section up"
+            >
+              <ArrowUp className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => onMoveSection('down')}
+              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
+              title="Move section down"
+            >
+              <ArrowDown className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+      </summary>
+      <div className={`mt-4 ${bodyClassName}`}>{children}</div>
+    </details>
+  );
+}
+
+/**
+ * `sub-card` + the horizontally-scrolling wrapper that must carry
+ * `onScroll={syncScrollToYearBar}`. Wrap a `<ProjectionTable>` (or a
+ * `<DragDropContext>` around one) in it.
+ */
+export function ScrollBox({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="sub-card">
+      <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A projection `<table>` with the three things that must stay in lockstep —
+ * `ledgerTableClass`, the `min-width` from `tableMinWidth`, and `<YearColgroup>`.
+ * `children` is the `<thead>?` + `<tbody>`.
+ */
+export function ProjectionTable({
+  years,
+  isEditMode,
+  trailingCol = true,
+  children,
+}: {
+  years: number;
+  isEditMode: boolean;
+  trailingCol?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <table
+      className={ledgerTableClass(isEditMode)}
+      style={{ minWidth: tableMinWidth(years, isEditMode, { trailingCol }) }}
+    >
+      <YearColgroup years={years} isEditMode={isEditMode} trailingCol={trailingCol} />
+      {children}
+    </table>
+  );
 }
 
 /**
