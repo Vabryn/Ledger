@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ExpenseItem, CalculationResult, ViewMode, fmtCompact$, num } from '@/core';
-import { ReceiptText, Plus, Trash2, ArrowUp, ArrowDown, FolderPlus, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
-import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
+import { ReceiptText, Plus, Trash2, FolderPlus, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
+import { SectionShell, ScrollBox, ProjectionTable } from './ledger-table';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface ExpensesSectionProps {
@@ -141,41 +141,14 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   };
 
   return (
-    <details
-      open
-      className={`bg-[var(--panel)] border-[1.5px] rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 ${
-        isHighlighted
-          ? 'section-glow-active'
-          : 'border-[var(--card-line)] shadow'
-      }`}
+    <SectionShell
+      title={isMonths ? 'Monthly Expenses' : 'Living Expenses'}
+      icon={ReceiptText}
+      isEditMode={isEditMode}
+      onMoveSection={onMoveSection}
+      isHighlighted={isHighlighted}
+      bodyClassName="space-y-5"
     >
-      <summary className="cursor-pointer list-none flex items-center justify-between font-serif-custom text-base font-semibold text-[var(--text)] select-none">
-        <div className="flex items-center gap-2">
-          <span className="text-xs transition-transform duration-150 inline-block text-[var(--muted2)]">▼</span>
-          <ReceiptText className="w-4 h-4 text-[var(--muted2)]" />
-          <span>{isMonths ? 'Monthly Expenses' : 'Living Expenses'}</span>
-        </div>
-        {isEditMode && onMoveSection && (
-          <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-            <button
-              onClick={() => onMoveSection('up')}
-              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
-              title="Move section up"
-            >
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onMoveSection('down')}
-              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
-              title="Move section down"
-            >
-              <ArrowDown className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-      </summary>
-
-      <div className="mt-4 space-y-5">
         {/* Heat Map & Sort Controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-2.5 border-b border-[var(--border)]/60">
           <div className="flex flex-wrap items-center gap-4">
@@ -239,12 +212,9 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
         </div>
 
         {/* Expenses Table with Scoped Drag-and-Drop */}
-        <div className="sub-card">
-        <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
+        <ScrollBox>
           <DragDropContext onDragEnd={handleCategoryDragEnd}>
-            <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
-              <YearColgroup years={years} isEditMode={isEditMode} />
-
+            <ProjectionTable years={years} isEditMode={isEditMode}>
               <thead>
                 <tr
                   id="expenses-table-desc"
@@ -516,10 +486,9 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                   {isEditMode && <td></td>}
                 </tr>
               </tfoot>
-            </table>
+            </ProjectionTable>
           </DragDropContext>
-        </div>
-        </div>
+        </ScrollBox>
 
         {/* Add Row & Add Category actions */}
         <div className="flex flex-wrap items-center gap-2.5 pt-1">
@@ -539,7 +508,6 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
             <span>Add New Category Group</span>
           </button>
         </div>
-      </div>
-    </details>
+    </SectionShell>
   );
 };
