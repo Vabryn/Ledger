@@ -1,7 +1,7 @@
 import React from 'react';
 import { CalculationResult, FilingStatus, fmtCompact$ } from '@/core';
-import { Percent, ArrowUp, ArrowDown, HelpCircle } from 'lucide-react';
-import { YearColgroup, ledgerTableClass, tableMinWidth, syncScrollToYearBar } from './ledger-table';
+import { Percent, HelpCircle } from 'lucide-react';
+import { SectionShell, ScrollBox, ProjectionTable } from './ledger-table';
 
 interface TaxSectionProps {
   years: number;
@@ -40,41 +40,14 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
 }) => {
 
   return (
-    <details
-      open
-      className={`bg-[var(--panel)] border-[1.5px] rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 ${
-        isHighlighted
-          ? 'section-glow-active'
-          : 'border-[var(--card-line)] shadow'
-      }`}
+    <SectionShell
+      title="Income Tax and Deductions"
+      icon={Percent}
+      isEditMode={isEditMode}
+      onMoveSection={onMoveSection}
+      isHighlighted={isHighlighted}
+      bodyClassName="space-y-5"
     >
-      <summary className="cursor-pointer list-none flex items-center justify-between font-serif-custom text-base font-semibold text-[var(--text)] select-none">
-        <div className="flex items-center gap-2">
-          <span className="text-xs transition-transform duration-150 inline-block text-[var(--muted2)]">▼</span>
-          <Percent className="w-4 h-4 text-[var(--muted2)]" />
-          <span>Income Tax and Deductions</span>
-        </div>
-        {isEditMode && onMoveSection && (
-          <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-            <button
-              onClick={() => onMoveSection('up')}
-              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
-              title="Move section up"
-            >
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onMoveSection('down')}
-              className="p-1 hover:text-[var(--accent)] text-[var(--muted2)] text-xs rounded"
-              title="Move section down"
-            >
-              <ArrowDown className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-      </summary>
-
-      <div className="mt-4 space-y-5">
         {/* Global Tax Controls & Aligned FICA Box */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-[var(--border)]/60 items-end">
           {/* Filing Status Dropdown */}
@@ -143,10 +116,8 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
         </p>
 
         {/* Tax Table */}
-        <div className="sub-card">
-        <div className="overflow-x-auto category-table-scroll" onScroll={syncScrollToYearBar}>
-          <table className={ledgerTableClass(isEditMode)} style={{ minWidth: tableMinWidth(years, isEditMode) }}>
-            <YearColgroup years={years} isEditMode={isEditMode} />
+        <ScrollBox>
+          <ProjectionTable years={years} isEditMode={isEditMode}>
             <tbody>
               {/* Location Row */}
               <tr className="odd:bg-[var(--panel)] even:bg-[var(--row-alt)] hover:bg-[var(--row-hover)] border-b border-[var(--border)]/40 transition-colors">
@@ -272,10 +243,8 @@ export const TaxSection: React.FC<TaxSectionProps> = ({
                 {isEditMode && <td></td>}
               </tr>
             </tbody>
-          </table>
-        </div>
-        </div>
-      </div>
-    </details>
+          </ProjectionTable>
+        </ScrollBox>
+    </SectionShell>
   );
 };
