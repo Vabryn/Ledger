@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Household Ledger — Multi-Year Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F3EE; --panel:#FFFFFF; --panel-alt:#F1EEE6; --border:#E1DCCF;
+    --text:#20201C; --muted:#6B675C; --muted2:#9C978A;
+    --accent:#26344F; --accent-soft:#3E5279; --danger:#8C3B33;
+    --mono: 'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --sans: 'IBM Plex Sans',ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif: 'IBM Plex Serif',ui-serif,Georgia,"Iowan Old Style","Palatino Linotype","Times New Roman",serif;
+    --shadow: 0 1px 2px rgba(32,32,28,.04), 0 1px 10px rgba(32,32,28,.03);
+  }
+  
+  /* ---- Perfect Native Dark Mode ---- */
+  body.dark-mode {
+    --bg:#121212; --panel:#1E1E1E; --panel-alt:#2A2A2A; --border:#3A3A3A;
+    --text:#F3F4F6; --muted:#9CA3AF; --muted2:#6B7280;
+    --accent:#60A5FA; --accent-soft:#3B82F6; --danger:#EF4444;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 1px 10px rgba(0,0,0,.4);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  html{background:var(--bg); transition: background 0.2s ease;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);margin:0;padding:0 20px 80px;min-height:100vh; transition: color 0.2s ease, background 0.2s ease;}
+  
+  .sticky-bar{
+    position:sticky;top:0;z-index:50;background:var(--panel);border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:10px 20px;margin:0 -20px 20px;font-family:var(--mono);font-size:12px;
+    box-shadow:var(--shadow); transition: background 0.2s ease, border-color 0.2s ease;
+    flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .sticky-bar::-webkit-scrollbar { display: none; }
+  .sticky-bar-years{display:flex;gap:0;flex-wrap:nowrap; flex: 1 0 auto;}
+  .sticky-bar .yr{display:flex;flex-direction:column;align-items:flex-start;padding:0 14px;border-left:1px solid var(--border); flex: 0 0 auto;}
+  
+  .edit-toggle{flex:none;background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:6px 14px;font-size:11.5px;font-weight:500;font-family:var(--sans);cursor:pointer;white-space:nowrap;transition:all .15s;}
+  .edit-toggle:hover{border-color:var(--accent);color:var(--accent);}
+  .edit-toggle.active{background:#2E7D4F;border-color:#2E7D4F;color:#fff;}
+  .edit-menu-year-btns{display:flex;align-items:center;gap:4px;}
+  .edit-menu-year-btns button{width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;font-size:13px;line-height:1;transition:all .1s;}
+  .edit-menu-year-btns button:hover{border-color:var(--accent);color:var(--accent);}
+  .edit-menu-year-btns button:disabled{opacity:.35;cursor:default;}
+  
+  h1[contenteditable="true"],.eyebrow[contenteditable="true"],.sub[contenteditable="true"]{outline:none;box-shadow:0 0 0 2px rgba(38,52,79,.15);background:var(--panel-alt);border-radius:3px;cursor:text;}
+  .sticky-bar .yr:first-child{border-left:none;padding-left:0;}
+  .sticky-bar .yr .lab{color:var(--muted2);font-size:10px;text-transform:uppercase;letter-spacing:.08em;}
+  .sticky-bar .yr .val{font-weight:600;font-size:14px;}
+  .sticky-bar .yr .val.pos{color:var(--accent);}
+  .sticky-bar .yr .val.neg{color:var(--danger);}
+  .trend{margin-right:3px;font-size:9px;}
+  .trend.up{color:#2E7D4F;}
+  .trend.down{color:var(--danger);}
+  .masthead{padding:26px 0 16px;border-bottom:1px solid var(--border);margin-bottom:18px;}
+  .eyebrow{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 3px;}
+  .brand-row{display:flex;align-items:center;gap:12px;}
+  .brand-mark{flex:none;}
+  h1{font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:.1px;margin:0 0 4px;color:var(--text);}
+  .sub{color:var(--muted);font-size:13px;margin:0;}
+  .wrap{max-width:1320px;margin:0 auto; display:flex; flex-direction:column;}
+  
+  details.section{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 13px;margin-bottom:6px;box-shadow:var(--shadow);position:relative;overflow:hidden; transition: background 0.2s, border-color 0.2s;}
+  details.section:not([open]){padding-top:7px;padding-bottom:7px;}
+  summary{cursor:pointer;list-style:none;display:block;padding:0;margin:0;}
+  summary::-webkit-details-marker{display:none;}
+  summary h2{display:flex;align-items:center;gap:8px;}
+  .section-icon{color:var(--muted2);flex:none;}
+  .chevron{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--muted2);flex:none;transition:transform .12s;transform:rotate(-90deg);}
+  details[open] summary .chevron{transform:rotate(0deg);}
+  details[open] summary h2{margin-bottom:12px;}
+  section h2{font-family:var(--serif);font-size:15px;letter-spacing:.01em;color:var(--text);margin:0;padding:2px 0;font-weight:600;}
+  
+  .edit-only { display: none !important; }
+  body.edit-mode .edit-only { display: inline-flex !important; }
+  
+  .grid-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+  input[type=number],input[type=text],select{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:6px 8px;font-family:var(--mono);font-size:12px; transition: background 0.2s, border-color 0.2s, color 0.2s;}
+  select{font-family:var(--sans);}
+  select:disabled {opacity:0.6; cursor:not-allowed;}
+  input[type=number]{-moz-appearance:textfield;}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(38,52,79,.12);}
+  input.name-input{font-family:var(--sans);width:100%; box-sizing:border-box;}
+  
+  /* Split Heat Sliders */
+  .heat-range { -webkit-appearance:none; appearance:none; width:48px; height:3px; background:var(--border); border-radius:2px; outline:none; cursor:ew-resize; }
+  .heat-range::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:var(--accent); border:2px solid var(--panel); cursor:ew-resize; box-shadow:0 1px 3px rgba(32,32,28,.3); }
+  .heat-range::-moz-range-thumb { width:12px; height:12px; border-radius:50%; background:var(--accent); border:2px solid var(--panel); cursor:ew-resize; box-shadow:0 1px 3px rgba(32,32,28,.3); }
+  
+  .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+  table{border-collapse:collapse;font-size:11.5px; width:100%;}
+  
+  th,td{padding:3px 6px;text-align:right;white-space:nowrap;font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  tbody td{border-bottom:1px solid var(--border); transition: border-color 0.2s ease;}
+  th:first-child,td:first-child{text-align:left;font-family:var(--sans); width:160px; min-width:160px; max-width:160px; overflow:hidden; text-overflow:ellipsis;}
+  thead th{color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);background:var(--panel);white-space:normal;line-height:1.3;vertical-align:bottom; transition: background 0.2s ease, border-color 0.2s ease;}
+  
+  /* Wages Table Locks */
+  #workerTable th:nth-child(2), #workerTable td:nth-child(2),
+  #workerTable th:nth-child(3), #workerTable td:nth-child(3),
+  #workerTable th:nth-child(5), #workerTable td:nth-child(5),
+  #workerTable th:nth-child(6), #workerTable td:nth-child(6),
+  #workerTable th:nth-child(8), #workerTable td:nth-child(8),
+  #workerTable th:nth-child(9), #workerTable td:nth-child(9),
+  #workerTable th:nth-child(11), #workerTable td:nth-child(11),
+  #workerTable th:nth-child(12), #workerTable td:nth-child(12),
+  #workerTable th:nth-child(14), #workerTable td:nth-child(14),
+  #workerTable th:nth-child(15), #workerTable td:nth-child(15),
+  #workerTable th:nth-child(17), #workerTable td:nth-child(17),
+  #workerTable th:nth-child(18), #workerTable td:nth-child(18) {
+    width: 55px !important; min-width: 55px !important; max-width: 55px !important;
+  }
+  
+  td input[type=number], td select { width: 100%; min-width: 45px; padding: 3px 5px !important; box-sizing: border-box; }
+  optgroup { font-family: var(--sans); font-weight: 600; font-style: normal; color: var(--muted); }
+  option { font-weight: normal; color: var(--text); }
+
+  .subsection-head{display:flex;justify-content:space-between;align-items:center;margin:2px 0 5px;}
+  .subsection-head h3{font-family:var(--serif);font-size:12.5px;font-weight:600;color:var(--muted);margin:0;}
+  
+  body.edit-mode th{border-bottom:1px dotted var(--border);}
+  body.edit-mode th[contenteditable="true"]:hover,body.edit-mode td[data-labelkey]:hover{background:var(--panel-alt);cursor:text;border-bottom-color:var(--muted2);}
+  [contenteditable="true"]:focus{background:var(--panel-alt);box-shadow:0 0 0 2px rgba(38,52,79,.15);cursor:text;overflow:visible;text-overflow:clip;position:relative;z-index:8;}
+  .editable-h2{cursor:default;}
+  .editable-h2[contenteditable="true"]{cursor:text;box-shadow:0 0 0 2px rgba(38,52,79,.15);background:var(--panel-alt); border-radius:4px;}
+  body.edit-mode .cat-header{box-shadow:inset 0 0 0 1.5px rgba(38,52,79,.18);}
+  
+  body.edit-title #eyebrowText,body.edit-title #titleText,body.edit-title #subText{background:rgba(38,52,79,.06);border-radius:3px;box-shadow:0 0 0 1.5px rgba(38,52,79,.18);cursor:text;}
+  
+  thead tr.yr th{color:var(--text);font-weight:600;background:var(--panel-alt);}
+  tbody tr:hover{background:var(--panel-alt);}
+  .yearly-cell{color:var(--text);} 
+  .row-actions td{text-align:center;}
+  .btn{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);font-weight:500;transition:border-color .1s,color .1s, background .2s;}
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn.rm{color:var(--danger);border-color:transparent;background:transparent;padding:2px 7px;font-size:14px;}
+  .btn.rm:hover{border-color:var(--danger);}
+  .btn.add{margin-top:10px;color:var(--accent);border-color:var(--accent);}
+  .btn.add:hover{background:var(--accent);color:#fff;}
+  tfoot td{border-top:1px solid var(--border);font-weight:600;padding-top:9px;}
+  .yr-start{border-left:1px solid var(--border);}
+  .summary-table td.total-col{font-weight:600;border-left:1px solid var(--border);}
+  tr.total td{border-top:1px solid var(--border);font-weight:600;padding-top:6px;}
+  .summary-table td.neg{color:var(--danger);}
+
+  /* ---- Premium Simplified Graph Dashboard ---- */
+  .graph-panel { background: var(--panel-alt); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 20px; box-shadow: inset 0 2px 4px rgba(32,32,28,0.02); transition: background 0.2s ease, border-color 0.2s ease;}
+  .graph-header { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .graph-select { padding: 6px 10px; font-weight: 600; font-family: var(--sans); font-size:12px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); box-shadow: var(--shadow); cursor: pointer; color:var(--text); }
+  .graph-select:hover { border-color: var(--accent); }
+  
+  .graph-toggles { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .toggle-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--panel); border: 1px solid var(--border); padding: 4px 10px 4px 6px; border-radius: 6px; font-size: 11px; font-family: var(--sans); font-weight: 500; cursor: pointer; user-select: none; transition: all 0.15s; box-shadow: 0 1px 2px rgba(32,32,28,.04); color: var(--text); }
+  .toggle-pill:hover { border-color: var(--muted2); }
+  .toggle-pill input[type="checkbox"] { margin: 0; cursor: pointer; width: 14px; height: 14px; accent-color: var(--accent); }
+  .toggle-pill.inactive { opacity: 0.6; background: transparent; }
+  .pill-swatch { border: 1px solid var(--border); border-radius: 3px; padding: 0; width: 16px; height: 16px; cursor: pointer; background: none; }
+  .pill-swatch::-webkit-color-swatch-wrapper { padding: 0; }
+  .pill-swatch::-webkit-color-swatch { border: none; border-radius: 2px; }
+
+  .graph-canvas-wrap { position: relative; width: 100%; transition: height 0.1s ease; }
+  
+  .graph-tooltip { position: absolute; pointer-events: none; background: var(--panel); color: var(--text); padding: 12px 14px; border-radius: 6px; font-size: 11px; font-family: var(--mono); box-shadow: 0 4px 20px rgba(0,0,0,0.2), 0 0 0 1px var(--border); z-index: 10; opacity: 0; transition: opacity 0.15s ease; white-space: nowrap; backdrop-filter: blur(4px); }
+  .graph-tooltip .tt-yr { font-family: var(--sans); font-weight: 600; margin-bottom: 8px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding-bottom:4px; }
+  .graph-tooltip .tt-row { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 5px; align-items: center; }
+  .graph-tooltip .tt-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: inset 0 0 0 1px rgba(128,128,128,.2); }
+  .hover-line { stroke: var(--muted2); stroke-width: 1; stroke-dasharray: 4 4; opacity: 0.5; pointer-events: none; }
+  .hover-zone { cursor: crosshair; }
+
+  .cards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  .card{background:var(--panel-alt);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:6px;padding:12px 16px;min-width:150px; flex:1; transition: background 0.2s ease, border-color 0.2s ease;}
+  .card .k{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+  .card .v{font-family:var(--mono);font-size:22px;font-weight:600;margin-top:5px;color:var(--text);}
+  
+  .cat-header{background:transparent;color:var(--accent);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;padding:8px !important;text-align:left;display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--border);border-bottom:1px solid var(--border); cursor:pointer;}
+  .cat-header:hover { background:var(--panel-alt); }
+  
+  body.edit-mode .cat-header .cat-name{border-bottom:1px dotted var(--border);}
+  body.edit-mode .cat-header .cat-name:hover,body.edit-mode .cat-header .cat-name:focus{cursor:text;border-bottom-color:var(--muted2);outline:none;}
+  .cat-actions{display:flex;gap:2px; align-items:center;}
+  .cat-move-btn{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:9px;padding:2px 5px;font-family:var(--sans);}
+  .cat-move-btn:hover:not(:disabled){color:var(--accent);}
+  .cat-move-btn:disabled{opacity:.25;cursor:default;}
+  .name-cell{padding-top:5px !important;padding-bottom:5px !important;}
+  .footer-note{font-size:11px;color:var(--muted2);text-align:center;margin:18px 0 4px;padding-top:14px;border-top:1px solid var(--border);}
+  
+  .cat-chevron { display:inline-block; transition:transform 0.15s; margin-right:6px; color:var(--muted2); font-size:10px; }
+  .cat-chevron.collapsed { transform:rotate(-90deg); }
+</style>
+</head>
+<body>
+<div id="stickyBar" class="sticky-bar">
+  <div id="stickyBarYears" class="sticky-bar-years"></div>
+  
+  <div style="display:flex; align-items:center; gap:12px; flex: 0 0 auto;">
+    <button id="darkModeBtn" class="edit-toggle" title="Toggle Dark Mode">☾ Dark</button>
+    <div class="edit-menu-year-btns" style="align-items:center;">
+       <span style="font-family:var(--sans);font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;margin-right:6px;">Years: <span id="yearCount"></span></span>
+       <button id="removeYearBtn" title="Remove the last year">−</button>
+       <button id="addYearBtn" title="Add another year">+</button>
+    </div>
+    <!-- Clean 1-Click Toggle -->
+    <button id="mainEditBtn" class="edit-toggle">✎ Edit Planner</button>
+    <button id="resetBtn" class="edit-toggle" style="color:var(--danger); border-color:transparent; padding:6px 8px;" title="Wipe save data">↺ Reset</button>
+  </div>
+</div>
+
+<div class="wrap" id="sectionsContainer">
+  <div class="masthead">
+    <div class="brand-row">
+      <svg class="brand-mark" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M5 4.5h11.5a2.5 2.5 0 012.5 2.5v12.5H7.5A2.5 2.5 0 015 17V4.5z"/><path d="M5 4.5a2.5 2.5 0 012.5 2.5v12.5A2.5 2.5 0 015 17V4.5z"/><path d="M9 8.5h6.5M9 11.5h6.5M9 14.5h4.5"/></svg>
+      <div>
+        <p class="eyebrow" id="eyebrowText">Financial Planner</p>
+        <h1 id="titleText">Household Ledger</h1>
+      </div>
+    </div>
+    <p class="sub" id="subText">A multi-year income, cost-of-living, and tax projection — fully editable, all figures recalculate live.</p>
+  </div>
+
+  <details class="section" id="sec-income">
+    <summary>
+       <h2 class="editable-h2"><span class="chevron"></span><svg class="section-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 12L12 4M12 4H6M12 4V10"/></svg>Income</h2>
+       <span class="cat-actions edit-only" style="margin-left:auto;">
+         <button class="cat-move-btn" onclick="moveSection('sec-income','up', event)">▲</button>
+         <button class="cat-move-btn" onclick="moveSection('sec-income','down', event)">▼</button>
+       </span>
+    </summary>
+    
+    <div class="subsection-head">
+      <h3>Wages</h3>
+    </div>
+    <div class="table-scroll"><table id="workerTable"></table></div>
+    <button class="btn add" id="addWorkerBtn" style="margin-bottom:16px;">+ Add Worker</button>
+    
+    <div id="otherIncomeWrapper">
+      <div class="subsection-head" style="margin-top:16px">
+        <h3>Other income</h3>
+        <button class="btn rm edit-only" title="Remove Other Income" onclick="toggleOtherIncome(false)">✕</button>
+      </div>
+      <div class="table-scroll"><table id="otherTable"></table></div>
+      <button class="btn add" id="addOther">+ Add income source</button>
+    </div>
+    <button class="btn add edit-only" id="restoreOtherIncomeBtn" style="display:none; margin-top:16px;" onclick="toggleOtherIncome(true)">+ Restore Other Income</button>
+  </details>
+
+  <details class="section" id="sec-taxes">
+    <summary>
+       <h2 class="editable-h2"><span class="chevron"></span><svg class="section-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4.5" cy="4.5" r="1.6"/><circle cx="11.5" cy="11.5" r="1.6"/><path d="M12 4L4 12"/></svg>Taxes</h2>
+       <span class="cat-actions edit-only" style="margin-left:auto;">
+         <button class="cat-move-btn" onclick="moveSection('sec-taxes','up', event)">▲</button>
+         <button class="cat-move-btn" onclick="moveSection('sec-taxes','down', event)">▼</button>
+       </span>
+    </summary>
+    <div class="grid-controls" style="margin-bottom:8px">
+      <div class="field"><label>Filing Status</label>
+        <select id="statusSel" style="width:180px;">
+          <option value="Married">Married Filing Jointly</option>
+          <option value="Single">Single</option>
+        </select>
+      </div>
+      <div class="field checkline" style="align-self:center"><input id="fica" type="checkbox"><label for="fica">Include FICA (SS 6.2% up to limit + Medicare)</label></div>
+    </div>
+    <div class="table-scroll"><table id="taxTable"></table></div>
+  </details>
+
+  <details class="section" id="sec-expenses">
+    <summary>
+       <h2 class="editable-h2"><span class="chevron"></span><svg class="section-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 2h8v12l-1.5-1-1.5 1-1.5-1-1.5 1-1.5-1L4 14V2z"/><path d="M6 5.5h4M6 8h4M6 10.5h2.5"/></svg>Monthly Expenses</h2>
+       <span class="cat-actions edit-only" style="margin-left:auto;">
+         <button class="cat-move-btn" onclick="moveSection('sec-expenses','up', event)">▲</button>
+         <button class="cat-move-btn" onclick="moveSection('sec-expenses','down', event)">▼</button>
+       </span>
+    </summary>
+    <div class="grid-controls" style="margin-bottom:8px; align-items:center;">
+      <!-- Sorter Dropdown -->
+      <div class="field" style="gap:2px;">
+         <label style="font-size:9px;">Sort Expenses</label>
+         <select id="catSortAction" style="padding:2px 6px; height:24px; font-size:11px; min-width:110px; cursor:pointer;">
+           <option value="">Manual...</option>
+           <option value="desc">Highest ➔ Lowest</option>
+           <option value="asc">Lowest ➔ Highest</option>
+         </select>
+      </div>
+      <!-- Separated Heat Controls -->
+      <div class="field" style="gap:2px;">
+         <label style="font-size:9px;">Intensity</label>
+         <input id="colIntensity" type="range" class="heat-range" min="0" max="100" value="75">
+      </div>
+      <div class="field" style="gap:2px;">
+         <label style="font-size:9px;">Contrast</label>
+         <input id="colContrast" type="range" class="heat-range" min="0" max="100" value="50">
+      </div>
+      <div class="field" style="gap:2px;">
+         <label style="font-size:9px;">Color</label>
+         <input id="colHue" type="color" style="width:24px;height:24px;padding:1px; cursor:pointer;">
+      </div>
+    </div>
+    <div class="table-scroll"><table id="colTable"></table></div>
+    <div style="display:flex; gap:10px; margin-top:10px;">
+       <button class="btn add" id="addCol">+ Add Expense Row</button>
+       <button class="btn add edit-only" id="addCategoryBtn">+ Add New Category Group</button>
+    </div>
+  </details>
+
+  <details class="section" id="sec-retire">
+    <summary>
+       <h2 class="editable-h2"><span class="chevron"></span><svg class="section-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2l5 2v4c0 3.5-2.2 5.7-5 6.5-2.8-.8-5-3-5-6.5V4l5-2z"/><path d="M5.7 8l1.6 1.6L10.5 6.2"/></svg>Retirement Calculation</h2>
+       <span class="cat-actions edit-only" style="margin-left:auto;">
+         <button class="cat-move-btn" onclick="moveSection('sec-retire','up', event)">▲</button>
+         <button class="cat-move-btn" onclick="moveSection('sec-retire','down', event)">▼</button>
+       </span>
+    </summary>
+    <p class="hint" style="margin:4px 0 12px;">Auto-calculated based on Target Rate against Gross Income. Fills Roth IRA first, then spills into 401k.</p>
+    <div class="table-scroll"><table id="retireTable"></table></div>
+  </details>
+
+  <details class="section" id="sec-summary" open>
+    <summary>
+       <h2 class="editable-h2"><span class="chevron"></span><svg class="section-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13V9M8 13V5M13 13V7"/></svg>Summary</h2>
+       <span class="cat-actions edit-only" style="margin-left:auto;">
+         <button class="cat-move-btn" onclick="moveSection('sec-summary','up', event)">▲</button>
+         <button class="cat-move-btn" onclick="moveSection('sec-summary','down', event)">▼</button>
+       </span>
+    </summary>
+    <div class="cards" id="cards"></div>
+    <div class="table-scroll"><table class="summary-table" id="summaryTable"></table></div>
+    
+    <!-- Premium Graph Dashboard -->
+    <div class="graph-panel">
+      <div class="graph-header">
+        <select id="graphTypeSelect" class="graph-select">
+          <option value="area">Trend</option>
+          <option value="grouped">Comparison</option>
+        </select>
+        
+        <div id="graphToggles" class="graph-toggles"></div>
+        
+        <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+          <span style="font-family:var(--sans); font-size:10px; color:var(--muted); text-transform:uppercase; font-weight:600;">Height</span>
+          <select id="graphHeightSelect" class="graph-select" style="min-width:auto;">
+            <option value="180">25%</option>
+            <option value="280">50%</option>
+            <option value="380">75%</option>
+            <option value="480">100%</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="graph-canvas-wrap" id="graphWrap">
+         <!-- SVG is built in JS perfectly to scale -->
+         <svg id="graphSvg" style="width:100%; height:100%; display:block;"></svg>
+         <div id="graphTooltip" class="graph-tooltip"></div>
+      </div>
+    </div>
+  </details>
+</div>
+<p class="footer-note">Figures are projections based on the inputs above and current tax law — not financial, tax, or legal advice.</p>
+
+<script>
+let YEARS = 6;
+const fmt$ = n => (n<0?'-':'') + '$' + Math.round(Math.abs(n)).toLocaleString('en-US');
+const fmtPct = n => (n).toFixed(1)+'%';
+const num = v => { const n = parseFloat(v); return isNaN(n)?0:n; };
+
+// 2025 Standard Accurate Tax Variables
+const FED_2025 = {
+  Single: { stdDed: 15000, brackets: [[0, .10], [11925, .12], [48475, .22], [103350, .24], [197300, .32], [250525, .35], [626350, .37]] },
+  Married: { stdDed: 30000, brackets: [[0, .10], [23850, .12], [96950, .22], [206700, .24], [394600, .32], [501050, .35], [751600, .37]] }
+};
+
+const CA_2025 = {
+  Single: { stdDed: 5706, ex: 158, brackets: [[0, .01], [10099, .02], [23942, .04], [37788, .06], [52455, .08], [66295, .093], [338639, .103], [406364, .113], [677275, .123]] },
+  Married: { stdDed: 11412, ex: 316, brackets: [[0, .01], [20198, .02], [47884, .04], [75576, .06], [104910, .08], [132590, .093], [677278, .103], [812728, .113], [1354550, .123]] }
+};
+
+const NY_2025 = {
+  Single: { stdDed: 8000, brackets: [[0, .04], [8500, .045], [11700, .0525], [13900, .055], [80650, .06], [215400, .0685], [1077550, .0965], [5000000, .103], [25000000, .109]] },
+  Married: { stdDed: 16050, brackets: [[0, .04], [17150, .045], [23600, .0525], [27900, .055], [161550, .06], [323200, .0685], [2155350, .0965], [5000000, .103], [25000000, .109]] }
+};
+
+const NYC_2025 = {
+  Single: { brackets: [[0, .03078], [12000, .03762], [25000, .03819], [50000, .03876]] },
+  Married: { brackets: [[0, .03078], [21600, .03762], [45000, .03819], [90000, .03876]] }
+};
+
+const STATES = {
+  CA: { label: 'California', local: {} },
+  NY: { label: 'New York', local: { 'None': 'No Local Tax', 'NYC': 'New York City', 'YONKERS': 'Yonkers (City)' } }
+};
+
+const CTC_PER_DEP = 2000;
+const SS_WAGE_CAP = 176100, SS_RATE=.062, MEDICARE_RATE=.0145;
+const ROTH_CAP = 7000;   
+const CAP401K = 23500;    
+
+function marginalTax(taxable, brackets){
+  if(taxable<=0) return 0;
+  let tax=0;
+  for(let i=0;i<brackets.length;i++){
+    const start=brackets[i][0], rate=brackets[i][1];
+    const next = i+1<brackets.length ? brackets[i+1][0] : Infinity;
+    if(taxable>start) tax += (Math.min(taxable,next)-start)*rate; else break;
+  }
+  return tax;
+}
+
+let isEditMode = false;
+let maxGlobalCost = 1;
+
+// Custom 6-Year Template Preserved Exactly
+const state = {
+  sectionOrder: ['sec-income', 'sec-taxes', 'sec-expenses', 'sec-retire', 'sec-summary'],
+  collapsedCats: {},
+  showOtherIncome: true,
+  darkMode: false,
+  graphHeight: 280,
+  graphType: 'area', 
+  graphToggles: {gross:true, colOnly:true, save:true, retire:true},
+  barColors:{gross:'#8A978A', colOnly:'#8C3B33', save:'#3E5279', retire:'#2E7D4F'},
+  st:Array(YEARS).fill('CA'), local:Array(YEARS).fill('None'), deps:Array(YEARS).fill(0), fica:false, taxStatus:'Married',
+  colIntensity: 75, colContrast: 50, colHue:'#8C3B33',
+  workers: [
+    {name:'Lead Consultant', hours:[40,40,40,45,45,50], wage:[65,65,65,70,70,75]},
+  ],
+  other: [
+    {name:'Side Hustle', amount:[1200,1200,1500,1500,1800,2000]},
+    {name:'Stock Dividends', amount:[150,150,150,150,150,150]},
+    {name:'Consulting Bonus', amount:[0,0,5000,0,0,2500]},
+  ],
+  col: [
+    {name:'Gym Membership', cat:'Health & Wellness', monthly:[80,80,80,80,80,80]},
+    {name:'Mortgage', cat:'Housing', monthly:[2400,2400,2400,2400,2400,2400]},
+    {name:'Groceries (est.)', cat:'Food', monthly:[450,450,450,450,450,450]},
+    {name:'Credit Card A', cat:'Debt Service', monthly:[200,200,200,200,0,0]},
+    {name:'Credit Card B', cat:'Debt Service', monthly:[150,150,150,0,0,0]},
+    {name:'Emergency Fund', cat:'Savings Goals', monthly:[500,500,500,500,500,500]},
+    {name:'Vacation fund', cat:'Savings Goals', monthly:[200,200,200,400,400,400]},
+    {name:'Car Payment', cat:'Transportation', monthly:[410,410,410,410,410,410]},
+    {name:'Car Insurance', cat:'Transportation', monthly:[145,145,145,145,145,145]},
+    {name:'Car Maintenance', cat:'Transportation', monthly:[100,100,100,100,100,100]},
+    {name:'Gas / Fuel', cat:'Transportation', monthly:[130,140,125,150,160,145]},
+    {name:'Laptop Loan', cat:'Debt Service', monthly:[85,85,85,85,85,0]},
+    {name:'Gadget Insurance', cat:'Entertainment', monthly:[25,25,25,25,25,25]},
+    {name:'Server Hosting', cat:'Business Expenses', monthly:[40,40,40,40,40,40]},
+    {name:'Software Licenses', cat:'Business Expenses', monthly:[65,65,65,120,120,120]},
+    {name:'Electricity (est.)', cat:'Utilities', monthly:[180,195,210,240,220,190]},
+    {name:'Water / Sewer', cat:'Utilities', monthly:[65,65,65,70,70,70]},
+    {name:'Trash Pickup', cat:'Utilities', monthly:[30,30,30,30,30,30]},
+    {name:'Dining Out', cat:'Food', monthly:[300,350,400,320,450,380]},
+    {name:'Owe Friend', cat:'Debt Service', monthly:[100,100,100,0,0,0]},
+    {name:'Mobile Plan', cat:'Utilities', monthly:[85,85,85,85,85,85]},
+    {name:'Internet Fibre', cat:'Utilities', monthly:[79,79,79,79,79,79]},
+    {name:'Health Insurance', cat:'Health & Wellness', monthly:[310,310,310,310,310,310]},
+    {name:'Pet Care', cat:'Lifestyle', monthly:[120,150,120,120,220,120]},
+    {name:'Streaming Pack', cat:'Entertainment', monthly:[45,45,45,45,45,45]},
+    {name:'Concerts / Events', cat:'Entertainment', monthly:[0,120,250,0,85,150]},
+    {name:'Roth IRA', cat:'Retirement', auto:true, kind:'roth', monthly:[583,583,583,583,583,583]},
+    {name:'401k Contribution', cat:'Retirement', auto:true, kind:'k401', monthly:[0,0,400,400,450,450]},
+  ],
+  retireRate: [0,0,5,5,6,6],
+};
+
+function compute(){
+  const g=[], fed=[], stTax=[], fica=[], net=[], colTotal=[], savings=[], savingsOT=[],
+        retireActual=[], retireOT=[], retireTarget=[], rothArr=[], k401Arr=[], colOnly=[];
+  let sOT=0, rOT=0;
+  const rothRow = state.col.find(r=>r.kind==='roth');
+  const k401Row = state.col.find(r=>r.kind==='k401');
+  
+  const isSingle = state.taxStatus === 'Single';
+  const statusKey = isSingle ? 'Single' : 'Married';
+  const maxRoth = ROTH_CAP * (isSingle ? 1 : 2);
+  const max401k = CAP401K * (isSingle ? 1 : 2);
+  
+  for(let i=0;i<YEARS;i++){
+    const deps = num(state.deps[i]);
+    let earned = 0;
+    state.workers.forEach(w => { earned += num(w.hours[i]) * num(w.wage[i]) * 52; });
+    const other = state.showOtherIncome !== false ? state.other.reduce((s,r)=> s + num(r.amount[i]), 0) : 0;
+    const gross = earned + other;
+    g.push(gross);
+
+    const fedConfig = FED_2025[statusKey];
+    const fedTaxable = Math.max(0, gross - fedConfig.stdDed);
+    let ft = marginalTax(fedTaxable, fedConfig.brackets) - (CTC_PER_DEP*deps);
+    ft = Math.max(0, ft);
+    fed.push(ft);
+
+    const regionKey = state.st[i] || 'CA';
+    const loc = state.local[i] || 'None';
+    let stx = 0;
+    
+    if (regionKey === 'CA') {
+       const cfg = CA_2025[statusKey];
+       const taxable = Math.max(0, gross - cfg.stdDed);
+       stx = marginalTax(taxable, cfg.brackets);
+       stx -= (cfg.ex + (475 * deps));
+       stx = Math.max(0, stx);
+       if (taxable > 1000000) stx += (taxable - 1000000) * 0.01; 
+    } else if (['NY', 'NYC', 'YONKERS'].includes(regionKey)) {
+       const cfg = NY_2025[statusKey];
+       const taxable = Math.max(0, gross - cfg.stdDed - (1000 * deps));
+       stx = marginalTax(taxable, cfg.brackets);
+       stx = Math.max(0, stx);
+       if (loc === 'NYC') stx += marginalTax(taxable, NYC_2025[statusKey].brackets);
+       else if (loc === 'YONKERS') stx += stx * 0.1675; 
+    }
+    stTax.push(stx);
+
+    let fc = 0;
+    if(state.fica){
+      const addlMedThresh = isSingle ? 200000 : 250000;
+      let combinedWage = 0;
+      state.workers.forEach(w=>{
+        const wage = num(w.hours[i]) * num(w.wage[i]) * 52;
+        combinedWage += wage;
+        fc += Math.min(wage, SS_WAGE_CAP) * SS_RATE;
+        fc += wage * MEDICARE_RATE;
+      });
+      if(combinedWage > addlMedThresh) fc += (combinedWage - addlMedThresh) * 0.009; 
+    }
+    fica.push(fc);
+    net.push(gross - ft - stx - fc);
+
+    const target = gross * (num(state.retireRate[i])/100);
+    const rothContrib = Math.min(target, maxRoth);
+    const k401Contrib = Math.min(Math.max(target - maxRoth, 0), max401k);
+    const retireAct = rothContrib + k401Contrib;
+    retireTarget.push(target); retireActual.push(retireAct); rOT += retireAct; retireOT.push(rOT);
+    rothArr.push(rothContrib); k401Arr.push(k401Contrib);
+    if(rothRow) rothRow.monthly[i] = rothContrib/12;
+    if(k401Row) k401Row.monthly[i] = k401Contrib/12;
+
+    const baseCol = state.col.filter(r=>!r.auto).reduce((s,r)=> s + num(r.monthly[i]), 0) * 12;
+    colOnly.push(baseCol);
+    colTotal.push(baseCol + retireAct);
+
+    savings.push(net[i] - colTotal[i]);
+    sOT += savings[i]; savingsOT.push(sOT);
+  }
+  
+  maxGlobalCost = 1;
+  colOnly.forEach(v => { if(v > maxGlobalCost) maxGlobalCost = v; });
+  
+  return {g, fed, stTax, fica, net, colTotal, colOnly, savings, savingsOT, retireActual, retireOT, retireTarget, rothArr, k401Arr};
+}
+
+state.labels = {};
+function lbl(key, dflt){ const v = state.labels[key]; return (v!==undefined && v!=='') ? v : dflt; }
+function makeEditableLabels(root){
+  root.querySelectorAll('[data-labelkey]').forEach(el=>{
+    if(isEditMode) el.setAttribute('contenteditable','true'); else el.removeAttribute('contenteditable');
+    el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } });
+    el.addEventListener('blur', ()=>{
+      const key = el.dataset.labelkey, text = el.textContent.trim();
+      state.labels[key] = text;
+      document.querySelectorAll(`[data-labelkey="${key}"]`).forEach(e=>{ if(e!==el) e.textContent = text; });
+    });
+  });
+}
+
+function moveSection(id, dir, event) {
+  event.stopPropagation();
+  let idx = state.sectionOrder.indexOf(id);
+  if(dir === 'up' && idx > 0) {
+    let tmp = state.sectionOrder[idx-1]; state.sectionOrder[idx-1] = id; state.sectionOrder[idx] = tmp;
+  } else if(dir === 'down' && idx < state.sectionOrder.length - 1) {
+    let tmp = state.sectionOrder[idx+1]; state.sectionOrder[idx+1] = id; state.sectionOrder[idx] = tmp;
+  }
+  renderSectionOrder();
+  saveToStorage();
+}
+
+function renderSectionOrder() {
+  const container = document.getElementById('sectionsContainer');
+  state.sectionOrder.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) container.appendChild(el);
+  });
+}
+
+function updateYearMenuUI(){
+  document.getElementById('yearCount').textContent = YEARS;
+  document.getElementById('removeYearBtn').disabled = YEARS<=1;
+  document.getElementById('addYearBtn').disabled = YEARS>=10;
+}
+
+function rebuildAllTables(){
+  buildWorkerTable(); buildOtherTable(); buildColTable(); buildRetireTable(); buildTaxTable();
+  renderSummary();
+}
+
+function addYear(){
+  if(YEARS>=10) return;
+  state.workers.forEach(w=>{ w.hours.push(w.hours[w.hours.length-1]); w.wage.push(w.wage[w.wage.length-1]); });
+  state.other.forEach(r=> r.amount.push(0));
+  state.col.forEach(r=> r.monthly.push(r.monthly[r.monthly.length-1]));
+  state.retireRate.push(state.retireRate[state.retireRate.length-1]);
+  state.deps.push(state.deps[state.deps.length-1]);
+  state.st.push(state.st[state.st.length-1]);
+  state.local.push(state.local[state.local.length-1]);
+  YEARS++;
+  rebuildAllTables(); updateYearMenuUI();
+}
+function removeYear(){
+  if(YEARS<=1) return;
+  state.workers.forEach(w=>{ w.hours.pop(); w.wage.pop(); });
+  state.other.forEach(r=> r.amount.pop());
+  state.col.forEach(r=> r.monthly.pop());
+  state.retireRate.pop();
+  state.deps.pop();
+  state.st.pop();
+  state.local.pop();
+  YEARS--;
+  rebuildAllTables(); updateYearMenuUI();
+}
+
+function yearHeaderRow(cols=1){
+  let h = '<tr class="yr"><th></th>';
+  for(let i=0;i<YEARS;i++) h += `<th class="${i>0?'yr-start':''}" colspan="${cols}">Year ${i+1}</th>`;
+  h += '<th class="edit-only"></th></tr>';
+  return h;
+}
+
+function yearHeaderRowMerged(labelKey, dflt){
+  let h = `<tr class="yr"><th data-labelkey="${labelKey}">${lbl(labelKey,dflt)}</th>`;
+  for(let i=0;i<YEARS;i++) h += `<th class="${i>0?'yr-start':''}">Year ${i+1}</th>`;
+  h += '<th class="edit-only"></th></tr>';
+  return h;
+}
+
+function buildWorkerTable(){
+  const t = document.getElementById('workerTable');
+  let h = '<thead>' + yearHeaderRow(3) + `<tr><th data-labelkey="workerTable.worker">${lbl('workerTable.worker','Worker')}</th>`;
+  for(let i=0;i<YEARS;i++) h += `<th data-labelkey="workerTable.hours" data-colval="hours">${lbl('workerTable.hours','Hrs/wk')}</th><th data-labelkey="workerTable.wage" data-colval="wage">${lbl('workerTable.wage','Wage/hr')}</th><th data-labelkey="workerTable.annual" data-colval="annual">${lbl('workerTable.annual','Annual')}</th>`;
+  h += '<th class="edit-only"></th></tr></thead><tbody>';
+  state.workers.forEach((w,wi)=>{
+    h += `<tr><td><input class="name-input" data-w="${wi}" data-f="name" value="${w.name}"></td>`;
+    for(let i=0;i<YEARS;i++){
+      h += `<td class="${i>0?'yr-start':''}" data-colval="hours"><input type="number" data-w="${wi}" data-f="hours" data-y="${i}" value="${w.hours[i]}"></td>`;
+      h += `<td data-colval="wage"><input type="number" data-w="${wi}" data-f="wage" data-y="${i}" value="${w.wage[i]}"></td>`;
+      h += `<td class="yearly-cell" data-colval="annual" id="w-annual-${wi}-${i}"></td>`;
+    }
+    h += `<td class="row-actions edit-only">
+            <button class="cat-move-btn" onclick="moveRow('workers', ${wi}, 'up')">▲</button>
+            <button class="cat-move-btn" onclick="moveRow('workers', ${wi}, 'down')">▼</button>
+            <button class="btn rm" onclick="rmRow('workers', ${wi})">✕</button>
+          </td></tr>`;
+  });
+  h += '</tbody>';
+  t.innerHTML = h;
+  t.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', e=>{
+    const {w,f,y} = e.target.dataset;
+    if(f==='name') state.workers[w].name = e.target.value;
+    else state.workers[w][f][y] = num(e.target.value);
+    renderSummary();
+  }));
+  makeEditableLabels(t);
+}
+
+function toggleOtherIncome(show) {
+  state.showOtherIncome = show;
+  document.getElementById('otherIncomeWrapper').style.display = show ? 'block' : 'none';
+  document.getElementById('restoreOtherIncomeBtn').style.display = show ? 'none' : (isEditMode ? 'inline-block' : 'none');
+  renderSummary(); saveToStorage();
+}
+
+function buildOtherTable(){
+  const t = document.getElementById('otherTable');
+  const w = document.getElementById('otherIncomeWrapper');
+  const b = document.getElementById('restoreOtherIncomeBtn');
+  
+  if (state.showOtherIncome === false) {
+     w.style.display = 'none';
+     b.style.display = isEditMode ? 'inline-block' : 'none';
+     return;
+  } else {
+     w.style.display = 'block';
+     b.style.display = 'none';
+  }
+
+  let h = '<thead>' + yearHeaderRowMerged('otherTable.source','Source').replace('</tr>', '<th></th></tr>') + '</thead><tbody>';
+  state.other.forEach((r,ri)=>{
+    h += `<tr><td><input class="name-input" data-r="${ri}" data-f="name" value="${r.name}"></td>`;
+    for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''}" data-colval="amount"><input type="number" data-r="${ri}" data-f="amount" data-y="${i}" value="${r.amount[i]}"></td>`;
+    h += `<td class="row-actions edit-only">
+            <button class="cat-move-btn" onclick="moveRow('other', ${ri}, 'up')">▲</button>
+            <button class="cat-move-btn" onclick="moveRow('other', ${ri}, 'down')">▼</button>
+            <button class="btn rm" onclick="rmRow('other', ${ri})">✕</button>
+          </td></tr>`;
+  });
+  h += '</tbody>';
+  t.innerHTML = h;
+  t.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', e=>{
+    const {r,f,y} = e.target.dataset;
+    if(f==='name') state.other[r].name = e.target.value;
+    else state.other[r].amount[y] = num(e.target.value);
+    renderSummary();
+  }));
+  makeEditableLabels(t);
+}
+
+function getCatOrder(){
+  const present = [...new Set(state.col.map(r=> r.cat || 'Other'))];
+  if(!state.catOrder) state.catOrder = [];
+  state.catOrder = state.catOrder.filter(c=> present.includes(c));
+  present.forEach(c=>{ if(!state.catOrder.includes(c)) state.catOrder.push(c); });
+  return state.catOrder;
+}
+
+function toggleCatCollapse(cat) {
+  state.collapsedCats[cat] = !state.collapsedCats[cat];
+  buildColTable(); saveToStorage();
+}
+
+function moveRow(arrName, idx, dir) {
+  const arr = state[arrName];
+  if(dir === 'up' && idx > 0) {
+    let tmp = arr[idx-1]; arr[idx-1] = arr[idx]; arr[idx] = tmp;
+  } else if(dir === 'down' && idx < arr.length - 1) {
+    let tmp = arr[idx+1]; arr[idx+1] = arr[idx]; arr[idx] = tmp;
+  }
+  rebuildAllTables(); saveToStorage();
+}
+
+function rmRow(arrName, idx) {
+  state[arrName].splice(idx, 1);
+  rebuildAllTables(); saveToStorage();
+}
+
+function buildColTable(){
+  const t = document.getElementById('colTable');
+  const totalCols = 2 + YEARS*2;
+  let h = '<thead>' + yearHeaderRow(2) + `<tr><th data-labelkey="colTable.catname">${lbl('colTable.catname','Category / Name')}</th>`;
+  for(let i=0;i<YEARS;i++) h += `<th data-labelkey="colTable.monthly" data-colval="monthly">${lbl('colTable.monthly','Monthly')}</th><th data-labelkey="colTable.yearly" data-colval="yearly">${lbl('colTable.yearly','Yearly')}</th>`;
+  h += '<th class="edit-only"></th></tr></thead><tbody>';
+  const cats = getCatOrder();
+  cats.forEach((cat,ci)=>{
+    const isCol = state.collapsedCats[cat];
+    h += `<tr><td class="cat-header" colspan="${totalCols}" onclick="toggleCatCollapse('${cat}')">`
+       + `<div><span class="cat-chevron ${isCol?'collapsed':''}">${isCol?'▶':'▼'}</span><span class="cat-name" ${isEditMode?'contenteditable="true"':''} data-catrename="${cat}" onclick="event.stopPropagation()">${cat}</span></div>`
+       + `<span class="cat-actions edit-only">`
+       + `<button class="cat-move-btn" data-catmove="up" data-cat="${cat}" title="Move category up" ${ci===0?'disabled':''} onclick="event.stopPropagation()">▲</button>`
+       + `<button class="cat-move-btn" data-catmove="down" data-cat="${cat}" title="Move category down" ${ci===cats.length-1?'disabled':''} onclick="event.stopPropagation()">▼</button>`
+       + `</span></td><td class="edit-only cat-header"></td></tr>`;
+       
+    if (!isCol) {
+       state.col.forEach((r,ri)=>{
+         if((r.cat||'Other') !== cat) return;
+         h += `<tr><td class="name-cell"><input class="name-input" data-r="${ri}" data-f="name" value="${r.name}"></td>`;
+         for(let i=0;i<YEARS;i++){
+           h += r.auto
+             ? `<td class="${i>0?'yr-start':''}" data-colval="monthly"><input type="number" disabled id="col-monthly-${ri}-${i}" value="${Math.round(r.monthly[i])}"></td>`
+             : `<td class="${i>0?'yr-start':''}" data-colval="monthly"><input type="number" data-r="${ri}" data-f="monthly" data-y="${i}" value="${r.monthly[i]}"></td>`;
+           h += `<td class="yearly-cell" data-colval="yearly" id="col-yearly-${ri}-${i}"></td>`;
+         }
+         h += `<td class="row-actions edit-only">
+                 <button class="cat-move-btn" onclick="moveRow('col', ${ri}, 'up')">▲</button>
+                 <button class="cat-move-btn" onclick="moveRow('col', ${ri}, 'down')">▼</button>
+                 <button class="btn rm" onclick="rmRow('col', ${ri})">✕</button>
+               </td></tr>`;
+       });
+    }
+  });
+  h += `</tbody><tfoot><tr><td data-labelkey="colTable.total">${lbl('colTable.total','Total Expenses')}</td>`;
+  for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''}" data-colval="monthly"></td><td data-colval="yearly" id="col-total-${i}"></td>`;
+  h += '<td class="edit-only"></td></tr></tfoot>';
+  t.innerHTML = h;
+  t.querySelectorAll('input[type=number]:not([disabled]), input.name-input').forEach(inp=> inp.addEventListener('input', e=>{
+    const {r,f,y} = e.target.dataset;
+    if(f==='name') state.col[r].name = e.target.value;
+    else state.col[r].monthly[y] = num(e.target.value);
+    renderSummary();
+  }));
+  t.querySelectorAll('[data-catrename]').forEach(el=> el.addEventListener('blur', ()=>{
+    const oldCat = el.dataset.catrename, newCat = el.textContent.trim() || 'Other';
+    if(newCat===oldCat) return;
+    const i = getCatOrder().indexOf(oldCat);
+    if(i>=0) state.catOrder[i] = newCat;
+    state.col.forEach(r=>{ if((r.cat||'Other')===oldCat) r.cat = newCat; });
+    buildColTable(); renderSummary();
+  }));
+  t.querySelectorAll('[data-catmove]').forEach(b=> b.addEventListener('click', ()=>{
+    const order = getCatOrder(), cat = b.dataset.cat, i = order.indexOf(cat);
+    const j = b.dataset.catmove==='up' ? i-1 : i+1;
+    if(j<0 || j>=order.length) return;
+    [order[i], order[j]] = [order[j], order[i]];
+    buildColTable();
+  }));
+  makeEditableLabels(t);
+}
+
+function buildRetireTable(){
+  const t = document.getElementById('retireTable');
+  let h = '<thead>' + yearHeaderRowMerged('retireTable.header','Target rate (% of gross)') + '</thead><tbody>';
+  h += `<tr><td data-labelkey="retireTable.rate">${lbl('retireTable.rate','Target rate')}</td>`;
+  for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''}" data-colval="val"><input type="number" step="0.1" data-y="${i}" value="${state.retireRate[i]}"></td>`;
+  h += '<td class="edit-only"></td></tr>';
+  h += `<tr><td data-labelkey="retireTable.roth">${lbl('retireTable.roth','→ Roth IRA')}</td>`;
+  for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''} yearly-cell" data-colval="val" id="roth-amt-${i}"></td>`;
+  h += '<td class="edit-only"></td></tr>';
+  h += `<tr><td data-labelkey="retireTable.k401">${lbl('retireTable.k401','→ 401k')}</td>`;
+  for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''} yearly-cell" data-colval="val" id="k401-amt-${i}"></td>`;
+  h += '<td class="edit-only"></td></tr></tbody>';
+  t.innerHTML = h;
+  t.querySelectorAll('input[data-y]').forEach(inp=> inp.addEventListener('input', e=>{
+    state.retireRate[e.target.dataset.y] = num(e.target.value); renderSummary();
+  }));
+  makeEditableLabels(t);
+}
+
+function buildTaxTable(){
+  const t = document.getElementById('taxTable');
+  let h = '<thead>' + yearHeaderRowMerged('taxTable.header','Location & Deductions') + '</thead><tbody>';
+
+  h += `<tr><td data-labelkey="taxTable.stateRow">${lbl('taxTable.stateRow','Location')}</td>`;
+  for(let i=0;i<YEARS;i++){
+    h += `<td class="${i>0?'yr-start':''}" data-colval="val"><select data-y="${i}" class="state-select">`;
+    h += `<option value="CA" ${state.st[i]==='CA'?'selected':''}>California</option>`;
+    h += `<optgroup label="New York">`;
+    h += `<option value="NY" ${state.st[i]==='NY'?'selected':''}>NY (State Only)</option>`;
+    h += `<option value="NYC" ${state.st[i]==='NYC'?'selected':''}>NY + New York City</option>`;
+    h += `<option value="YONKERS" ${state.st[i]==='YONKERS'?'selected':''}>NY + Yonkers</option>`;
+    h += `</optgroup></select></td>`;
+  }
+  h += '<td class="edit-only"></td></tr>';
+  
+  h += `<tr><td data-labelkey="taxTable.kids">${lbl('taxTable.kids','Kids')}</td>`;
+  for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''}" data-colval="val"><input type="number" min="0" max="10" data-y="${i}" value="${state.deps[i]}"></td>`;
+  h += '<td class="edit-only"></td></tr>';
+  h += `<tr><td data-labelkey="taxTable.fed">${lbl('taxTable.fed','Federal tax')}</td>`;
+  for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''} yearly-cell" data-colval="val" id="tax-fed-${i}"></td>`;
+  h += '<td class="edit-only"></td></tr>';
+  h += `<tr><td data-labelkey="taxTable.state">${lbl('taxTable.state','State/Local Tax')}</td>`;
+  for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''} yearly-cell" data-colval="val" id="tax-state-${i}"></td>`;
+  h += '<td class="edit-only"></td></tr>';
+  h += `<tr><td data-labelkey="taxTable.fica">${lbl('taxTable.fica','FICA')}</td>`;
+  for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''} yearly-cell" data-colval="val" id="tax-fica-${i}"></td>`;
+  h += '<td class="edit-only"></td></tr>';
+  h += `<tr class="total"><td data-labelkey="taxTable.total">${lbl('taxTable.total','Total tax')}</td>`;
+  for(let i=0;i<YEARS;i++) h += `<td class="${i>0?'yr-start':''}" data-colval="val" id="tax-total-${i}"></td>`;
+  h += '<td class="edit-only"></td></tr></tbody>';
+  t.innerHTML = h;
+
+  t.querySelectorAll('select.state-select').forEach(sel=> sel.addEventListener('change', e=>{
+    const y = e.target.dataset.y;
+    state.st[y] = e.target.value;
+    renderSummary(); saveToStorage();
+  }));
+
+  t.querySelectorAll('input[type="number"][data-y]').forEach(inp=> inp.addEventListener('input', e=>{
+    state.deps[e.target.dataset.y] = num(e.target.value); renderSummary();
+  }));
+  makeEditableLabels(t);
+}
+
+function renderGraphToggles(r) {
+  const gT = document.getElementById('graphToggles');
+  const series = [
+    {k:'gross', l:'Gross Income'}, 
+    {k:'colOnly', l:'Expenses'}, 
+    {k:'save', l:'Regular Savings'}, 
+    {k:'retire', l:'Retirement'}
+  ];
+  
+  let html = '';
+  series.forEach(s => {
+    const active = state.graphToggles[s.k] !== false;
+    html += `<label class="toggle-pill ${active?'active':'inactive'}">
+               <input type="checkbox" class="toggle-chk" data-key="${s.k}" ${active?'checked':''}>
+               <input type="color" class="pill-swatch" data-key="${s.k}" value="${state.barColors[s.k]}" title="Change color">
+               <span>${s.l}</span>
+             </label>`;
+  });
+  gT.innerHTML = html;
+  
+  gT.querySelectorAll('.toggle-chk').forEach(chk => {
+    chk.addEventListener('change', e => {
+       state.graphToggles[e.target.dataset.key] = e.target.checked;
+       renderGraph(compute()); 
+       renderGraphToggles();
+       saveToStorage();
+    });
+  });
+  gT.querySelectorAll('.pill-swatch').forEach(inp => {
+    inp.addEventListener('input', e => {
+       state.barColors[e.target.dataset.key] = e.target.value;
+       renderGraph(compute());
+    });
+    inp.addEventListener('change', () => saveToStorage()); 
+  });
+}
+
+function renderGraph(r) {
+  const wrap = document.getElementById('graphWrap');
+  const svg = document.getElementById('graphSvg');
+  if(!svg || !wrap) return;
+  
+  const w = wrap.clientWidth || 800;
+  const h = state.graphHeight || 280;
+  wrap.style.height = h + 'px';
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  
+  const padT = 20, padB = 30, padX = 30;
+  const drawH = h - padT - padB;
+  const mode = state.graphType || 'area';
+  
+  const allSeries = [
+    {k:'gross', l:'Gross Income', v: r.g},
+    {k:'colOnly', l:'Total Expenses', v: r.colOnly},
+    {k:'save', l:'Regular Savings', v: r.savings.map(v=>Math.max(0,v))}, 
+    {k:'retire', l:'Retirement', v: r.retireActual}
+  ];
+  
+  const activeSeries = allSeries.filter(s => state.graphToggles[s.k] !== false);
+  
+  let maxVal = 1000;
+  activeSeries.forEach(s => { maxVal = Math.max(maxVal, ...s.v); });
+  maxVal = maxVal * 1.1; 
+  
+  let svgHtml = `<defs>`;
+  activeSeries.forEach(s => {
+     const c = state.barColors[s.k];
+     svgHtml += `<linearGradient id="grad-${s.k}" x1="0" y1="0" x2="0" y2="1">
+                   <stop offset="0%" stop-color="${c}" stop-opacity="0.6"/>
+                   <stop offset="100%" stop-color="${c}" stop-opacity="0.02"/>
+                 </linearGradient>`;
+  });
+  svgHtml += `</defs>`;
+  
+  for(let i=0; i<=4; i++) {
+     let y = padT + (drawH * (i/4));
+     svgHtml += `<line x1="${padX}" y1="${y}" x2="${w-padX}" y2="${y}" stroke="var(--border)" stroke-width="1" opacity="0.5"/>`;
+  }
+  
+  const getY = (val) => padT + drawH - (Math.max(0, val) / maxVal * drawH);
+  const getX = (idx) => padX + (idx / Math.max(1, (YEARS-1))) * (w - 2*padX);
+  
+  if (mode === 'area') {
+     activeSeries.forEach((s) => {
+        const color = state.barColors[s.k];
+        let dArea = `M ${getX(0)},${getY(s.v[0])}`;
+        for(let i=1; i<YEARS; i++) dArea += ` L ${getX(i)},${getY(s.v[i])}`;
+        dArea += ` L ${getX(YEARS-1)},${padT+drawH} L ${getX(0)},${padT+drawH} Z`;
+        
+        let dLine = `M ${getX(0)},${getY(s.v[0])}`;
+        for(let i=1; i<YEARS; i++) dLine += ` L ${getX(i)},${getY(s.v[i])}`;
+        
+        svgHtml += `<path d="${dArea}" fill="url(#grad-${s.k})" />`;
+        svgHtml += `<path d="${dLine}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />`;
+        
+        for(let i=0; i<YEARS; i++) {
+           svgHtml += `<circle cx="${getX(i)}" cy="${getY(s.v[i])}" r="4" fill="${color}" stroke="var(--panel)" stroke-width="2"/>`;
+        }
+     });
+  } 
+  else if (mode === 'grouped') {
+     const bw = Math.min(40, ((w - 2*padX) / YEARS) / Math.max(1, activeSeries.length) * 0.8);
+     for(let i=0; i<YEARS; i++) {
+        let cx = padX + (i + 0.5) * ((w - 2*padX) / YEARS);
+        let startX = cx - (bw * activeSeries.length)/2;
+        activeSeries.forEach((s, sIdx) => {
+           let valY = getY(s.v[i]);
+           let barH = padT + drawH - valY;
+           svgHtml += `<rect x="${startX + sIdx*bw}" y="${valY}" width="${bw-1.5}" height="${barH}" fill="${state.barColors[s.k]}" rx="2"/>`;
+        });
+     }
+  }
+  
+  for(let i=0; i<YEARS; i++) {
+     let lx = (mode === 'area') ? getX(i) : padX + (i + 0.5) * ((w - 2*padX) / YEARS);
+     svgHtml += `<text x="${lx}" y="${h - 5}" fill="var(--muted2)" font-size="10.5" font-weight="600" font-family="var(--sans)" text-anchor="middle">YEAR ${i+1}</text>`;
+  }
+  
+  let zoneW = (w - 2*padX) / Math.max(1, YEARS);
+  for(let i=0; i<YEARS; i++) {
+     let lx = (mode === 'area') ? getX(i) : padX + (i + 0.5) * ((w - 2*padX) / YEARS);
+     svgHtml += `<rect x="${lx - zoneW/2}" y="0" width="${zoneW}" height="${h}" fill="transparent" class="hover-zone" data-yr="${i}" />`;
+  }
+  
+  svgHtml += `<line id="hoverLine" class="hover-line" x1="0" y1="${padT}" x2="0" y2="${padT+drawH}" display="none" />`;
+  svg.innerHTML = svgHtml;
+  
+  const tt = document.getElementById('graphTooltip');
+  const hLine = document.getElementById('hoverLine');
+  svg.querySelectorAll('.hover-zone').forEach(zone => {
+     zone.addEventListener('mouseenter', e => {
+        let yr = parseInt(e.target.dataset.yr);
+        let cx = (mode === 'area') ? getX(yr) : padX + (yr + 0.5) * ((w - 2*padX) / YEARS);
+        hLine.setAttribute('x1', cx);
+        hLine.setAttribute('x2', cx);
+        hLine.setAttribute('display', 'block');
+        
+        let ttHtml = `<div class="tt-yr">Year ${yr+1}</div>`;
+        activeSeries.forEach(s => {
+           ttHtml += `<div class="tt-row">
+                        <div><span class="tt-dot" style="background:${state.barColors[s.k]}"></span>${s.l}</div>
+                        <strong>${fmt$(s.v[yr])}</strong>
+                      </div>`;
+        });
+        tt.innerHTML = ttHtml;
+        tt.style.opacity = 1;
+     });
+     zone.addEventListener('mousemove', e => {
+         const svgRect = svg.getBoundingClientRect();
+         const mouseX = e.clientX - svgRect.left;
+         if (mouseX > svgRect.width / 2) {
+             tt.style.left = 'auto';
+             tt.style.right = (svgRect.width - mouseX + 15) + 'px';
+         } else {
+             tt.style.right = 'auto';
+             tt.style.left = (mouseX + 15) + 'px';
+         }
+         tt.style.top = '15px';
+     });
+     zone.addEventListener('mouseleave', () => {
+        tt.style.opacity = 0;
+        hLine.setAttribute('display', 'none');
+     });
+  });
+}
+
+window.addEventListener('resize', () => renderGraph(compute()));
+
+function renderSummary(){
+  const r = compute();
+
+  state.workers.forEach((w,wi)=>{ for(let i=0;i<YEARS;i++){
+    const el = document.getElementById(`w-annual-${wi}-${i}`);
+    if(el) el.textContent = fmt$(w.hours[i]*w.wage[i]*52);
+  }});
+
+  const hex = (state.colHue||'#8C3B33').replace('#','');
+  const hr = parseInt(hex.slice(0,2),16), hg = parseInt(hex.slice(2,4),16), hb = parseInt(hex.slice(4,6),16);
+  
+  const intensity = typeof state.colIntensity === 'number' ? state.colIntensity : 75;
+  const contrast = typeof state.colContrast === 'number' ? state.colContrast : 50;
+  const exp = Math.pow(4, (50 - contrast) / 50); 
+  
+  function heatColor(val){
+    if(val<=0 || intensity === 0) return '';
+    let ratio = val / Math.max(1, maxGlobalCost);
+    let t = Math.pow(ratio, exp) * (intensity / 100);
+    if(t < 0.05 && t > 0) t = 0.05;
+    return `rgba(${hr},${hg},${hb},${t.toFixed(3)})`;
+  }
+  
+  state.col.forEach((row,ri)=>{ for(let i=0;i<YEARS;i++){
+    const el = document.getElementById(`col-yearly-${ri}-${i}`);
+    if(!el) continue;
+    const val = num(row.monthly[i])*12;
+    el.textContent = fmt$(val);
+    el.style.background = heatColor(val);
+  }});
+  for(let i=0;i<YEARS;i++){ const el = document.getElementById(`col-total-${i}`); if(el) el.textContent = fmt$(r.colTotal[i]); }
+
+  state.col.forEach((row,ri)=>{ if(!row.auto) return;
+    for(let i=0;i<YEARS;i++){
+      const el = document.getElementById(`col-monthly-${ri}-${i}`);
+      if(el) el.value = Math.round(row.monthly[i]);
+    }
+  });
+
+  for(let i=0;i<YEARS;i++){
+    const rEl = document.getElementById(`roth-amt-${i}`); if(rEl) rEl.textContent = fmt$(r.rothArr[i]);
+    const kEl = document.getElementById(`k401-amt-${i}`); if(kEl) kEl.textContent = fmt$(r.k401Arr[i]);
+  }
+
+  for(let i=0;i<YEARS;i++){
+    document.getElementById(`tax-fed-${i}`).textContent = fmt$(r.fed[i]);
+    document.getElementById(`tax-state-${i}`).textContent = fmt$(r.stTax[i]);
+    document.getElementById(`tax-fica-${i}`).textContent = fmt$(r.fica[i]);
+    document.getElementById(`tax-total-${i}`).textContent = fmt$(r.fed[i]+r.stTax[i]+r.fica[i]);
+  }
+
+  const cols = [
+    ['gross','Gross income', r.g, false],
+    ['tax','Tax', r.fed.map((f,i)=> -(f+r.stTax[i]+r.fica[i])), false],
+    ['net','Net income', r.net, false],
+    ['expenses','Total expenses', r.colTotal.map(v=>-v), false],
+    ['savings','Savings', r.savings, true],
+    ['savingsOT','Savings (total)', r.savingsOT, true],
+    ['retireC','Retirement contributed', r.retireActual, false],
+    ['retireT','Retirement target', r.retireTarget, false],
+    ['retireOT','Retirement (total)', r.retireOT, true],
+  ];
+  let h = `<thead><tr><th data-labelkey="summaryTable.yearcol">${lbl('summaryTable.yearcol','Year')}</th>`;
+  cols.forEach(([key,label])=> h += `<th data-labelkey="summaryTable.${key}" data-colval="${key}">${lbl('summaryTable.'+key,label)}</th>`);
+  h += '<th class="edit-only"></th></tr></thead><tbody>';
+  for(let i=0;i<YEARS;i++){
+    h += `<tr><td data-labelkey="summaryTable.yr${i}">${lbl('summaryTable.yr'+i,'Year '+(i+1))}</td>`;
+    cols.forEach(([key,label,vals,isTotal])=>{
+      const v = vals[i];
+      h += `<td class="${v<0?'neg':'pos'}${isTotal?' total-col':''}" data-colval="${key}">${fmt$(v)}</td>`;
+    });
+    h += '<td class="edit-only"></td></tr>';
+  }
+  h += '</tbody>';
+  document.getElementById('summaryTable').innerHTML = h;
+  makeEditableLabels(document.getElementById('summaryTable'));
+
+  const totalSavings = r.savingsOT[YEARS-1], totalRetire = r.retireOT[YEARS-1];
+  const totalGross = r.g.reduce((a,b)=>a+b,0), totalTax = r.fed.reduce((a,b)=>a+b,0)+r.stTax.reduce((a,b)=>a+b,0)+r.fica.reduce((a,b)=>a+b,0);
+  document.getElementById('cards').innerHTML = `
+    <div class="card"><div class="k">6-yr savings</div><div class="v">${fmt$(totalSavings)}</div></div>
+    <div class="card"><div class="k">6-yr retirement</div><div class="v">${fmt$(totalRetire)}</div></div>
+    <div class="card"><div class="k">Avg. effective tax rate</div><div class="v">${fmtPct(totalGross? totalTax/totalGross*100 : 0)}</div></div>`;
+
+  let sh = '';
+  for(let i=0;i<YEARS;i++){
+    const v = r.savings[i];
+    let trend = '';
+    if(i>0){
+      const up = v > r.savings[i-1];
+      trend = `<span class="trend ${up?'up':'down'}">${up?'▲':'▼'}</span>`;
+    }
+    sh += `<div class="yr"><span class="lab">Year ${i+1}</span><span class="val ${v<0?'neg':'pos'}">${trend}${fmt$(v)}</span></div>`;
+  }
+  document.getElementById('stickyBarYears').innerHTML = sh;
+  
+  document.getElementById('graphTypeSelect').value = state.graphType || 'area';
+  
+  renderGraphToggles(r);
+  renderGraph(r);
+}
+
+function initControls(){
+  document.getElementById('statusSel').value = state.taxStatus || 'Married';
+  document.getElementById('statusSel').addEventListener('change', e=>{
+    state.taxStatus = e.target.value;
+    renderSummary(); saveToStorage();
+  });
+
+  document.getElementById('fica').checked = state.fica;
+  document.getElementById('fica').addEventListener('change', e=>{ state.fica = e.target.checked; renderSummary(); saveToStorage(); });
+  
+  document.getElementById('catSortAction').addEventListener('change', e => {
+     const dir = e.target.value;
+     if(!dir) return;
+     
+     const catTotals = {};
+     state.col.forEach(r => {
+         const cat = r.cat || 'Other';
+         if (!catTotals[cat]) catTotals[cat] = 0;
+         let rowSum = r.monthly.reduce((sum, val) => sum + num(val), 0);
+         r._tempSum = rowSum;
+         catTotals[cat] += rowSum;
+     });
+
+     state.catOrder.sort((a, b) => {
+         const diff = (catTotals[b] || 0) - (catTotals[a] || 0);
+         return dir === 'desc' ? diff : -diff;
+     });
+
+     state.col.sort((a, b) => {
+         const catDiff = state.catOrder.indexOf(a.cat || 'Other') - state.catOrder.indexOf(b.cat || 'Other');
+         if (catDiff !== 0) return catDiff;
+         const diff = (b._tempSum || 0) - (a._tempSum || 0);
+         return dir === 'desc' ? diff : -diff;
+     });
+
+     buildColTable();
+     renderSummary();
+     saveToStorage();
+     e.target.value = '';
+  });
+
+  document.getElementById('colIntensity').value = state.colIntensity !== undefined ? state.colIntensity : 75;
+  document.getElementById('colIntensity').addEventListener('input', e=>{ state.colIntensity = num(e.target.value); renderSummary(); });
+  document.getElementById('colIntensity').addEventListener('change', () => saveToStorage());
+  
+  document.getElementById('colContrast').value = state.colContrast !== undefined ? state.colContrast : 50;
+  document.getElementById('colContrast').addEventListener('input', e=>{ state.colContrast = num(e.target.value); renderSummary(); });
+  document.getElementById('colContrast').addEventListener('change', () => saveToStorage());
+  
+  document.getElementById('colHue').value = state.colHue;
+  document.getElementById('colHue').addEventListener('input', e=>{ state.colHue = e.target.value; renderSummary(); });
+  document.getElementById('colHue').addEventListener('change', () => saveToStorage());
+
+  document.getElementById('addWorkerBtn').addEventListener('click', ()=>{
+    state.workers.push({name:'New Worker', hours:Array(YEARS).fill(0), wage:Array(YEARS).fill(0)});
+    buildWorkerTable(); renderSummary(); saveToStorage();
+  });
+  
+  document.getElementById('addOther').addEventListener('click', ()=>{
+    state.other.push({name:'New source', amount:Array(YEARS).fill(0)});
+    buildOtherTable(); renderSummary(); saveToStorage();
+  });
+  
+  document.getElementById('addCol').addEventListener('click', ()=>{
+    state.col.push({name:'New expense', cat:'Other', monthly:Array(YEARS).fill(0)});
+    buildColTable(); renderSummary(); saveToStorage();
+  });
+  
+  document.getElementById('addCategoryBtn').addEventListener('click', ()=>{
+    state.col.push({name:'New item', cat:'New Category', monthly:Array(YEARS).fill(0)});
+    buildColTable(); renderSummary(); saveToStorage();
+  });
+  
+  document.getElementById('graphTypeSelect').addEventListener('change', e => {
+     state.graphType = e.target.value;
+     renderSummary();
+     saveToStorage();
+  });
+  
+  document.getElementById('graphHeightSelect').value = state.graphHeight || 280;
+  document.getElementById('graphHeightSelect').addEventListener('change', e => {
+     state.graphHeight = parseInt(e.target.value, 10);
+     renderGraph(compute());
+     saveToStorage();
+  });
+
+  document.getElementById('darkModeBtn').addEventListener('click', e => {
+     state.darkMode = !state.darkMode;
+     document.body.classList.toggle('dark-mode', state.darkMode);
+     e.target.textContent = state.darkMode ? '☀ Light' : '☾ Dark';
+     saveToStorage();
+  });
+}
+
+const SAVE_KEY = 'householdLedger_v25_ExpenseSort';
+const STATE_FIELDS = ['sectionOrder','darkMode','showOtherIncome','collapsedCats','colIntensity','colContrast','taxStatus','graphHeight','graphType','graphToggles','workers','other','col','retireRate','deps','st','local','fica','colHue','barColors','catOrder','labels'];
+
+function saveToStorage(){
+  try {
+    const payload = {v:1, YEARS};
+    STATE_FIELDS.forEach(k=>{ payload[k] = state[k]; });
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+  } catch(e){}
+}
+
+function loadFromStorage(){
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const saved = JSON.parse(raw);
+    if(saved.v !== 1) return false;
+    if(typeof saved.YEARS === 'number' && saved.YEARS >= 1 && saved.YEARS <= 10) YEARS = saved.YEARS;
+    STATE_FIELDS.forEach(k=>{ if(saved[k] !== undefined) state[k] = saved[k]; });
+    if(!state.sectionOrder) state.sectionOrder = ['sec-income','sec-taxes','sec-expenses','sec-retire','sec-summary'];
+    if(!state.collapsedCats) state.collapsedCats = {};
+    if(state.showOtherIncome === undefined) state.showOtherIncome = true;
+    if(state.colIntensity === undefined) state.colIntensity = 75;
+    if(state.colContrast === undefined) state.colContrast = 50;
+    
+    if(state.darkMode) {
+       document.body.classList.add('dark-mode');
+       document.getElementById('darkModeBtn').textContent = '☀ Light';
+    }
+    return true;
+  } catch(e){ return false; }
+}
+
+initControls();
+if(!loadFromStorage()) {
+   state.sectionOrder = ['sec-income','sec-taxes','sec-expenses','sec-retire','sec-summary'];
+}
+renderSectionOrder();
+
+buildWorkerTable();
+buildOtherTable();
+buildColTable();
+buildRetireTable();
+buildTaxTable();
+
+const mainEditBtn = document.getElementById('mainEditBtn');
+
+function toggleEditMode(forceState) {
+  isEditMode = forceState !== undefined ? forceState : !isEditMode;
+  mainEditBtn.classList.toggle('active', isEditMode);
+  mainEditBtn.textContent = isEditMode ? '✓ Done Editing' : '✎ Edit Planner';
+  
+  editCategories = isEditMode;
+  editHeaders = isEditMode;
+  editTitle = isEditMode;
+  
+  document.body.classList.toggle('edit-mode', isEditMode);
+  
+  document.querySelectorAll('.editable-h2').forEach(h=>{
+    if(isEditMode){ h.setAttribute('contenteditable','true'); }
+    else { h.removeAttribute('contenteditable'); h.blur(); }
+  });
+  
+  ['eyebrowText','titleText','subText'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(isEditMode){
+      el.setAttribute('contenteditable','true');
+      el.addEventListener('input', ()=>{ if(id==='subText') subtitleCustomized = true; }, {once:true});
+    } else {
+      el.removeAttribute('contenteditable');
+      el.blur();
+    }
+  });
+  
+  buildWorkerTable(); buildOtherTable(); buildColTable(); buildRetireTable(); buildTaxTable();
+  renderSummary();
+  document.getElementById('restoreOtherIncomeBtn').style.display = (!state.showOtherIncome && isEditMode) ? 'inline-block' : 'none';
+}
+
+mainEditBtn.addEventListener('click', () => toggleEditMode());
+
+document.getElementById('addYearBtn').addEventListener('click', e=>{ e.stopPropagation(); addYear(); saveToStorage(); });
+document.getElementById('removeYearBtn').addEventListener('click', e=>{ e.stopPropagation(); removeYear(); saveToStorage(); });
+document.getElementById('resetBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  if(!confirm('Reset all data to defaults? This cannot be undone.')) return;
+  try { localStorage.removeItem(SAVE_KEY); } catch(_){}
+  location.reload();
+});
+
+document.querySelectorAll('.editable-h2').forEach(h=>{
+  h.addEventListener('click', e=>{ if(h.isContentEditable) e.stopPropagation(); });
+  h.addEventListener('keydown', e=>{ if(e.key==='Enter' && h.isContentEditable){ e.preventDefault(); h.blur(); } });
+});
+updateYearMenuUI();
+renderSummary();
+</script>
+</body>
+</html>

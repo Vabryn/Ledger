@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Ledger · Household Financial Planner</title>
+  <meta name="description" content="A simple, elegant financial planner. Track income, calculate taxes, organize expenses by category, and forecast wealth accumulation.">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230f1012'/><path d='M6 23V17M12 23V11M18 23V7M24 23V13' stroke='%237eaed4' stroke-width='2.5' stroke-linecap='round'/></svg>">
+</head>
+<body>
+
+  <!-- ======================================================== -->
+  <!-- TOP NAVIGATION & CONTROLS                                -->
+  <!-- ======================================================== -->
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="masthead-left">
+        <a href="#" class="masthead-brand" onclick="event.preventDefault(); switchTab('overview');">
+          <div class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 20V14M10 20V9M16 20V5M22 20V11"></path>
+            </svg>
+          </div>
+          <span class="brand-title">Ledger</span>
+          <span class="brand-sub">Financial Planner</span>
+        </a>
+        <span class="masthead-badge">2025 Tax Model</span>
+      </div>
+
+      <!-- Prominent Top-Centered Gooey Puck (Single Year vs Multi-Year) -->
+      <div class="masthead-center">
+        <div class="gooey-puck-track" id="modePuckTrack" role="tablist" aria-label="Planning Mode">
+          <div class="gooey-puck-indicator" id="gooeyPuckIndicator"></div>
+          <button type="button" class="gooey-puck-btn active" id="btnModeSingleYear" data-mode="single" role="tab" aria-selected="true" onclick="setPlannerMode('single')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="puck-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Single Year</span>
+          </button>
+          <button type="button" class="gooey-puck-btn" id="btnModeMultiYear" data-mode="multi" role="tab" aria-selected="false" onclick="setPlannerMode('multi')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="puck-icon"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            <span>Multi-Year</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="masthead-right">
+        <!-- Start Year Picker -->
+        <div class="stepper-group" title="Active calendar year">
+          <span class="stepper-label" id="startYearLabel">Year</span>
+          <div class="stepper-controls">
+            <button type="button" class="stepper-btn" id="btnPrevStartYear" onclick="stepStartYear(-1)" aria-label="Previous start year">‹</button>
+            <span class="stepper-val tabular" id="startYearDisplay">2025</span>
+            <button type="button" class="stepper-btn" id="btnNextStartYear" onclick="stepStartYear(1)" aria-label="Next start year">›</button>
+          </div>
+        </div>
+
+        <!-- Projection Horizon (Visible only in Multi-Year Mode) -->
+        <div class="stepper-group" id="horizonStepperWrapper" style="visibility: hidden; pointer-events: none;" title="How many years to project">
+          <span class="stepper-label">Horizon</span>
+          <div class="stepper-controls">
+            <button type="button" class="stepper-btn" id="btnRemoveYear" onclick="stepYears(-1)" aria-label="Fewer years">‹</button>
+            <span class="stepper-val tabular" id="yearsCountDisplay">6 yrs</span>
+            <button type="button" class="stepper-btn" id="btnAddYear" onclick="stepYears(1)" aria-label="More years">›</button>
+          </div>
+        </div>
+
+
+        <div class="masthead-actions">
+          <button type="button" class="btn-subtle" id="btnSampleState" onclick="loadSampleData()" title="Load sample household budget">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            <span>Sample</span>
+          </button>
+          
+          <button type="button" class="btn-subtle" id="btnClearState" onclick="resetData()" title="Reset all amounts to zero">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <span>Reset</span>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button type="button" class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()" aria-label="Toggle theme">
+            <svg id="themeIconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <span id="themeLabel">Light</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- MAIN CONTAINER                                           -->
+  <!-- ======================================================== -->
+  <main class="page-container">
+
+    <!-- KPI HUD: Clean Editorial Metrics Row -->
+    <section class="metrics-grid" id="hudMetrics" aria-label="Key Financial Figures">
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label" id="lblGrossMetric">Gross Income</span>
+          <span class="metric-badge" id="badgeGrossTrend">Annual Total</span>
+        </div>
+        <div class="metric-value tabular" id="hudGrossVal">$0</div>
+        <div class="metric-footnote" id="hudGrossFoot">Salaries & investments</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Take-Home Pay</span>
+          <span class="metric-badge pos" id="hudTaxRateBadge">0.0% tax</span>
+        </div>
+        <div class="metric-value tabular" id="hudNetVal">$0</div>
+        <div class="metric-footnote" id="hudNetFoot">After income & payroll taxes</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Expenses</span>
+          <span class="metric-badge neg" id="hudColBadge">0.0% of pay</span>
+        </div>
+        <div class="metric-value tabular" id="hudColVal">$0</div>
+        <div class="metric-footnote" id="hudColFoot">Housing, bills & everyday life</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Net Savings</span>
+          <span class="metric-badge pos" id="hudSavingsBadge">+Surplus</span>
+        </div>
+        <div class="metric-value tabular" id="hudSavingsVal">$0</div>
+        <div class="metric-footnote" id="hudSavingsFoot">Cash saved in 2025</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Retirement</span>
+          <span class="metric-badge" id="hudRetireBadge">401(k) + Roth</span>
+        </div>
+        <div class="metric-value tabular accent-glow" id="hudRetireVal">$0</div>
+        <div class="metric-footnote" id="hudRetireFoot">Total invested wealth</div>
+      </div>
+    </section>
+
+    <!-- MAIN SECTION TABS -->
+    <nav class="cockpit-tabs-bar" aria-label="Planner Sections">
+      <div class="segmented-control main-tabs" id="sectionTabs">
+        <button type="button" class="segmented-btn active" data-tab="overview" onclick="switchTab('overview')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Overview</span>
+        </button>
+        <button type="button" class="segmented-btn" data-tab="income" onclick="switchTab('income')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Income</span>
+        </button>
+        <button type="button" class="segmented-btn" data-tab="expenses" onclick="switchTab('expenses')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+          <span>Expenses</span>
+        </button>
+        <button type="button" class="segmented-btn" data-tab="taxes" onclick="switchTab('taxes')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/></svg>
+          <span>Taxes</span>
+        </button>
+        <button type="button" class="segmented-btn" data-tab="retire" onclick="switchTab('retire')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+          <span>Retirement & Savings</span>
+        </button>
+        <button type="button" class="segmented-btn" id="tabBtnVisualizer" data-tab="visualizer" onclick="switchTab('visualizer')" style="display: none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M18 9l-5 5-4-4-6 6"/></svg>
+          <span>Projections</span>
+        </button>
+      </div>
+
+      <div class="tabs-bar-right">
+        <button type="button" class="btn-outline-pill" id="btnToggleEdit" onclick="toggleEditMode()" title="Toggle table row editing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <span id="lblEditToggle">Edit Table</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ======================================================== -->
+    <!-- TAB PANELS                                               -->
+    <!-- ======================================================== -->
+
+    <!-- TAB 1: OVERVIEW -->
+    <div class="tab-panel active" id="panelOverview">
+      <!-- Top Grid: Trajectory Chart & Wealth Breakdown -->
+      <div class="cockpit-top-grid">
+        <!-- SVG Trajectory Chart Card -->
+        <div class="glass-card visualizer-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="card-kicker" id="overviewChartKicker">Annual Cash Flow</span>
+              <h2 class="card-title font-serif" id="overviewChartTitle">Income & Expense Distribution</h2>
+            </div>
+            <div class="card-actions">
+              <div class="segmented-control mini" id="chartModeToggle">
+                <button type="button" class="segmented-btn active" data-mode="cashflow" onclick="setChartMode('cashflow')">Cash Flow</button>
+                <button type="button" class="segmented-btn" data-mode="wealth" onclick="setChartMode('wealth')">Wealth Growth</button>
+              </div>
+              <div class="segmented-control mini" id="chartTypeToggle">
+                <button type="button" class="segmented-btn active" data-chart="bar" onclick="setChartType('bar')">Bar</button>
+                <button type="button" class="segmented-btn" data-chart="area" onclick="setChartType('area')">Area</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart Legend Pills -->
+          <div class="chart-legend-row" id="chartLegend"></div>
+
+          <!-- SVG Chart Area -->
+          <div class="chart-canvas-container" id="chartCanvasContainer">
+            <svg id="projectionChartSvg" viewBox="0 0 880 240"></svg>
+            <div class="chart-tooltip" id="chartTooltip"></div>
+          </div>
+        </div>
+
+        <!-- Where Your Money Goes Card -->
+        <div class="glass-card highlights-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="card-kicker">Income Distribution</span>
+              <h2 class="card-title font-serif">Where Your Money Goes</h2>
+            </div>
+          </div>
+
+          <div class="highlight-stack">
+            <div class="highlight-item">
+              <div class="highlight-top">
+                <span class="highlight-label">Accumulated Net Wealth</span>
+                <span class="highlight-meta" id="hlNetWealthMeta">Cash + 401k</span>
+              </div>
+              <div class="highlight-val tabular text-emerald" id="hlNetWealthVal">$0</div>
+              <div class="progress-track">
+                <div class="progress-bar bar-emerald" id="hlWealthBar" style="width: 70%;"></div>
+              </div>
+            </div>
+
+            <div class="highlight-item">
+              <div class="highlight-top">
+                <span class="highlight-label">Retirement Accounts</span>
+                <span class="highlight-meta">Invested</span>
+              </div>
+              <div class="highlight-val tabular text-accent" id="hlRetireVal">$0</div>
+              <div class="progress-track">
+                <div class="progress-bar bar-accent" id="hlRetireBar" style="width: 45%;"></div>
+              </div>
+            </div>
+
+            <div class="highlight-item">
+              <div class="highlight-top">
+                <span class="highlight-label">Annual Living Expenses</span>
+                <span class="highlight-meta">Average / Year</span>
+              </div>
+              <div class="highlight-val tabular text-rose" id="hlBurnVal">$0</div>
+              <div class="progress-track">
+                <div class="progress-bar bar-rose" id="hlBurnBar" style="width: 55%;"></div>
+              </div>
+            </div>
+
+            <div class="highlight-item">
+              <div class="highlight-top">
+                <span class="highlight-label">Effective Tax Rate</span>
+                <span class="highlight-meta">Fed + State + FICA</span>
+              </div>
+              <div class="highlight-val tabular text-gold" id="hlTaxFrictionVal">0.0%</div>
+              <div class="progress-track">
+                <div class="progress-bar bar-gold" id="hlTaxBar" style="width: 28%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Master Projection Matrix -->
+      <div class="glass-card matrix-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker" id="summaryMatrixKicker">Annual Summary</span>
+            <h2 class="card-title font-serif">Financial Summary Matrix</h2>
+          </div>
+        </div>
+
+        <div class="table-scroll-container">
+          <table class="ledger-matrix" id="summaryMatrixTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: INCOME -->
+    <div class="tab-panel" id="panelIncome">
+      <div class="glass-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Primary Earnings</span>
+            <h2 class="card-title font-serif">Wage Earners & Salaries</h2>
+          </div>
+          <button type="button" class="btn-primary-sm" id="btnAddEarner" onclick="addWorker()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Add Earner</span>
+          </button>
+        </div>
+
+        <div class="table-scroll-container">
+          <table class="ledger-matrix editable" id="workersTable"></table>
+        </div>
+      </div>
+
+      <div class="glass-card" style="margin-top: 18px;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Additional Income</span>
+            <h2 class="card-title font-serif">Investments, Dividends & Other Inflow</h2>
+          </div>
+          <button type="button" class="btn-primary-sm" id="btnAddOtherIncome" onclick="addOtherIncome()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Add Income Source</span>
+          </button>
+        </div>
+
+        <div class="table-scroll-container">
+          <table class="ledger-matrix editable" id="otherIncomeTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: EXPENSES (USER-FRIENDLY CATEGORY REDESIGN) -->
+    <div class="tab-panel" id="panelExpenses">
+      <!-- 1. Top Spending Distribution & Controls -->
+      <div class="glass-card spend-summary-card">
+        <div class="spend-summary-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Spending Breakdown</span>
+            <h2 class="card-title font-serif">Monthly Expenses by Category</h2>
+          </div>
+          <div class="spend-totals-cluster">
+            <div class="spend-metrics-row">
+              <div class="spend-total-block">
+                <span class="spend-sublabel">Monthly Spending</span>
+                <span class="spend-mainval tabular" id="expensesMonthlyTotalVal">$0</span>
+              </div>
+              <div class="spend-total-block">
+                <span class="spend-sublabel">Annual Total</span>
+                <span class="spend-mainval tabular" id="expensesAnnualTotalVal">$0</span>
+              </div>
+            </div>
+            <div class="segmented-control" id="expenseViewModeToggle">
+              <button type="button" class="segmented-btn active" data-exp-view="cards" onclick="setExpenseView('cards')">Category Cards</button>
+              <button type="button" class="segmented-btn" data-exp-view="table" onclick="setExpenseView('table')">Spreadsheet</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Multi-Segment Proportional Spending Bar -->
+        <div class="spend-bar-wrapper">
+          <div class="spend-bar" id="spendDistributionBar">
+            <!-- Dynamically generated colored segments -->
+          </div>
+        </div>
+
+        <!-- Spending Category Legend Pills -->
+        <div class="spend-legend-row" id="spendLegendRow">
+          <!-- Dynamic category pills with color dot, name, and % share -->
+        </div>
+      </div>
+
+      <!-- 2. Category Cards View (Default & Touch-Friendly) -->
+      <div id="expensesCardsContainer" class="expense-cards-grid">
+        <!-- Rendered by app.js: Interactive category cards with line items and inline quick add -->
+      </div>
+
+      <!-- 3. Full Multi-Year Table View (Optional toggle for power users) -->
+      <div id="expensesTableContainer" class="glass-card" style="display: none; margin-top: 18px;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Multi-Year Overview</span>
+            <h2 class="card-title font-serif">Expenses Spreadsheet</h2>
+          </div>
+        </div>
+        <div class="table-scroll-container">
+          <table class="ledger-matrix editable" id="expensesTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: TAXES -->
+    <div class="tab-panel" id="panelTaxes">
+      <!-- Tax Global Parameters -->
+      <div class="glass-card tax-params-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Filing & Rules</span>
+            <h2 class="card-title font-serif">Tax Settings (2025 IRS Model)</h2>
+          </div>
+        </div>
+
+        <div class="tax-controls-grid">
+          <div class="tax-param-item">
+            <label for="selTaxStatus" class="param-label">Filing Status</label>
+            <select id="selTaxStatus" class="control-select">
+              <option value="Married">Married Filing Jointly</option>
+              <option value="Single">Single</option>
+              <option value="HeadOfHousehold">Head of Household</option>
+              <option value="MarriedSeparate">Married Filing Separately</option>
+            </select>
+          </div>
+
+          <div class="tax-param-item">
+            <label class="param-label">FICA (Social Security & Medicare)</label>
+            <label class="toggle-checkbox">
+              <input type="checkbox" id="chkFicaToggle" checked>
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              <span class="toggle-text">Calculate Payroll Taxes</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- State & Deductions -->
+      <div class="glass-card" style="margin-top: 18px;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">By Projection Year</span>
+            <h2 class="card-title font-serif">Residency, Dependents & Deductions</h2>
+          </div>
+        </div>
+
+        <div class="table-scroll-container">
+          <table class="ledger-matrix editable" id="taxInputsTable"></table>
+        </div>
+      </div>
+
+      <!-- Tax Results -->
+      <div class="glass-card" style="margin-top: 18px;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Tax Breakdown</span>
+            <h2 class="card-title font-serif">Federal, State & Payroll Taxes</h2>
+          </div>
+        </div>
+
+        <div class="table-scroll-container">
+          <table class="ledger-matrix" id="taxResultsTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: RETIREMENT & SAVINGS -->
+    <div class="tab-panel" id="panelRetire">
+      <!-- Retirement Strategy -->
+      <div class="glass-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Long-Term Wealth</span>
+            <h2 class="card-title font-serif">Retirement Contributions</h2>
+          </div>
+          <div class="card-meta">
+            <span class="stat-pill">401(k) Limit: $23,500</span>
+            <span class="stat-pill">Roth IRA: $7,000</span>
+          </div>
+        </div>
+
+        <div class="table-scroll-container">
+          <table class="ledger-matrix editable" id="retireInputsTable"></table>
+        </div>
+      </div>
+
+      <!-- Allocation Breakdown -->
+      <div class="glass-card" style="margin-top: 18px;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Annual Allocation</span>
+            <h2 class="card-title font-serif">Roth IRA vs Traditional 401(k) + Match</h2>
+          </div>
+        </div>
+
+        <div class="table-scroll-container">
+          <table class="ledger-matrix" id="retireBreakdownTable"></table>
+        </div>
+      </div>
+
+      <!-- Dedicated Savings Goals -->
+      <div class="glass-card" style="margin-top: 18px;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Dedicated Savings</span>
+            <h2 class="card-title font-serif">Savings Goals (Emergency, Travel, College)</h2>
+          </div>
+          <button type="button" class="btn-primary-sm" id="btnAddSavingsFund" onclick="addSavingsFund()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Add Goal</span>
+          </button>
+        </div>
+
+        <div class="table-scroll-container">
+          <table class="ledger-matrix editable" id="customSavingsTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: EXPANDED PROJECTIONS -->
+    <div class="tab-panel" id="panelVisualizer">
+      <div class="glass-card visualizer-fullscreen-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-kicker">Full Trajectory</span>
+            <h2 class="card-title font-serif">Financial Trajectory Visualizer</h2>
+          </div>
+          <div class="card-actions">
+            <div class="segmented-control mini" id="vizChartModeToggle">
+              <button type="button" class="segmented-btn active" data-mode="cashflow" onclick="setChartMode('cashflow')">Cash Flow</button>
+              <button type="button" class="segmented-btn" data-mode="wealth" onclick="setChartMode('wealth')">Wealth Growth</button>
+            </div>
+            <div class="segmented-control mini" id="vizChartTypeToggle">
+              <button type="button" class="segmented-btn active" data-chart="bar" onclick="setChartType('bar')">Bars</button>
+              <button type="button" class="segmented-btn" data-chart="area" onclick="setChartType('area')">Area</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-legend-row" id="vizChartLegend"></div>
+
+        <div class="chart-canvas-container expanded" id="vizChartCanvasContainer">
+          <svg id="vizProjectionChartSvg" viewBox="0 0 1000 360"></svg>
+          <div class="chart-tooltip" id="vizChartTooltip"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

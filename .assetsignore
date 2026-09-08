@@ -1,0 +1,9 @@
+.git
+.gitignore
+.assetsignore
+.wrangler
+.chrome-temp
+wrangler.jsonc
+legacy
+*.png
+*.jpg

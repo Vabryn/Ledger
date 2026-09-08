@@ -1,0 +1,16 @@
+{
+  // Static deploy of Household Ledger. No Worker script — just assets.
+  // https://developers.cloudflare.com/workers/static-assets/
+  "name": "ledger",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": ".",
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [
+    {
+      "pattern": "ledger.riverakarom.com",
+      "custom_domain": true
+    }
+  ]
+}
