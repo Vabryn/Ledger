@@ -9,6 +9,7 @@
 
   // ── CONSTANTS & 2025 TAX TABLES ──────────────────────────────────────────
   const STORAGE_KEY = 'ledger_v2_planner_state';
+  const BACKUP_STORAGE_KEY = 'ledger_v2_previous_plan';
 
   const ANNUAL_MULTIPLIERS = {
     Hourly: 52,
@@ -424,6 +425,8 @@
           monthly: [200, 200, 200, 400, 400, 400],
         },
       },
+      firstRun: false,
+      setupGuideVisible: false,
     };
   }
 
@@ -463,47 +466,49 @@
       startingRetirement: 0,
       retirementReturnRate: 6,
       customSavings: {},
+      firstRun: true,
+      setupGuideVisible: true,
     };
   }
 
-  function ensureArraysLength(targetYears) {
-    (state.workers || []).forEach((w) => {
+  function ensureArraysLength(targetYears, targetState = state) {
+    (targetState.workers || []).forEach((w) => {
       if (!Array.isArray(w.wage)) w.wage = [w.wage || 0];
       if (!Array.isArray(w.hours)) w.hours = [w.hours || 40];
       while (w.wage.length < targetYears) w.wage.push(w.wage[w.wage.length - 1] ?? 0);
       while (w.hours.length < targetYears) w.hours.push(w.hours[w.hours.length - 1] ?? 40);
     });
-    (state.other || []).forEach((o) => {
+    (targetState.other || []).forEach((o) => {
       if (!Array.isArray(o.amount)) o.amount = [o.amount || 0];
       while (o.amount.length < targetYears) o.amount.push(o.amount[o.amount.length - 1] ?? 0);
     });
-    (state.col || []).forEach((c) => {
+    (targetState.col || []).forEach((c) => {
       if (!Array.isArray(c.monthly)) c.monthly = [c.monthly || 0];
       while (c.monthly.length < targetYears) c.monthly.push(c.monthly[c.monthly.length - 1] ?? 0);
     });
-    if (state.customSavings) {
-      Object.values(state.customSavings).forEach((s) => {
+    if (targetState.customSavings) {
+      Object.values(targetState.customSavings).forEach((s) => {
         if (!Array.isArray(s.monthly)) s.monthly = [s.monthly || 0];
         while (s.monthly.length < targetYears) s.monthly.push(s.monthly[s.monthly.length - 1] ?? 0);
       });
     }
-    if (state.k401Rate) {
-      while (state.k401Rate.length < targetYears) state.k401Rate.push(state.k401Rate[state.k401Rate.length - 1] ?? 0);
+    if (targetState.k401Rate) {
+      while (targetState.k401Rate.length < targetYears) targetState.k401Rate.push(targetState.k401Rate[targetState.k401Rate.length - 1] ?? 0);
     }
-    if (state.rothRate) {
-      while (state.rothRate.length < targetYears) state.rothRate.push(state.rothRate[state.rothRate.length - 1] ?? 0);
+    if (targetState.rothRate) {
+      while (targetState.rothRate.length < targetYears) targetState.rothRate.push(targetState.rothRate[targetState.rothRate.length - 1] ?? 0);
     }
-    if (state.employerMatchRate) {
-      while (state.employerMatchRate.length < targetYears) state.employerMatchRate.push(state.employerMatchRate[state.employerMatchRate.length - 1] ?? 0);
+    if (targetState.employerMatchRate) {
+      while (targetState.employerMatchRate.length < targetYears) targetState.employerMatchRate.push(targetState.employerMatchRate[targetState.employerMatchRate.length - 1] ?? 0);
     }
-    if (state.st) {
-      while (state.st.length < targetYears) state.st.push(state.st[state.st.length - 1] ?? 'CA');
+    if (targetState.st) {
+      while (targetState.st.length < targetYears) targetState.st.push(targetState.st[targetState.st.length - 1] ?? 'CA');
     }
-    if (state.deps) {
-      while (state.deps.length < targetYears) state.deps.push(state.deps[state.deps.length - 1] ?? 0);
+    if (targetState.deps) {
+      while (targetState.deps.length < targetYears) targetState.deps.push(targetState.deps[targetState.deps.length - 1] ?? 0);
     }
-    if (state.additionalDeductions) {
-      while (state.additionalDeductions.length < targetYears) state.additionalDeductions.push(state.additionalDeductions[state.additionalDeductions.length - 1] ?? 0);
+    if (targetState.additionalDeductions) {
+      while (targetState.additionalDeductions.length < targetYears) targetState.additionalDeductions.push(targetState.additionalDeductions[targetState.additionalDeductions.length - 1] ?? 0);
     }
   }
 
@@ -739,6 +744,9 @@
           if (!parsed.rothRate) parsed.rothRate = Array(parsed.years).fill(0);
           if (!parsed.plannerMode) parsed.plannerMode = 'single';
           if (!parsed.storedMultiYears) parsed.storedMultiYears = parsed.years > 1 ? parsed.years : 6;
+          // Existing plans predate onboarding; do not interrupt them on upgrade.
+          if (typeof parsed.firstRun !== 'boolean') parsed.firstRun = false;
+          if (typeof parsed.setupGuideVisible !== 'boolean') parsed.setupGuideVisible = false;
           if (parsed.plannerMode === 'single') {
             parsed.years = 1;
           }
@@ -748,7 +756,9 @@
     } catch (e) {
       console.warn('Could not read state from localStorage', e);
     }
-    return getDefaultSampleState();
+    // A new planner begins with the user's own blank plan. The sample is an
+    // explicit choice, so its numbers can never be mistaken for saved data.
+    return getCleanEmptyState();
   }
 
   function persistState() {
@@ -768,6 +778,7 @@
   // ── RENDER ROOT ──────────────────────────────────────────────────────────
   function renderAll() {
     renderMastheadControls();
+    renderSetupExperience();
     renderHudMetrics();
     renderHighlights();
     renderSummaryMatrix();
@@ -779,6 +790,20 @@
     renderRetireTables();
     renderCustomSavingsTable();
     renderChart();
+  }
+
+  function renderSetupExperience() {
+    const guide = document.getElementById('setupGuide');
+    if (!guide) return;
+    guide.hidden = state.setupGuideVisible === false;
+    const kicker = document.getElementById('setupGuideKicker');
+    const intro = document.getElementById('setupGuideIntro');
+    if (kicker) kicker.textContent = state.firstRun ? 'Welcome to Ledger' : 'Plan setup';
+    if (intro) {
+      intro.textContent = state.firstRun
+        ? 'Your plan starts blank. Add your own numbers, or explore a clearly marked sample first.'
+        : 'Work through the key inputs in order, then review the monthly amount left over.';
+    }
   }
 
   // ── MASTHEAD & TOP CONTROLS ──────────────────────────────────────────────
@@ -881,8 +906,8 @@
     const totalNet = calc.net.reduce((a, b) => a + b, 0);
     const totalTax = calc.totalTax.reduce((a, b) => a + b, 0);
     const totalCol = calc.colOnly.reduce((a, b) => a + b, 0);
-    const totalSavings = calc.savingsOT[state.years - 1] || 0;
     const totalRetire = calc.retireOT[state.years - 1] || 0;
+    const monthlyLeftOver = (calc.unallocatedBalance?.[0] || 0) / 12;
 
     const effTaxRate = totalGross > 0 ? (totalTax / totalGross) * 100 : 0;
     const colRate = totalGross > 0 ? (totalCol / totalGross) * 100 : 0;
@@ -905,10 +930,10 @@
     document.getElementById('hudColBadge').textContent = `${fmtPct(colRate)} of pay`;
     document.getElementById('hudColVal').textContent = fmt$(totalCol);
 
-    document.getElementById('hudSavingsVal').textContent = fmt$(totalSavings);
-    document.getElementById('hudSavingsBadge').className = `metric-badge ${totalSavings >= 0 ? 'pos' : 'neg'}`;
-    document.getElementById('hudSavingsBadge').textContent = totalSavings >= 0 ? '+Surplus' : '-Deficit';
-    document.getElementById('hudSavingsFoot').textContent = isSingle ? `Cash balance at end of ${state.startYear || 2025}` : 'Cash balance at end of horizon';
+    document.getElementById('hudSavingsVal').textContent = fmt$(monthlyLeftOver);
+    document.getElementById('hudSavingsBadge').className = `metric-badge ${monthlyLeftOver >= 0 ? 'pos' : 'neg'}`;
+    document.getElementById('hudSavingsBadge').textContent = monthlyLeftOver >= 0 ? '+Available' : '-Shortfall';
+    document.getElementById('hudSavingsFoot').textContent = `Per month in ${state.startYear || 2025}, after expenses, retirement & goals`;
 
     document.getElementById('hudRetireVal').textContent = fmt$(totalRetire);
     document.getElementById('hudRetireFoot').textContent = isSingle ? `Invested in ${state.startYear || 2025}` : 'Total invested wealth';
@@ -2087,27 +2112,86 @@
     }
   };
 
+  function showPlanChangeToast(message) {
+    const toast = document.getElementById('planChangeToast');
+    const messageEl = document.getElementById('planChangeToastMessage');
+    if (!toast || !messageEl) return;
+    messageEl.textContent = message;
+    toast.hidden = false;
+  }
+
+  function replacePlan(nextState, message) {
+    try {
+      localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('Could not back up the current plan', e);
+    }
+    state = nextState;
+    recomputeAndRender();
+    showPlanChangeToast(message);
+  }
+
   window.loadSampleData = function () {
     const currentMode = state.plannerMode || 'single';
-    state = getDefaultSampleState();
-    state.plannerMode = currentMode;
+    const nextState = getDefaultSampleState();
+    nextState.plannerMode = currentMode;
     if (currentMode === 'multi') {
-      state.years = state.storedMultiYears || 6;
-      ensureArraysLength(state.years);
+      nextState.years = nextState.storedMultiYears || 6;
+      ensureArraysLength(nextState.years, nextState);
     } else {
-      state.years = 1;
+      nextState.years = 1;
     }
-    recomputeAndRender();
+    replacePlan(nextState, 'Sample plan loaded. Your previous plan is ready to undo.');
   };
 
   window.resetData = function () {
     const currentMode = state.plannerMode || 'single';
-    state = getCleanEmptyState(currentMode === 'single' ? 1 : (state.storedMultiYears || 6));
-    state.plannerMode = currentMode;
+    const nextState = getCleanEmptyState(currentMode === 'single' ? 1 : (state.storedMultiYears || 6));
+    nextState.plannerMode = currentMode;
     if (currentMode === 'single') {
-      state.years = 1;
+      nextState.years = 1;
     }
-    recomputeAndRender();
+    nextState.firstRun = false;
+    replacePlan(nextState, 'A fresh plan is ready. Your previous plan is ready to undo.');
+  };
+
+  window.requestLoadSampleData = function () {
+    if (window.confirm('Load the sample plan? It will replace the plan on screen. You can undo it right after loading.')) {
+      window.loadSampleData();
+    }
+  };
+
+  window.requestResetData = function () {
+    if (window.confirm('Start a fresh plan? It will replace the plan on screen. You can undo it right after resetting.')) {
+      window.resetData();
+    }
+  };
+
+  window.undoPlanReplacement = function () {
+    try {
+      const raw = localStorage.getItem(BACKUP_STORAGE_KEY);
+      const previousPlan = raw && JSON.parse(raw);
+      if (!previousPlan || typeof previousPlan.years !== 'number') return;
+      state = previousPlan;
+      recomputeAndRender();
+      const toast = document.getElementById('planChangeToast');
+      if (toast) toast.hidden = true;
+    } catch (e) {
+      console.warn('Could not restore the previous plan', e);
+    }
+  };
+
+  window.dismissSetupGuide = function () {
+    state.firstRun = false;
+    state.setupGuideVisible = false;
+    persistState();
+    renderSetupExperience();
+  };
+
+  window.openSetupStep = function (tabKey) {
+    state.firstRun = false;
+    persistState();
+    window.switchTab(tabKey);
   };
 
   window.toggleDarkMode = function () {
@@ -2195,8 +2279,8 @@
       id: `w-${Date.now()}`,
       name: `Earner ${state.workers.length + 1}`,
       frequency: 'Hourly',
-      hours: Array(state.years).fill(40),
-      wage: Array(state.years).fill(50),
+      hours: Array(state.years).fill(0),
+      wage: Array(state.years).fill(0),
     });
     recomputeAndRender();
   };
@@ -2205,9 +2289,9 @@
     state.other = state.other || [];
     state.other.push({
       id: `o-${Date.now()}`,
-      name: 'Investment Yield',
+      name: 'Other Income',
       frequency: 'Monthly',
-      amount: Array(state.years).fill(500),
+      amount: Array(state.years).fill(0),
     });
     recomputeAndRender();
   };
@@ -2218,7 +2302,7 @@
     state.customSavings[fId] = {
       id: fId,
       name: 'New Savings Goal',
-      monthly: Array(state.years).fill(250),
+      monthly: Array(state.years).fill(0),
     };
     recomputeAndRender();
   };
@@ -2258,11 +2342,13 @@
     const themeBtn = document.getElementById('themeToggleBtn');
     if (themeBtn) themeBtn.onclick = () => window.toggleDarkMode();
 
-    // 6. Sample & Reset State (Instant, non-blocking)
+    // 6. Sample & Reset State
     const sampleBtn = document.getElementById('btnSampleState');
-    if (sampleBtn) sampleBtn.onclick = () => window.loadSampleData();
+    if (sampleBtn) sampleBtn.onclick = () => window.requestLoadSampleData();
     const clearBtn = document.getElementById('btnClearState');
-    if (clearBtn) clearBtn.onclick = () => window.resetData();
+    if (clearBtn) clearBtn.onclick = () => window.requestResetData();
+    const undoPlanBtn = document.getElementById('btnUndoPlanChange');
+    if (undoPlanBtn) undoPlanBtn.onclick = () => window.undoPlanReplacement();
 
     // 7. Edit Table Toggle
     const editBtn = document.getElementById('btnToggleEdit');
@@ -2592,6 +2678,20 @@
   }
 
   function handleGlobalClicks(e) {
+    const setupStep = e.target.closest('[data-action="setup-step"]');
+    if (setupStep?.dataset.tab) {
+      window.openSetupStep(setupStep.dataset.tab);
+      return;
+    }
+    if (e.target.closest('[data-action="dismiss-setup-guide"]')) {
+      window.dismissSetupGuide();
+      return;
+    }
+    if (e.target.closest('[data-action="setup-sample"]')) {
+      window.requestLoadSampleData();
+      return;
+    }
+
     // 0. Focus Category Card or Table Header when clicking Legend Puck
     const pill = e.target.closest('[data-action="focus-cat-card"]');
     if (pill && pill.dataset.cat) {

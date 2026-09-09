@@ -71,12 +71,12 @@
 
 
         <div class="masthead-actions">
-          <button type="button" class="btn-subtle" id="btnSampleState" onclick="loadSampleData()" title="Load sample household budget">
+          <button type="button" class="btn-subtle" id="btnSampleState" onclick="requestLoadSampleData()" title="Load a sample household budget">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
             <span>Sample</span>
           </button>
           
-          <button type="button" class="btn-subtle" id="btnClearState" onclick="resetData()" title="Reset all amounts to zero">
+          <button type="button" class="btn-subtle" id="btnClearState" onclick="requestResetData()" title="Start a fresh plan">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             <span>Reset</span>
           </button>
@@ -100,10 +100,44 @@
     </div>
   </header>
 
+  <div class="plan-change-toast" id="planChangeToast" role="status" aria-live="polite" hidden>
+    <span id="planChangeToastMessage"></span>
+    <button type="button" id="btnUndoPlanChange">Undo</button>
+  </div>
+
   <!-- ======================================================== -->
   <!-- MAIN CONTAINER                                           -->
   <!-- ======================================================== -->
   <main class="page-container">
+
+    <section class="setup-guide" id="setupGuide" aria-labelledby="setupGuideTitle" hidden>
+      <div class="setup-guide-heading">
+        <div>
+          <span class="card-kicker" id="setupGuideKicker">Start here</span>
+          <h1 class="setup-guide-title font-serif" id="setupGuideTitle">Build your plan</h1>
+          <p id="setupGuideIntro">Enter the few numbers that make the plan yours. You can refine it later.</p>
+        </div>
+        <button type="button" class="setup-dismiss" data-action="dismiss-setup-guide" aria-label="Dismiss setup guide">Dismiss</button>
+      </div>
+      <div class="setup-steps" aria-label="Plan setup steps">
+        <button type="button" class="setup-step" data-action="setup-step" data-tab="taxes">
+          <span class="setup-step-number">1</span><span><strong>Household &amp; taxes</strong><small>Filing status, location, dependents</small></span>
+        </button>
+        <button type="button" class="setup-step" data-action="setup-step" data-tab="income">
+          <span class="setup-step-number">2</span><span><strong>Income</strong><small>Pay type, hours, and income sources</small></span>
+        </button>
+        <button type="button" class="setup-step" data-action="setup-step" data-tab="expenses">
+          <span class="setup-step-number">3</span><span><strong>Monthly expenses</strong><small>Housing, bills, debt, and everyday costs</small></span>
+        </button>
+        <button type="button" class="setup-step" data-action="setup-step" data-tab="retire">
+          <span class="setup-step-number">4</span><span><strong>Optional: savings</strong><small>Retirement and dedicated savings goals</small></span>
+        </button>
+      </div>
+      <div class="setup-guide-actions">
+        <button type="button" class="btn-primary-sm" data-action="setup-step" data-tab="income">Start with income</button>
+        <button type="button" class="btn-subtle" data-action="setup-sample">Explore a sample plan</button>
+      </div>
+    </section>
 
     <!-- KPI HUD: Clean Editorial Metrics Row -->
     <section class="metrics-grid" id="hudMetrics" aria-label="Key Financial Figures">
@@ -136,11 +170,11 @@
 
       <div class="metric-card">
         <div class="metric-header">
-          <span class="metric-label">Net Savings</span>
+          <span class="metric-label" id="lblSavingsMetric">Monthly Left Over</span>
           <span class="metric-badge pos" id="hudSavingsBadge">+Surplus</span>
         </div>
         <div class="metric-value tabular" id="hudSavingsVal">$0</div>
-        <div class="metric-footnote" id="hudSavingsFoot">Cash saved in 2025</div>
+        <div class="metric-footnote" id="hudSavingsFoot">After expenses, retirement &amp; goals</div>
       </div>
 
       <div class="metric-card">
