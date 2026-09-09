@@ -24,16 +24,16 @@
   };
 
   const CATEGORY_META = {
-    Housing: { icon: '🏠', color: '#2563eb' },            // Royal Blue
-    Food: { icon: '🥑', color: '#f59e0b' },               // Honey Amber
-    Transportation: { icon: '🚗', color: '#10b981' },     // Emerald Green
-    Utilities: { icon: '⚡', color: '#8b5cf6' },           // Electric Purple
-    Subscriptions: { icon: '📱', color: '#06b6d4' },       // Bright Cyan
-    'Health & Wellness': { icon: '🩺', color: '#ef4444' }, // Crimson Red
-    'Additional Payments': { icon: '💳', color: '#ea580c'},// Burnt Rust Orange
-    'Business Expenses': { icon: '💼', color: '#0d9488' }, // Deep Pine Teal
-    Lifestyle: { icon: '🐶', color: '#ec4899' },           // Hot Pink
-    Entertainment: { icon: '🎟️', color: '#84cc16' },      // Fresh Lime Green
+    Housing: { color: '#2563eb' },
+    Food: { color: '#f59e0b' },
+    Transportation: { color: '#10b981' },
+    Utilities: { color: '#8b5cf6' },
+    Subscriptions: { color: '#06b6d4' },
+    'Health & Wellness': { color: '#ef4444' },
+    'Additional Payments': { color: '#ea580c' },
+    'Business Expenses': { color: '#0d9488' },
+    Lifestyle: { color: '#ec4899' },
+    Entertainment: { color: '#84cc16' },
   };
 
   const FED_2025 = {
@@ -847,15 +847,15 @@
     const kickerEl = document.getElementById('overviewChartKicker');
     const titleEl = document.getElementById('overviewChartTitle');
     if (kickerEl) {
-      kickerEl.textContent = isSingle ? 'Annual Cash Flow' : 'Multi-Year Forecast';
+      kickerEl.textContent = isSingle ? 'Cash flow' : 'Forecast';
     }
     if (titleEl) {
-      titleEl.textContent = isSingle ? 'Income & Expense Distribution' : 'Cash Flow & Savings Growth';
+      titleEl.textContent = isSingle ? 'Income and expenses' : 'Cash flow and savings';
     }
 
     const matrixKicker = document.getElementById('summaryMatrixKicker');
     if (matrixKicker) {
-      matrixKicker.textContent = isSingle ? 'Annual Summary' : 'Detailed Projections';
+      matrixKicker.textContent = isSingle ? 'This year' : 'Forecast by year';
     }
   }
 
@@ -1208,12 +1208,12 @@
       if (catVal <= 0) return;
 
       const pct = totalMonthlyCurrent > 0 ? (catVal / totalMonthlyCurrent) * 100 : 0;
-      const meta = CATEGORY_META[cat] || { icon: '📦', color: '#2563eb' };
+      const meta = CATEGORY_META[cat] || { color: '#2563eb' };
 
       barHtml += `<div class="spend-bar-segment" data-action="focus-cat-card" data-cat="${cat}" role="button" tabindex="0" style="width: ${pct}%; background: ${meta.color};" title="Click to view ${cat} container · ${fmt$(catVal)}/mo (${pct.toFixed(1)}%)" aria-label="View ${cat} category container"></div>`;
 
       legendHtml += `<div class="spend-legend-pill" style="--puck-color: ${meta.color};" data-action="focus-cat-card" data-cat="${cat}" role="button" tabindex="0" title="Click to view ${cat} container · ${fmt$(catVal)}/mo (${pct.toFixed(0)}%)" aria-label="View ${cat} category container">
-        <span class="spend-pill-icon">${meta.icon}</span>
+        <span class="spend-pill-marker" aria-hidden="true"></span>
         <span class="spend-pill-name">${cat}</span>
         <span class="spend-pill-amount">${fmt$(catVal)}/mo</span>
         <span class="spend-pill-pct">(${pct.toFixed(0)}%)</span>
@@ -1247,10 +1247,9 @@
         <div class="category-card ${isCollapsed ? 'collapsed' : ''}" data-cat="${cat}" style="--cat-color: ${meta.color};">
           <div class="category-card-header" data-action="toggle-cat-card" data-cat="${cat}">
             <div class="category-left">
-              <div class="category-icon-box" style="border-color: color-mix(in srgb, ${meta.color} 45%, var(--border-subtle)); background: color-mix(in srgb, ${meta.color} 12%, var(--bg-elevated));">${meta.icon}</div>
               <div>
                 <div class="category-title-row">
-                  <span class="category-color-dot" style="background: ${meta.color}; box-shadow: 0 0 6px ${meta.color}88;"></span>
+                  <span class="category-color-dot" style="background: ${meta.color};"></span>
                   <div class="category-name">${cat}</div>
                 </div>
                 <div class="category-meta-badge">${items.length} ${items.length === 1 ? 'item' : 'items'} · ${pctOfTotal.toFixed(0)}% of expenses</div>
@@ -1314,7 +1313,7 @@
     categories.forEach((cat) => {
       const items = (state.col || []).filter((item) => item.cat === cat);
       if (items.length === 0 && !state.isEditMode) return;
-      const meta = CATEGORY_META[cat] || { icon: '📦', color: '#2563eb' };
+      const meta = CATEGORY_META[cat] || { color: '#2563eb' };
 
       const catTotals = Array(state.years).fill(0);
       items.forEach((item) => {
@@ -1333,10 +1332,9 @@
         <td class="sticky-col category-table-sticky" style="background: color-mix(in srgb, ${meta.color} 5%, var(--bg-subtle));">
           <div class="category-table-title" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
             <div style="display:flex; align-items:center; gap:8px;">
-              <div class="category-icon-box-sm" style="border-color: color-mix(in srgb, ${meta.color} 45%, var(--border-subtle)); background: color-mix(in srgb, ${meta.color} 12%, var(--bg-elevated));">${meta.icon}</div>
               <div class="category-title-wrap">
                 <div class="category-title-row">
-                  <span class="category-color-dot" style="background: ${meta.color}; box-shadow: 0 0 6px ${meta.color}88;"></span>
+                  <span class="category-color-dot" style="background: ${meta.color};"></span>
                   <span class="category-name-cell">${cat}</span>
                 </div>
                 <div class="category-meta-badge">${items.length} ${items.length === 1 ? 'item' : 'items'} · ${pctOfTotal.toFixed(0)}%</div>

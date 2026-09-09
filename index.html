@@ -8,7 +8,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230f1012'/><path d='M6 23V17M12 23V11M18 23V7M24 23V13' stroke='%237eaed4' stroke-width='2.5' stroke-linecap='round'/></svg>">
@@ -139,8 +139,17 @@
       </div>
     </section>
 
-    <!-- KPI HUD: Clean Editorial Metrics Row -->
+    <!-- Key cash-flow figures -->
     <section class="metrics-grid" id="hudMetrics" aria-label="Key Financial Figures">
+      <div class="metric-card monthly-leftover-card">
+        <div class="metric-header">
+          <span class="metric-label" id="lblSavingsMetric">Monthly Left Over</span>
+          <span class="metric-badge pos" id="hudSavingsBadge">+Surplus</span>
+        </div>
+        <div class="metric-value tabular" id="hudSavingsVal">$0</div>
+        <div class="metric-footnote" id="hudSavingsFoot">After expenses, retirement &amp; goals</div>
+      </div>
+
       <div class="metric-card">
         <div class="metric-header">
           <span class="metric-label" id="lblGrossMetric">Gross Income</span>
@@ -166,15 +175,6 @@
         </div>
         <div class="metric-value tabular" id="hudColVal">$0</div>
         <div class="metric-footnote" id="hudColFoot">Housing, bills & everyday life</div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-header">
-          <span class="metric-label" id="lblSavingsMetric">Monthly Left Over</span>
-          <span class="metric-badge pos" id="hudSavingsBadge">+Surplus</span>
-        </div>
-        <div class="metric-value tabular" id="hudSavingsVal">$0</div>
-        <div class="metric-footnote" id="hudSavingsFoot">After expenses, retirement &amp; goals</div>
       </div>
 
       <div class="metric-card">
@@ -230,14 +230,14 @@
 
     <!-- TAB 1: OVERVIEW -->
     <div class="tab-panel active" id="panelOverview">
-      <!-- Top Grid: Trajectory Chart & Wealth Breakdown -->
+      <!-- Cash flow and plan summary -->
       <div class="cockpit-top-grid">
         <!-- SVG Trajectory Chart Card -->
         <div class="glass-card visualizer-card">
           <div class="card-header">
             <div class="card-title-group">
-              <span class="card-kicker" id="overviewChartKicker">Annual Cash Flow</span>
-              <h2 class="card-title font-serif" id="overviewChartTitle">Income & Expense Distribution</h2>
+              <span class="card-kicker" id="overviewChartKicker">Cash flow</span>
+              <h2 class="card-title" id="overviewChartTitle">Income and expenses</h2>
             </div>
             <div class="card-actions">
               <div class="segmented-control mini" id="chartModeToggle">
@@ -265,15 +265,15 @@
         <div class="glass-card highlights-card">
           <div class="card-header">
             <div class="card-title-group">
-              <span class="card-kicker">Income Distribution</span>
-              <h2 class="card-title font-serif">Where Your Money Goes</h2>
+              <span class="card-kicker">Plan summary</span>
+              <h2 class="card-title">Where your money goes</h2>
             </div>
           </div>
 
           <div class="highlight-stack">
             <div class="highlight-item">
               <div class="highlight-top">
-                <span class="highlight-label">Accumulated Net Wealth</span>
+                <span class="highlight-label">Total wealth</span>
                 <span class="highlight-meta" id="hlNetWealthMeta">Cash + 401k</span>
               </div>
               <div class="highlight-val tabular text-emerald" id="hlNetWealthVal">$0</div>
@@ -295,7 +295,7 @@
 
             <div class="highlight-item">
               <div class="highlight-top">
-                <span class="highlight-label">Annual Living Expenses</span>
+                <span class="highlight-label">Living expenses</span>
                 <span class="highlight-meta">Average / Year</span>
               </div>
               <div class="highlight-val tabular text-rose" id="hlBurnVal">$0</div>
@@ -306,7 +306,7 @@
 
             <div class="highlight-item">
               <div class="highlight-top">
-                <span class="highlight-label">Effective Tax Rate</span>
+                <span class="highlight-label">Taxes</span>
                 <span class="highlight-meta">Fed + State + FICA</span>
               </div>
               <div class="highlight-val tabular text-gold" id="hlTaxFrictionVal">0.0%</div>
@@ -323,7 +323,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <span class="card-kicker" id="summaryMatrixKicker">Annual Summary</span>
-            <h2 class="card-title font-serif">Financial Summary Matrix</h2>
+            <h2 class="card-title">Plan summary</h2>
           </div>
         </div>
 
@@ -338,8 +338,8 @@
       <div class="glass-card">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-kicker">Primary Earnings</span>
-            <h2 class="card-title font-serif">Wage Earners & Salaries</h2>
+            <span class="card-kicker">Income</span>
+            <h2 class="card-title">Pay and earnings</h2>
           </div>
           <button type="button" class="btn-primary-sm" id="btnAddEarner" onclick="addWorker()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -355,8 +355,8 @@
       <div class="glass-card" style="margin-top: 18px;">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-kicker">Additional Income</span>
-            <h2 class="card-title font-serif">Investments, Dividends & Other Inflow</h2>
+            <span class="card-kicker">Other income</span>
+            <h2 class="card-title">Investments, dividends, and other income</h2>
           </div>
           <button type="button" class="btn-primary-sm" id="btnAddOtherIncome" onclick="addOtherIncome()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -377,7 +377,7 @@
         <div class="spend-summary-header">
           <div class="card-title-group">
             <span class="card-kicker">Spending Breakdown</span>
-            <h2 class="card-title font-serif">Monthly Expenses by Category</h2>
+            <h2 class="card-title">Monthly expenses</h2>
           </div>
           <div class="spend-totals-cluster">
             <div class="spend-metrics-row">
@@ -420,7 +420,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <span class="card-kicker">Multi-Year Overview</span>
-            <h2 class="card-title font-serif">Expenses Spreadsheet</h2>
+            <h2 class="card-title">Expense table</h2>
           </div>
         </div>
         <div class="table-scroll-container">
@@ -436,7 +436,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <span class="card-kicker">Filing & Rules</span>
-            <h2 class="card-title font-serif">Tax Settings (2025 IRS Model)</h2>
+            <h2 class="card-title">Tax settings</h2>
           </div>
         </div>
 
@@ -467,7 +467,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <span class="card-kicker">By Projection Year</span>
-            <h2 class="card-title font-serif">Residency, Dependents & Deductions</h2>
+            <h2 class="card-title">Location, dependents, and deductions</h2>
           </div>
         </div>
 
@@ -481,7 +481,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <span class="card-kicker">Tax Breakdown</span>
-            <h2 class="card-title font-serif">Federal, State & Payroll Taxes</h2>
+            <h2 class="card-title">Tax breakdown</h2>
           </div>
         </div>
 
@@ -497,7 +497,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <span class="card-kicker">Forecast starting point</span>
-            <h2 class="card-title font-serif">Projection Assumptions</h2>
+            <h2 class="card-title">Forecast assumptions</h2>
           </div>
         </div>
         <div class="tax-controls-grid">
@@ -528,8 +528,8 @@
       <div class="glass-card" style="margin-top: 18px;">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-kicker">Long-Term Wealth</span>
-            <h2 class="card-title font-serif">Retirement Contributions</h2>
+            <span class="card-kicker">Retirement</span>
+            <h2 class="card-title">Retirement contributions</h2>
           </div>
           <div class="card-meta">
             <span class="stat-pill">401(k) Limit: $23,500</span>
@@ -547,7 +547,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <span class="card-kicker">Annual Allocation</span>
-            <h2 class="card-title font-serif">Roth IRA vs Traditional 401(k) + Match</h2>
+            <h2 class="card-title">Retirement allocation</h2>
           </div>
         </div>
 
@@ -561,7 +561,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <span class="card-kicker">Dedicated Savings</span>
-            <h2 class="card-title font-serif">Savings Goals (Emergency, Travel, College)</h2>
+            <h2 class="card-title">Savings goals</h2>
           </div>
           <button type="button" class="btn-primary-sm" id="btnAddSavingsFund" onclick="addSavingsFund()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -580,8 +580,8 @@
       <div class="glass-card visualizer-fullscreen-card">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-kicker">Full Trajectory</span>
-            <h2 class="card-title font-serif">Financial Trajectory Visualizer</h2>
+            <span class="card-kicker">Forecast</span>
+            <h2 class="card-title">Plan forecast</h2>
           </div>
           <div class="card-actions">
             <div class="segmented-control mini" id="vizChartModeToggle">

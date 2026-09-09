@@ -27,7 +27,7 @@
   --accent-teal: #2dd4bf;
   --accent-amber: #f59e0b;
 
-  --font-serif: "Fraunces", Georgia, serif;
+  --font-serif: var(--font-sans);
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
@@ -106,8 +106,8 @@ body {
 
 .font-serif {
   font-family: var(--font-serif);
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .tabular {
@@ -167,7 +167,7 @@ body {
 }
 
 .brand-title {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -194,7 +194,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Masthead Center & Prominent Gooey Puck */
+/* Masthead planning mode */
 .masthead-center {
   display: flex;
   align-items: center;
@@ -209,34 +209,32 @@ body {
   align-items: center;
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
-  border-radius: 9999px;
-  padding: 3px;
-  gap: 2px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 0;
+  box-shadow: none;
   user-select: none;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
 }
 
 .gooey-puck-indicator {
   position: absolute;
-  top: 3px;
-  bottom: 3px;
-  left: 3px;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
   width: 106px;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-blue) 35%, var(--bg-elevated)) 0%, color-mix(in srgb, var(--accent-cyan) 25%, var(--bg-elevated)) 100%);
-  border: 1px solid color-mix(in srgb, var(--accent-cyan) 50%, var(--border-medium));
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 16px color-mix(in srgb, var(--accent-blue) 35%, transparent);
-  transition: transform 0.36s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: var(--radius-sm);
+  background: var(--accent-blue);
+  border: 0;
+  box-shadow: none;
+  transition: transform 0.16s ease, width 0.16s ease;
   pointer-events: none;
   z-index: 1;
 }
 
 [data-theme="light"] .gooey-puck-indicator {
-  background: #ffffff;
-  border: 1px solid var(--border-medium);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+  background: var(--accent-blue);
+  border: 0;
+  box-shadow: none;
 }
 
 .gooey-puck-btn {
@@ -253,10 +251,10 @@ body {
   color: var(--text-secondary);
   background: transparent;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   outline: none;
-  transition: color 0.2s ease, transform 0.15s ease;
+  transition: color 0.15s ease;
   white-space: nowrap;
 }
 
@@ -515,9 +513,9 @@ body {
 .setup-guide {
   margin-bottom: 18px;
   padding: 20px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-blue) 13%, var(--bg-surface)), var(--bg-surface));
-  border: 1px solid color-mix(in srgb, var(--accent-blue) 32%, var(--border-medium));
-  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
 }
 
 .setup-guide[hidden] { display: none; }
@@ -607,7 +605,7 @@ body {
   background: var(--bg-elevated);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .plan-change-toast[hidden] { display: none; }
@@ -641,7 +639,7 @@ body {
 
 @media (min-width: 1100px) {
   .metrics-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
   }
 }
 
@@ -657,6 +655,17 @@ body {
   border-left: none;
   padding-left: 0;
 }
+
+@media (min-width: 1100px) {
+  .monthly-leftover-card { grid-column: span 2; }
+}
+
+.monthly-leftover-card {
+  background: color-mix(in srgb, var(--accent-blue) 8%, var(--bg-surface));
+  border-color: color-mix(in srgb, var(--accent-blue) 28%, var(--border-subtle));
+}
+
+.monthly-leftover-card .metric-value { color: var(--accent-cyan); }
 
 @media (max-width: 767px) {
   .metric-card {
@@ -687,8 +696,8 @@ body {
   font-size: 10px;
   font-family: var(--font-mono);
   padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--bg-elevated);
+  border-radius: 2px;
+  background: transparent;
   color: var(--text-muted);
 }
 
@@ -812,8 +821,8 @@ body {
 .glass-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+  box-shadow: none;
   padding: 18px 20px;
   position: relative;
 }
@@ -836,7 +845,7 @@ body {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.035em;
   color: var(--text-secondary);
   margin-bottom: 2px;
 }
@@ -1227,7 +1236,7 @@ body {
   transform: scaleY(0.9);
 }
 
-/* Spending Legend Row & Category Pucks */
+/* Spending legend */
 .spend-legend-row {
   display: flex;
   align-items: center;
@@ -1239,25 +1248,23 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--bg-elevated);
-  border: 1px solid color-mix(in srgb, var(--puck-color, var(--accent-blue)) 40%, var(--border-subtle));
-  border-radius: 9999px;
-  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 4px 7px;
   font-size: 11.5px;
   color: var(--text-secondary);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: none;
   cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.15s ease, border-color 0.15s ease;
   user-select: none;
   outline: none;
 }
 
 .spend-legend-pill:hover,
 .spend-legend-pill.active-hover {
-  background: color-mix(in srgb, var(--puck-color, var(--accent-blue)) 10%, var(--bg-elevated)) !important;
-  border-color: color-mix(in srgb, var(--puck-color, var(--accent-blue)) 75%, var(--border-medium)) !important;
-  transform: translateY(-1.5px) !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22) !important;
+  background: color-mix(in srgb, var(--puck-color, var(--accent-blue)) 8%, var(--bg-elevated)) !important;
+  border-color: var(--puck-color, var(--accent-blue)) !important;
 }
 
 .spend-legend-pill:focus-visible {
@@ -1265,22 +1272,12 @@ body {
   outline-offset: 2px;
 }
 
-[data-theme="light"] .spend-legend-pill {
-  background: #ffffff;
-  border: 1px solid color-mix(in srgb, var(--puck-color, var(--accent-blue)) 35%, var(--border-subtle));
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="light"] .spend-legend-pill:hover,
-[data-theme="light"] .spend-legend-pill.active-hover {
-  background: color-mix(in srgb, var(--puck-color, var(--accent-blue)) 8%, #ffffff) !important;
-  border-color: color-mix(in srgb, var(--puck-color, var(--accent-blue)) 75%, var(--border-medium)) !important;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1) !important;
-}
-
-.spend-pill-icon {
-  font-size: 12.5px;
-  line-height: 1;
+.spend-pill-marker {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--puck-color, var(--accent-blue));
 }
 
 .spend-pill-name {
@@ -1311,25 +1308,25 @@ body {
 .category-card {
   background: var(--bg-surface);
   border: 1px solid color-mix(in srgb, var(--cat-color, var(--accent-blue)) 32%, var(--border-subtle));
-  border-radius: var(--radius-lg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+  border-radius: var(--radius-md);
+  box-shadow: none;
   overflow: hidden;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .category-card:hover {
   border-color: color-mix(in srgb, var(--cat-color, var(--accent-blue)) 60%, var(--border-medium));
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
+  box-shadow: none;
 }
 
 [data-theme="light"] .category-card {
   border: 1px solid color-mix(in srgb, var(--cat-color, var(--accent-blue)) 35%, var(--border-subtle));
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
 }
 
 [data-theme="light"] .category-card:hover {
   border-color: color-mix(in srgb, var(--cat-color, var(--accent-blue)) 65%, var(--border-medium));
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
 }
 
 @keyframes cardPulse {
@@ -1377,7 +1374,7 @@ body {
 .category-left {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 0;
 }
 
 .category-icon-box {
@@ -2229,7 +2226,7 @@ input[type="number"] {
     margin: 0;
   }
 
-  /* 2. High-Density Executive Metrics Strip (2x2 Grid + Full-Width Wealth Banner) */
+  /* 2. Compact metrics */
   .metrics-grid {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
@@ -2249,7 +2246,7 @@ input[type="number"] {
   .metric-card:first-child {
     padding-left: 10px !important;
   }
-  .metric-card:nth-child(5) {
+  .metric-card.monthly-leftover-card {
     grid-column: 1 / -1 !important;
     display: flex !important;
     flex-direction: row !important;
@@ -2260,11 +2257,11 @@ input[type="number"] {
     padding: 8px 12px !important;
     margin-top: 2px !important;
   }
-  .metric-card:nth-child(5) .metric-header {
+  .metric-card.monthly-leftover-card .metric-header {
     margin-bottom: 0 !important;
     gap: 6px;
   }
-  .metric-card:nth-child(5) .metric-value {
+  .metric-card.monthly-leftover-card .metric-value {
     font-size: 17px !important;
     margin-top: 0 !important;
   }
@@ -2291,7 +2288,9 @@ input[type="number"] {
     line-height: 1.2;
   }
   .metric-footnote {
-    display: none !important;
+    display: block !important;
+    font-size: 10px;
+    margin-top: 3px;
   }
 
   /* 3. Main Tabs Bar & Navigation */
@@ -2438,17 +2437,17 @@ input[type="number"] {
     margin-bottom: 0 !important;
   }
 
-  /* Remove 'Monthly Expenses by Category' and 'Spending Breakdown' header wording entirely from phone */
+  /* Keep expense context visible on phone */
   .spend-summary-card .card-title-group {
-    display: none !important;
+    display: flex !important;
   }
   .spend-summary-header {
     margin-bottom: 8px !important;
   }
 
-  /* Remove Summary Overview Header on Phone */
+  /* Keep the summary label visible on phone */
   .matrix-card .card-header {
-    display: none !important;
+    display: flex !important;
   }
 }
 
@@ -2460,7 +2459,7 @@ input[type="number"] {
     margin-bottom: 0 !important;
   }
   .spend-summary-card .card-title-group {
-    display: none !important;
+    display: flex !important;
   }
 }
 
