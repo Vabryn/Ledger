@@ -2458,12 +2458,6 @@ input[type="number"] {
    TOUCH & iOS SPECIFIC OPTIMIZATIONS
    ========================================================================== */
 @media (pointer: coarse), (max-width: 768px) {
-  /* Prevent iOS Safari automatic zoom on focus by enforcing 16px minimum */
-  input, select, textarea,
-  .table-input, .pill-num-input, .control-input {
-    font-size: 16px !important;
-  }
-
   .pill-step-btn {
     width: 28px;
     height: 30px;
