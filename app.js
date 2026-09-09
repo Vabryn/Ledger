@@ -102,6 +102,12 @@
   const ROTH_CAP = 7000;
   const CAP401K_EMPLOYEE = 23500;
   const CAP401K_TOTAL_ADDITIONS = 70000;
+  const ROTH_PHASEOUTS_2025 = {
+    Single: [150000, 165000],
+    Married: [236000, 246000],
+    HeadOfHousehold: [150000, 165000],
+    MarriedSeparate: [0, 10000],
+  };
 
   const CA_2025 = {
     Single: {
@@ -309,6 +315,18 @@
     return v * mult;
   }
 
+  function getRothContributionLimit(statusKey, earnedIncome, modifiedAgi, requestedContributors = 1) {
+    const contributors = statusKey === 'Married'
+      ? Math.max(1, Math.min(2, Math.floor(num(requestedContributors) || 1)))
+      : 1;
+    const statutoryLimit = ROTH_CAP * contributors;
+    const [phaseoutStart, phaseoutEnd] = ROTH_PHASEOUTS_2025[statusKey] || ROTH_PHASEOUTS_2025.Single;
+    const phaseoutFraction = modifiedAgi <= phaseoutStart
+      ? 1
+      : Math.max(0, Math.min(1, (phaseoutEnd - modifiedAgi) / (phaseoutEnd - phaseoutStart)));
+    return Math.min(Math.max(0, earnedIncome), statutoryLimit * phaseoutFraction);
+  }
+
   function marginalTax(taxable, brackets) {
     if (taxable <= 0) return 0;
     let tax = 0;
@@ -390,6 +408,10 @@
       k401Rate: [6, 6, 8, 8, 10, 10],
       rothRate: [4, 4, 4, 5, 5, 5],
       employerMatchRate: [3, 3, 3, 4, 4, 4],
+      rothContributors: 1,
+      startingCash: 0,
+      startingRetirement: 0,
+      retirementReturnRate: 6,
       customSavings: {
         'sav-emergency': {
           id: 'sav-emergency',
@@ -436,6 +458,10 @@
       k401Rate: Array(effectiveYears).fill(0),
       rothRate: Array(effectiveYears).fill(0),
       employerMatchRate: Array(effectiveYears).fill(0),
+      rothContributors: 1,
+      startingCash: 0,
+      startingRetirement: 0,
+      retirementReturnRate: 6,
       customSavings: {},
     };
   }
@@ -488,6 +514,7 @@
     const periodScale = 1;
 
     const g = [];
+    const earned = [];
     const fed = [];
     const stTax = [];
     const fica = [];
@@ -498,6 +525,7 @@
     const employeeRetireContrib = [];
     const employerMatchAmount = [];
     const rothArr = [];
+    const rothLimit = [];
     const k401Arr = [];
     const customSavingsTotal = [];
     const savings = [];
@@ -505,14 +533,11 @@
     const retireOT = [];
     const unallocatedBalance = [];
 
-    let sOT = 0;
-    let rOT = 0;
+    let sOT = Math.max(0, num(state.startingCash));
+    let rOT = Math.max(0, num(state.startingRetirement));
+    const retirementReturnRate = Math.max(-100, num(state.retirementReturnRate ?? 6)) / 100;
 
     const statusKey = state.taxStatus || 'Married';
-    const contributorMultiplier = statusKey === 'Married' ? 2 : 1;
-    const maxRothAnnual = ROTH_CAP * contributorMultiplier;
-    const max401kEmployeeAnnual = CAP401K_EMPLOYEE * contributorMultiplier;
-    const max401kTotalAnnual = CAP401K_TOTAL_ADDITIONS * contributorMultiplier;
     const addlMedThresh = ADDL_MEDICARE_THRESHOLDS[statusKey] || ADDL_MEDICARE_THRESHOLDS.Single;
     const ctcPhaseoutStart = statusKey === 'Married' ? 400000 : 200000;
 
@@ -539,6 +564,7 @@
 
       const annualGross = earnedAnnual + otherAnnual;
       g.push(annualGross * periodScale);
+      earned.push(earnedAnnual * periodScale);
 
       // 3. Retirement Contributions (User specifies individual % towards each)
       const k401Pct = num(state.k401Rate?.[i]);
@@ -546,16 +572,21 @@
       const employerMatchPct = num(state.employerMatchRate?.[i]);
 
       // Statutory IRS Limits (2025: $23,500 employee 401(k), $7,000 Roth IRA)
-      const maxRothAnnual = ROTH_CAP * contributorMultiplier;
-      const max401kEmployeeAnnual = CAP401K_EMPLOYEE * contributorMultiplier;
-      const max401kTotalAnnual = CAP401K_TOTAL_ADDITIONS * contributorMultiplier;
+      const maxRothAnnual = getRothContributionLimit(
+        statusKey,
+        earnedAnnual,
+        annualGross,
+        state.rothContributors
+      );
+      const max401kEmployeeAnnual = CAP401K_EMPLOYEE;
+      const max401kTotalAnnual = CAP401K_TOTAL_ADDITIONS;
 
       // 401(k) Employee Contribution: strictly clamped to IRS statutory limit
-      const k401Desired = annualGross * (k401Pct / 100);
+      const k401Desired = earnedAnnual * (k401Pct / 100);
       const k401EmployeeAnnual = Math.min(k401Desired, max401kEmployeeAnnual);
 
       // Roth IRA Contribution: strictly clamped to IRS statutory limit
-      const rothDesired = annualGross * (rothPct / 100);
+      const rothDesired = earnedAnnual * (rothPct / 100);
       const rothContribAnnual = Math.min(rothDesired, maxRothAnnual);
 
       // 401k match: Matches employee 401(k) contribution up to employerMatchPct of earned wages
@@ -625,18 +656,20 @@
       const yrTax = (ftAnnual + stxAnnual + fcAnnual) * periodScale;
       totalTax.push(yrTax);
 
-      // 7. Net Take-Home
-      const periodNet = annualGross * periodScale - yrTax;
+      // 7. Take-home cash after payroll taxes and pre-tax 401(k) deductions.
+      // Roth contributions remain part of take-home cash until allocated below.
+      const periodNet = annualGross * periodScale - yrTax - k401EmployeeAnnual;
       net.push(periodNet);
 
       rothArr.push(rothContribAnnual * periodScale);
+      rothLimit.push(maxRothAnnual * periodScale);
       k401Arr.push(k401EmployeeAnnual * periodScale);
       employerMatchAmount.push(actualEmployerMatchAnnual * periodScale);
       employeeRetireContrib.push(employeeTotalAnnual * periodScale);
 
       const periodRetireTotal = retireTotalAnnual * periodScale;
       retireActual.push(periodRetireTotal);
-      rOT += periodRetireTotal;
+      rOT = rOT * (1 + retirementReturnRate) + periodRetireTotal;
       retireOT.push(rOT);
 
       // 8. Custom Savings
@@ -655,19 +688,23 @@
       }, 0);
       colOnly.push(periodCol);
 
-      // 10. Net Savings & Accumulation
-      const periodSavings = periodNet - periodCol;
+      // 10. Cash Savings & Accumulation
+      // This is every dollar retained as cash after living costs and Roth funding.
+      // Dedicated savings goals are earmarked within this cash balance, not deducted
+      // again from it.
+      const periodSavings = periodNet - periodCol - rothContribAnnual;
       savings.push(periodSavings);
       sOT += periodSavings;
       savingsOT.push(sOT);
 
-      // Unallocated Surplus
-      const periodUnallocated = periodNet - periodCol - employeeTotalAnnual - periodCustomSavings;
+      // Unallocated Surplus is the cash remaining after earmarked savings goals.
+      const periodUnallocated = periodSavings - periodCustomSavings;
       unallocatedBalance.push(periodUnallocated);
     }
 
     return {
       g,
+      earned,
       fed,
       stTax,
       fica,
@@ -678,6 +715,7 @@
       employeeRetireContrib,
       employerMatchAmount,
       rothArr,
+      rothLimit,
       k401Arr,
       customSavingsTotal,
       savings,
@@ -737,6 +775,7 @@
     renderOtherIncomeTable();
     renderExpensesSection();
     renderTaxTables();
+    renderProjectionAssumptions();
     renderRetireTables();
     renderCustomSavingsTable();
     renderChart();
@@ -861,6 +900,7 @@
 
     document.getElementById('hudTaxRateBadge').textContent = `${fmtPct(effTaxRate)} tax`;
     document.getElementById('hudNetVal').textContent = fmt$(totalNet);
+    document.getElementById('hudNetFoot').textContent = 'After taxes & traditional 401(k)';
 
     document.getElementById('hudColBadge').textContent = `${fmtPct(colRate)} of pay`;
     document.getElementById('hudColVal').textContent = fmt$(totalCol);
@@ -868,7 +908,7 @@
     document.getElementById('hudSavingsVal').textContent = fmt$(totalSavings);
     document.getElementById('hudSavingsBadge').className = `metric-badge ${totalSavings >= 0 ? 'pos' : 'neg'}`;
     document.getElementById('hudSavingsBadge').textContent = totalSavings >= 0 ? '+Surplus' : '-Deficit';
-    document.getElementById('hudSavingsFoot').textContent = isSingle ? `Cash saved in ${state.startYear || 2025}` : 'Cash saved across horizon';
+    document.getElementById('hudSavingsFoot').textContent = isSingle ? `Cash balance at end of ${state.startYear || 2025}` : 'Cash balance at end of horizon';
 
     document.getElementById('hudRetireVal').textContent = fmt$(totalRetire);
     document.getElementById('hudRetireFoot').textContent = isSingle ? `Invested in ${state.startYear || 2025}` : 'Total invested wealth';
@@ -898,7 +938,7 @@
 
     const wealthMeta = document.getElementById('hlNetWealthMeta');
     if (wealthMeta) {
-      wealthMeta.textContent = isSingle ? 'Cash + 401k' : 'Cash + 401k Total';
+      wealthMeta.textContent = isSingle ? 'Cash + retirement accounts' : 'Cash + retirement accounts';
     }
 
     const wealthPct = Math.min(100, Math.max(10, totalGross > 0 ? (netWealth / totalGross) * 100 : 50));
@@ -970,7 +1010,7 @@
       },
       ...(isSingle ? [] : [
         {
-          label: 'Cumulative Cash Savings',
+          label: 'Cumulative Cash Balance',
           data: calc.savingsOT,
           cssClass: 'cell-val bold accent',
         },
@@ -1208,7 +1248,7 @@
                   <input type="text" class="expense-item-name-input" value="${escapeHtml(item.name)}" data-action="col-name" data-idx="${itemIdx}" placeholder="Expense name">
                   <div class="expense-item-cost-wrap">
                     <span class="currency-prefix">$</span>
-                    <input type="number" step="any" min="0" class="expense-item-cost-input" value="${mCost}" data-action="col-monthly-sync" data-idx="${itemIdx}" placeholder="0">
+                  <input type="number" step="any" min="0" class="expense-item-cost-input" value="${mCost}" data-action="col-monthly" data-idx="${itemIdx}" data-year="0" placeholder="0" aria-label="${escapeHtml(item.name)} monthly cost for ${(state.startYear || 2025)}">
                   </div>
                   <span class="expense-item-annual-hint">${fmtCompact$(annualCost)}/yr</span>
                   <button type="button" class="expense-item-delete-btn" data-action="delete-col" data-idx="${itemIdx}" title="Remove item">✕</button>
@@ -1447,15 +1487,12 @@
     let htmlIn = buildTableHeader('Contribution Strategy');
     htmlIn += `<tbody>`;
 
-    const statusKey = state.taxStatus || 'Married';
-    const contributorMultiplier = statusKey === 'Married' ? 2 : 1;
-    const max401kEmployeeAnnual = CAP401K_EMPLOYEE * contributorMultiplier;
-    const maxRothAnnual = ROTH_CAP * contributorMultiplier;
+    const max401kEmployeeAnnual = CAP401K_EMPLOYEE;
 
-    // Row 1: 401(k) Employee Contribution (% of Gross)
+    // Row 1: 401(k) Employee Contribution (% of eligible wages)
     htmlIn += `<tr><td class="sticky-col">
-      <strong>401(k) Employee (% of Gross)</strong>
-      <div style="font-size:10.5px; color:var(--text-secondary); margin-top:2px;">IRS Limit: $${fmtCompact$(max401kEmployeeAnnual)}/yr</div>
+      <strong>401(k) Employee (% of Wage Income)</strong>
+      <div style="font-size:10.5px; color:var(--text-secondary); margin-top:2px;">One employee-plan limit: ${fmtCompact$(max401kEmployeeAnnual)}/yr</div>
     </td>`;
     for (let y = 0; y < state.years; y++) {
       const rate = state.k401Rate?.[y] ?? 0;
@@ -1478,14 +1515,15 @@
     if (state.isEditMode) htmlIn += `<td></td>`;
     htmlIn += `</tr>`;
 
-    // Row 2: Roth IRA Contribution (% of Gross)
+    // Row 2: Roth IRA Contribution (% of eligible wages)
     htmlIn += `<tr><td class="sticky-col">
-      <strong>Roth IRA (% of Gross)</strong>
-      <div style="font-size:10.5px; color:var(--text-secondary); margin-top:2px;">IRS Limit: $${fmtCompact$(maxRothAnnual)}/yr</div>
+      <strong>Roth IRA (% of Wage Income)</strong>
+      <div style="font-size:10.5px; color:var(--text-secondary); margin-top:2px;">Income-adjusted limit shown for each year</div>
     </td>`;
     for (let y = 0; y < state.years; y++) {
       const rate = state.rothRate?.[y] ?? 0;
       const rothAmt = calc.rothArr?.[y] ?? 0;
+      const maxRothAnnual = calc.rothLimit?.[y] ?? 0;
       const isCapped = rothAmt >= maxRothAnnual - 1 && rothAmt > 0;
       htmlIn += `<td>
         <div class="cell-pill-stepper" data-action-group="roth-rate">
@@ -1497,7 +1535,7 @@
           <button type="button" class="pill-step-btn" data-action="step-roth-rate" data-dir="1" data-year="${y}" title="Increase Roth IRA rate" aria-label="Increase Roth IRA rate" ${isCapped ? 'disabled style="opacity:0.35; cursor:not-allowed;"' : ''}>+</button>
         </div>
         <div style="font-size:11px; font-weight:600; margin-top:4px; font-family:var(--font-mono); color:${isCapped ? 'var(--accent-gold)' : 'var(--text-secondary)'};">
-          ${fmtCompact$(rothAmt)}${isCapped ? ' (Max)' : ''}
+          ${fmtCompact$(rothAmt)} / ${fmtCompact$(maxRothAnnual)}${isCapped ? ' (Max)' : ''}
         </div>
       </td>`;
     }
@@ -1506,8 +1544,8 @@
 
     // Row 3: 401k match (%)
     htmlIn += `<tr><td class="sticky-col">
-      <strong>401k match (%)</strong>
-      <div style="font-size:10.5px; color:var(--text-secondary); margin-top:2px;">Company match on wages</div>
+      <strong>401(k) Match (% of Eligible Wages)</strong>
+      <div style="font-size:10.5px; color:var(--text-secondary); margin-top:2px;">Assumes a dollar-for-dollar match up to this wage percentage</div>
     </td>`;
     for (let y = 0; y < state.years; y++) {
       const match = state.employerMatchRate?.[y] ?? 0;
@@ -1567,6 +1605,23 @@
   function renderRetireTables() {
     renderRetireInputsTable();
     renderRetireBreakdownTable();
+  }
+
+  function renderProjectionAssumptions() {
+    const startingCash = document.getElementById('inpStartingCash');
+    const startingRetirement = document.getElementById('inpStartingRetirement');
+    const retirementReturn = document.getElementById('inpRetirementReturn');
+    const rothContributors = document.getElementById('selRothContributors');
+    if (startingCash) startingCash.value = num(state.startingCash);
+    if (startingRetirement) startingRetirement.value = num(state.startingRetirement);
+    if (retirementReturn) retirementReturn.value = num(state.retirementReturnRate ?? 6);
+    if (rothContributors) {
+      const contributors = state.taxStatus === 'Married'
+        ? Math.max(1, Math.min(2, Math.floor(num(state.rothContributors) || 1)))
+        : 1;
+      rothContributors.value = contributors;
+      rothContributors.disabled = state.taxStatus !== 'Married';
+    }
   }
 
   // ── CUSTOM SAVINGS TABLE ─────────────────────────────────────────────────
@@ -2334,8 +2389,35 @@
     const yr = parseInt(e.target.dataset.year, 10);
     const val = e.target.value;
 
-    if (action === 'worker-wage' && state.workers?.[idx]) {
+    if (action === 'starting-cash') {
+      state.startingCash = Math.max(0, num(val));
+      persistState();
+      calc = computePlanner(state);
+      renderHudMetrics();
+      renderHighlights();
+      renderSummaryMatrix();
+      renderChart();
+    } else if (action === 'starting-retirement') {
+      state.startingRetirement = Math.max(0, num(val));
+      persistState();
+      calc = computePlanner(state);
+      renderHudMetrics();
+      renderHighlights();
+      renderSummaryMatrix();
+      renderRetireBreakdownTable();
+      renderChart();
+    } else if (action === 'retirement-return-rate') {
+      state.retirementReturnRate = Math.max(-100, Math.min(100, num(val)));
+      persistState();
+      calc = computePlanner(state);
+      renderHudMetrics();
+      renderHighlights();
+      renderSummaryMatrix();
+      renderRetireBreakdownTable();
+      renderChart();
+    } else if (action === 'worker-wage' && state.workers?.[idx]) {
       state.workers[idx].wage[yr] = num(val);
+      persistState();
       calc = computePlanner(state);
       renderHudMetrics();
       renderHighlights();
@@ -2343,6 +2425,7 @@
       renderChart();
     } else if (action === 'other-amount' && state.other?.[idx]) {
       state.other[idx].amount[yr] = num(val);
+      persistState();
       calc = computePlanner(state);
       renderHudMetrics();
       renderHighlights();
@@ -2350,81 +2433,72 @@
       renderChart();
     } else if (action === 'col-monthly' && state.col?.[idx]) {
       state.col[idx].monthly[yr] = num(val);
+      persistState();
       calc = computePlanner(state);
       renderHudMetrics();
       renderHighlights();
       renderSummaryMatrix();
-      renderChart();
-    } else if (action === 'col-monthly-sync' && state.col?.[idx]) {
-      // In cards view, changing the monthly input updates all projection years for this item
-      const monthlyNum = num(val);
-      state.col[idx].monthly = Array(state.years).fill(monthlyNum);
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderExpensesSection();
       renderChart();
     } else if (action === 'worker-default-hours' && state.workers?.[idx]) {
       const h = Math.max(1, Math.min(168, num(val) || 40));
       state.workers[idx].hours = Array(state.years).fill(h);
+      persistState();
       calc = computePlanner(state);
       renderHudMetrics();
       renderHighlights();
       renderSummaryMatrix();
-      renderCompTable();
       renderTaxResultsTable();
       renderRetireBreakdownTable();
       renderChart();
     } else if (action === 'k401-rate') {
       state.k401Rate = state.k401Rate || Array(state.years).fill(0);
-      const grossYr = calc.g?.[yr] || 0;
-      const statusKey = state.taxStatus || 'Married';
-      const contributorMultiplier = statusKey === 'Married' ? 2 : 1;
-      const maxK401 = CAP401K_EMPLOYEE * contributorMultiplier;
-      const maxPct = grossYr > 0 ? (maxK401 / grossYr) * 100 : 100;
+      const eligibleWages = calc.earned?.[yr] || 0;
+      const maxK401 = CAP401K_EMPLOYEE;
+      const maxPct = eligibleWages > 0 ? (maxK401 / eligibleWages) * 100 : 0;
       const enteredPct = Math.max(0, num(val));
       const clampedPct = Math.min(enteredPct, maxPct);
       state.k401Rate[yr] = Math.round(clampedPct * 10) / 10;
       if (enteredPct > maxPct) {
         e.target.value = state.k401Rate[yr];
       }
+      persistState();
       calc = computePlanner(state);
       renderHudMetrics();
       renderHighlights();
       renderSummaryMatrix();
-      renderRetireTables();
+      renderRetireBreakdownTable();
       renderChart();
     } else if (action === 'roth-rate') {
       state.rothRate = state.rothRate || Array(state.years).fill(0);
-      const grossYr = calc.g?.[yr] || 0;
-      const statusKey = state.taxStatus || 'Married';
-      const contributorMultiplier = statusKey === 'Married' ? 2 : 1;
-      const maxRoth = ROTH_CAP * contributorMultiplier;
-      const maxPct = grossYr > 0 ? (maxRoth / grossYr) * 100 : 100;
+      const eligibleWages = calc.earned?.[yr] || 0;
+      const maxRoth = calc.rothLimit?.[yr] || 0;
+      const maxPct = eligibleWages > 0 ? (maxRoth / eligibleWages) * 100 : 0;
       const enteredPct = Math.max(0, num(val));
       const clampedPct = Math.min(enteredPct, maxPct);
       state.rothRate[yr] = Math.round(clampedPct * 10) / 10;
       if (enteredPct > maxPct) {
         e.target.value = state.rothRate[yr];
       }
+      persistState();
       calc = computePlanner(state);
       renderHudMetrics();
       renderHighlights();
       renderSummaryMatrix();
-      renderRetireTables();
+      renderRetireBreakdownTable();
       renderChart();
     } else if (action === 'retire-match') {
       state.employerMatchRate = state.employerMatchRate || Array(state.years).fill(0);
       state.employerMatchRate[yr] = Math.max(0, Math.min(100, Math.round(num(val) * 10) / 10));
+      persistState();
       calc = computePlanner(state);
       renderHudMetrics();
       renderHighlights();
       renderSummaryMatrix();
-      renderRetireTables();
+      renderRetireBreakdownTable();
       renderChart();
     } else if (action === 'tax-deps') {
       state.deps[yr] = Math.max(0, Math.min(20, Math.floor(num(val))));
+      persistState();
       calc = computePlanner(state);
       renderHudMetrics();
       renderHighlights();
@@ -2433,6 +2507,7 @@
       renderChart();
     } else if (action === 'tax-ded') {
       state.additionalDeductions[yr] = Math.max(0, num(val));
+      persistState();
       calc = computePlanner(state);
       renderHudMetrics();
       renderHighlights();
@@ -2443,6 +2518,7 @@
       const fId = e.target.dataset.id;
       if (state.customSavings?.[fId]) {
         state.customSavings[fId].monthly[yr] = num(val);
+        persistState();
         calc = computePlanner(state);
         renderHudMetrics();
         renderHighlights();
@@ -2475,6 +2551,9 @@
     } else if (action === 'tax-st') {
       state.st[yr] = e.target.value;
       recomputeAndRender();
+    } else if (action === 'roth-contributors') {
+      state.rothContributors = Math.max(1, Math.min(2, Math.floor(num(e.target.value) || 1)));
+      recomputeAndRender();
     } else if (action === 'tax-deps') {
       state.deps[yr] = num(e.target.value);
       recomputeAndRender();
@@ -2493,6 +2572,22 @@
         state.customSavings[fId].name = e.target.value;
         persistState();
       }
+    } else if ([
+      'worker-wage',
+      'worker-default-hours',
+      'other-amount',
+      'col-monthly',
+      'k401-rate',
+      'roth-rate',
+      'retire-match',
+      'fund-monthly',
+      'starting-cash',
+      'starting-retirement',
+      'retirement-return-rate',
+    ].includes(action)) {
+      // The live input handler intentionally leaves the focused field in place.
+      // Refresh the full table only after the user has finished the edit.
+      recomputeAndRender();
     }
   }
 
@@ -2574,11 +2669,9 @@
       state.k401Rate = state.k401Rate || Array(state.years).fill(0);
       const current = state.k401Rate[yr] ?? 0;
       const step = e.shiftKey ? 5 : 1;
-      const grossYr = calc.g?.[yr] || 0;
-      const statusKey = state.taxStatus || 'Married';
-      const contributorMultiplier = statusKey === 'Married' ? 2 : 1;
-      const maxK401 = CAP401K_EMPLOYEE * contributorMultiplier;
-      const maxPct = grossYr > 0 ? (maxK401 / grossYr) * 100 : 100;
+      const eligibleWages = calc.earned?.[yr] || 0;
+      const maxK401 = CAP401K_EMPLOYEE;
+      const maxPct = eligibleWages > 0 ? (maxK401 / eligibleWages) * 100 : 0;
       const targetPct = Math.round((current + dir * step) * 10) / 10;
       state.k401Rate[yr] = Math.max(0, Math.min(maxPct, targetPct));
       recomputeAndRender();
@@ -2592,11 +2685,9 @@
       state.rothRate = state.rothRate || Array(state.years).fill(0);
       const current = state.rothRate[yr] ?? 0;
       const step = e.shiftKey ? 2 : 0.5;
-      const grossYr = calc.g?.[yr] || 0;
-      const statusKey = state.taxStatus || 'Married';
-      const contributorMultiplier = statusKey === 'Married' ? 2 : 1;
-      const maxRoth = ROTH_CAP * contributorMultiplier;
-      const maxPct = grossYr > 0 ? (maxRoth / grossYr) * 100 : 100;
+      const eligibleWages = calc.earned?.[yr] || 0;
+      const maxRoth = calc.rothLimit?.[yr] || 0;
+      const maxPct = eligibleWages > 0 ? (maxRoth / eligibleWages) * 100 : 0;
       const targetPct = Math.round((current + dir * step) * 10) / 10;
       state.rothRate[yr] = Math.max(0, Math.min(maxPct, targetPct));
       recomputeAndRender();

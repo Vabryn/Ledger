@@ -1957,6 +1957,13 @@ input[type="number"] {
   color: var(--text-secondary);
 }
 
+.projection-scope {
+  margin: 14px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* ==========================================================================
    RESPONSIVE DESIGN (MOBILE-FIRST POLISH)
    ========================================================================== */
@@ -2385,4 +2392,3 @@ input[type="number"] {
     touch-action: manipulation;
   }
 }
-
