@@ -33,43 +33,36 @@
         <span class="masthead-badge">2025 Tax Model</span>
       </div>
 
-      <!-- Prominent Top-Centered Gooey Puck (Single Year vs Multi-Year) -->
+      <!-- One place for every planning-period decision -->
       <div class="masthead-center">
-        <div class="gooey-puck-track" id="modePuckTrack" role="tablist" aria-label="Planning Mode">
-          <div class="gooey-puck-indicator" id="gooeyPuckIndicator"></div>
-          <button type="button" class="gooey-puck-btn active" id="btnModeSingleYear" data-mode="single" role="tab" aria-selected="true" onclick="setPlannerMode('single')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="puck-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>Single Year</span>
-          </button>
-          <button type="button" class="gooey-puck-btn" id="btnModeMultiYear" data-mode="multi" role="tab" aria-selected="false" onclick="setPlannerMode('multi')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="puck-icon"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-            <span>Multi-Year</span>
-          </button>
+        <div class="planning-period-group" aria-label="Planning period">
+          <span class="planning-period-label">Planning period</span>
+          <div class="planning-period-toggle" role="tablist" aria-label="Planning period mode">
+            <button type="button" class="planning-period-option active" id="btnModeSingleYear" data-mode="single" role="tab" aria-selected="true" onclick="setPlannerMode('single')">This year</button>
+            <button type="button" class="planning-period-option" id="btnModeMultiYear" data-mode="multi" role="tab" aria-selected="false" onclick="setPlannerMode('multi')">Forecast</button>
+          </div>
+
+          <div class="stepper-group" title="First calendar year in the plan">
+            <span class="stepper-label" id="startYearLabel">Start year</span>
+            <div class="stepper-controls">
+              <button type="button" class="stepper-btn" id="btnPrevStartYear" onclick="stepStartYear(-1)" aria-label="Previous start year">‹</button>
+              <span class="stepper-val tabular" id="startYearDisplay">2025</span>
+              <button type="button" class="stepper-btn" id="btnNextStartYear" onclick="stepStartYear(1)" aria-label="Next start year">›</button>
+            </div>
+          </div>
+
+          <div class="stepper-group" id="horizonStepperWrapper" hidden title="Number of years in the forecast">
+            <span class="stepper-label">Forecast length</span>
+            <div class="stepper-controls">
+              <button type="button" class="stepper-btn" id="btnRemoveYear" onclick="stepYears(-1)" aria-label="Shorter forecast">‹</button>
+              <span class="stepper-val tabular" id="yearsCountDisplay">6 yrs</span>
+              <button type="button" class="stepper-btn" id="btnAddYear" onclick="stepYears(1)" aria-label="Longer forecast">›</button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="masthead-right">
-        <!-- Start Year Picker -->
-        <div class="stepper-group" title="Active calendar year">
-          <span class="stepper-label" id="startYearLabel">Year</span>
-          <div class="stepper-controls">
-            <button type="button" class="stepper-btn" id="btnPrevStartYear" onclick="stepStartYear(-1)" aria-label="Previous start year">‹</button>
-            <span class="stepper-val tabular" id="startYearDisplay">2025</span>
-            <button type="button" class="stepper-btn" id="btnNextStartYear" onclick="stepStartYear(1)" aria-label="Next start year">›</button>
-          </div>
-        </div>
-
-        <!-- Projection Horizon (Visible only in Multi-Year Mode) -->
-        <div class="stepper-group" id="horizonStepperWrapper" style="visibility: hidden; pointer-events: none;" title="How many years to project">
-          <span class="stepper-label">Horizon</span>
-          <div class="stepper-controls">
-            <button type="button" class="stepper-btn" id="btnRemoveYear" onclick="stepYears(-1)" aria-label="Fewer years">‹</button>
-            <span class="stepper-val tabular" id="yearsCountDisplay">6 yrs</span>
-            <button type="button" class="stepper-btn" id="btnAddYear" onclick="stepYears(1)" aria-label="More years">›</button>
-          </div>
-        </div>
-
-
         <div class="masthead-actions">
           <button type="button" class="btn-subtle" id="btnSampleState" onclick="requestLoadSampleData()" title="Load a sample household budget">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
@@ -415,11 +408,11 @@
         <!-- Rendered by app.js: Interactive category cards with line items and inline quick add -->
       </div>
 
-      <!-- 3. Full Multi-Year Table View (Optional toggle for power users) -->
+      <!-- Forecast table view -->
       <div id="expensesTableContainer" class="glass-card" style="display: none; margin-top: 18px;">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-kicker">Multi-Year Overview</span>
+            <span class="card-kicker">Forecast</span>
             <h2 class="card-title">Expense table</h2>
           </div>
         </div>

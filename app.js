@@ -807,13 +807,11 @@
   }
 
   // ── MASTHEAD & TOP CONTROLS ──────────────────────────────────────────────
-  function updateGooeyPuckUI() {
+  function updatePlanningPeriodUI() {
     const isSingle = state.plannerMode !== 'multi';
     const singleBtn = document.getElementById('btnModeSingleYear');
     const multiBtn = document.getElementById('btnModeMultiYear');
-    const indicator = document.getElementById('gooeyPuckIndicator');
     const horizonWrapper = document.getElementById('horizonStepperWrapper');
-    const startYearLabel = document.getElementById('startYearLabel');
     const projTabBtn = document.getElementById('tabBtnVisualizer');
 
     if (singleBtn && multiBtn) {
@@ -822,23 +820,10 @@
       multiBtn.classList.toggle('active', !isSingle);
       multiBtn.setAttribute('aria-selected', !isSingle ? 'true' : 'false');
 
-      const activeBtn = isSingle ? singleBtn : multiBtn;
-      if (indicator && activeBtn) {
-        const left = activeBtn.offsetLeft;
-        const width = activeBtn.offsetWidth;
-        if (width > 0) {
-          indicator.style.width = `${width}px`;
-          indicator.style.transform = `translateX(${Math.max(0, left - 3)}px)`;
-        }
-      }
     }
 
     if (horizonWrapper) {
-      horizonWrapper.style.visibility = isSingle ? 'hidden' : 'visible';
-      horizonWrapper.style.pointerEvents = isSingle ? 'none' : 'auto';
-    }
-    if (startYearLabel) {
-      startYearLabel.textContent = isSingle ? 'Year' : 'Start Year';
+      horizonWrapper.hidden = isSingle;
     }
     if (projTabBtn) {
       projTabBtn.style.display = isSingle ? 'none' : 'inline-flex';
@@ -875,7 +860,7 @@
       state.years = targetYears;
       ensureArraysLength(targetYears);
     }
-    updateGooeyPuckUI();
+    updatePlanningPeriodUI();
     recomputeAndRender();
   }
   window.setPlannerMode = setPlannerMode;
@@ -896,7 +881,7 @@
       document.getElementById('lblEditToggle').textContent = state.isEditMode ? 'Done' : 'Edit Table';
     }
 
-    updateGooeyPuckUI();
+    updatePlanningPeriodUI();
   }
 
   // ── HUD METRICS ──────────────────────────────────────────────────────────
@@ -2307,7 +2292,7 @@
 
   // ── GLOBAL EVENT HANDLERS ────────────────────────────────────────────────
   function bindEvents() {
-    // 0. Mode Puck Switcher (Single Year vs Multi-Year)
+    // 0. Planning-period selector
     const singleBtn = document.getElementById('btnModeSingleYear');
     if (singleBtn) singleBtn.onclick = () => window.setPlannerMode('single');
     const multiBtn = document.getElementById('btnModeMultiYear');
@@ -2319,7 +2304,7 @@
     const btnNextSY = document.getElementById('btnNextStartYear');
     if (btnNextSY) btnNextSY.onclick = () => window.stepStartYear(1);
 
-    // 2. Horizon Stepper (1-10 Years)
+    // 2. Forecast-length stepper (1-10 years)
     const btnRemYr = document.getElementById('btnRemoveYear');
     if (btnRemYr) btnRemYr.onclick = () => window.stepYears(-1);
     const btnAddYr = document.getElementById('btnAddYear');
@@ -2943,14 +2928,14 @@
 
     // Ensure fluid indicator geometry is exact once fonts & layout settle
     requestAnimationFrame(() => {
-      updateGooeyPuckUI();
+      updatePlanningPeriodUI();
     });
 
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        updateGooeyPuckUI();
+        updatePlanningPeriodUI();
         renderChart();
       }, 100);
     });
