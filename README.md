@@ -60,8 +60,11 @@ live. Nothing leaves the browser.
 ```
 Ledger/
 ├── index.html            markup + layout
-├── app.js                planner state, tax engine, rendering, SVG charts
-├── style.css             design system (dark + light)
+├── js/
+│   ├── app.js            planner state, rendering, SVG charts
+│   └── tax_data.js       tax engine and 2025 constants
+├── css/
+│   └── style.css         design system (dark + light)
 ├── legacy/               the original pre-split single-file version (reference)
 └── wrangler.jsonc        Cloudflare static-assets deploy config
 ```
