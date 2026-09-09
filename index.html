@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Ledger · Household Financial Planner</title>
   <meta name="description" content="A simple, elegant financial planner. Track income, calculate taxes, organize expenses by category, and forecast wealth accumulation.">
   
@@ -33,43 +33,14 @@
         <span class="masthead-badge">2025 Tax Model</span>
       </div>
 
-      <!-- One place for every planning-period decision -->
-      <div class="masthead-center">
-        <div class="planning-period-group" aria-label="Planning period">
-          <span class="planning-period-label">Planning period</span>
-          <div class="planning-period-toggle" role="tablist" aria-label="Planning period mode">
-            <button type="button" class="planning-period-option active" id="btnModeSingleYear" data-mode="single" role="tab" aria-selected="true" onclick="setPlannerMode('single')">This year</button>
-            <button type="button" class="planning-period-option" id="btnModeMultiYear" data-mode="multi" role="tab" aria-selected="false" onclick="setPlannerMode('multi')">Forecast</button>
-          </div>
-
-          <div class="stepper-group" title="First calendar year in the plan">
-            <span class="stepper-label" id="startYearLabel">Start year</span>
-            <div class="stepper-controls">
-              <button type="button" class="stepper-btn" id="btnPrevStartYear" onclick="stepStartYear(-1)" aria-label="Previous start year">‹</button>
-              <span class="stepper-val tabular" id="startYearDisplay">2025</span>
-              <button type="button" class="stepper-btn" id="btnNextStartYear" onclick="stepStartYear(1)" aria-label="Next start year">›</button>
-            </div>
-          </div>
-
-          <div class="stepper-group" id="horizonStepperWrapper" hidden title="Number of years in the forecast">
-            <span class="stepper-label">Forecast length</span>
-            <div class="stepper-controls">
-              <button type="button" class="stepper-btn" id="btnRemoveYear" onclick="stepYears(-1)" aria-label="Shorter forecast">‹</button>
-              <span class="stepper-val tabular" id="yearsCountDisplay">6 yrs</span>
-              <button type="button" class="stepper-btn" id="btnAddYear" onclick="stepYears(1)" aria-label="Longer forecast">›</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="masthead-right">
         <div class="masthead-actions">
-          <button type="button" class="btn-subtle" id="btnSampleState" onclick="requestLoadSampleData()" title="Load a sample household budget">
+          <button type="button" class="btn-subtle" id="btnSampleState" onclick="requestLoadSampleData()" title="Load a sample household budget" aria-label="Load sample plan">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
             <span>Sample</span>
           </button>
           
-          <button type="button" class="btn-subtle" id="btnClearState" onclick="requestResetData()" title="Start a fresh plan">
+          <button type="button" class="btn-subtle" id="btnClearState" onclick="requestResetData()" title="Start a fresh plan" aria-label="Start a fresh plan">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             <span>Reset</span>
           </button>
@@ -102,6 +73,39 @@
   <!-- MAIN CONTAINER                                           -->
   <!-- ======================================================== -->
   <main class="page-container">
+    <details class="planning-period" id="planningPeriod">
+      <summary><span>Planning period · <strong id="planningPeriodSummary">One year</strong></span><span class="period-edit">Edit</span></summary>
+        <div class="planning-period-group" aria-label="Planning period">
+          <span class="planning-period-label">Planning period</span>
+          <div class="planning-period-toggle" role="group" aria-label="Planning period mode">
+            <button type="button" class="planning-period-option active" id="btnModeSingleYear" data-mode="single" aria-pressed="true" onclick="setPlannerMode('single')">This year</button>
+            <button type="button" class="planning-period-option" id="btnModeMultiYear" data-mode="multi" aria-pressed="false" onclick="setPlannerMode('multi')">Forecast</button>
+          </div>
+
+          <div class="stepper-group" title="First calendar year in the plan">
+            <span class="stepper-label" id="startYearLabel">Start year</span>
+            <div class="stepper-controls">
+              <button type="button" class="stepper-btn" id="btnPrevStartYear" onclick="stepStartYear(-1)" aria-label="Previous start year">‹</button>
+              <span class="stepper-val tabular" id="startYearDisplay">2025</span>
+              <button type="button" class="stepper-btn" id="btnNextStartYear" onclick="stepStartYear(1)" aria-label="Next start year">›</button>
+            </div>
+          </div>
+
+          <div class="stepper-group" id="horizonStepperWrapper" hidden title="Number of years in the forecast">
+            <span class="stepper-label">Forecast length</span>
+            <div class="stepper-controls">
+              <button type="button" class="stepper-btn" id="btnRemoveYear" onclick="stepYears(-1)" aria-label="Shorter forecast">‹</button>
+              <span class="stepper-val tabular" id="yearsCountDisplay">6 yrs</span>
+              <button type="button" class="stepper-btn" id="btnAddYear" onclick="stepYears(1)" aria-label="Longer forecast">›</button>
+            </div>
+          </div>
+        </div>
+      <p class="period-help">Forecast changes the number of years shown. Each year can be edited separately.</p>
+    </details>
+    <p class="model-note">Estimates use the fixed 2025 tax model for every year. State estimates cover CA and NY; other locations require separate state-tax planning.</p>
+    <p class="status-note" id="storageNotice" role="alert" hidden></p>
+    <p class="status-note" id="sampleNotice" hidden>Sample plan — these are example household numbers. Choose Reset to start your own plan.</p>
+
 
     <section class="setup-guide" id="setupGuide" aria-labelledby="setupGuideTitle" hidden>
       <div class="setup-guide-heading">
@@ -127,7 +131,7 @@
         </button>
       </div>
       <div class="setup-guide-actions">
-        <button type="button" class="btn-primary-sm" data-action="setup-step" data-tab="income">Start with income</button>
+        <button type="button" class="btn-primary-sm" data-action="setup-step" data-tab="taxes">Start with household settings</button>
         <button type="button" class="btn-subtle" data-action="setup-sample">Explore a sample plan</button>
       </div>
     </section>
@@ -183,36 +187,36 @@
     <!-- MAIN SECTION TABS -->
     <nav class="cockpit-tabs-bar" aria-label="Planner Sections">
       <div class="segmented-control main-tabs" id="sectionTabs">
-        <button type="button" class="segmented-btn active" data-tab="overview" onclick="switchTab('overview')">
+        <button type="button" class="segmented-btn active" data-tab="overview">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
           <span>Overview</span>
         </button>
-        <button type="button" class="segmented-btn" data-tab="income" onclick="switchTab('income')">
+        <button type="button" class="segmented-btn" data-tab="income">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           <span>Income</span>
         </button>
-        <button type="button" class="segmented-btn" data-tab="expenses" onclick="switchTab('expenses')">
+        <button type="button" class="segmented-btn" data-tab="expenses">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
           <span>Expenses</span>
         </button>
-        <button type="button" class="segmented-btn" data-tab="taxes" onclick="switchTab('taxes')">
+        <button type="button" class="segmented-btn" data-tab="taxes">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/></svg>
           <span>Taxes</span>
         </button>
-        <button type="button" class="segmented-btn" data-tab="retire" onclick="switchTab('retire')">
+        <button type="button" class="segmented-btn" data-tab="retire">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
           <span>Retirement & Savings</span>
         </button>
-        <button type="button" class="segmented-btn" id="tabBtnVisualizer" data-tab="visualizer" onclick="switchTab('visualizer')" style="display: none;">
+        <button type="button" class="segmented-btn" id="tabBtnVisualizer" data-tab="visualizer" style="display: none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M18 9l-5 5-4-4-6 6"/></svg>
           <span>Projections</span>
         </button>
       </div>
 
       <div class="tabs-bar-right">
-        <button type="button" class="btn-outline-pill" id="btnToggleEdit" onclick="toggleEditMode()" title="Toggle table row editing">
+        <button type="button" class="btn-outline-pill" id="btnToggleEdit" onclick="toggleEditMode()" title="Show or hide row removal buttons">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          <span id="lblEditToggle">Edit Table</span>
+          <span id="lblEditToggle">Manage rows</span>
         </button>
       </div>
     </nav>
@@ -234,12 +238,12 @@
             </div>
             <div class="card-actions">
               <div class="segmented-control mini" id="chartModeToggle">
-                <button type="button" class="segmented-btn active" data-mode="cashflow" onclick="setChartMode('cashflow')">Cash Flow</button>
-                <button type="button" class="segmented-btn" data-mode="wealth" onclick="setChartMode('wealth')">Wealth Growth</button>
+                <button type="button" class="segmented-btn active" data-mode="cashflow">Cash Flow</button>
+                <button type="button" class="segmented-btn" data-mode="wealth">Wealth Growth</button>
               </div>
               <div class="segmented-control mini" id="chartTypeToggle">
-                <button type="button" class="segmented-btn active" data-chart="bar" onclick="setChartType('bar')">Bar</button>
-                <button type="button" class="segmented-btn" data-chart="area" onclick="setChartType('area')">Area</button>
+                <button type="button" class="segmented-btn active" data-chart="bar">Bar</button>
+                <button type="button" class="segmented-btn" data-chart="area">Area</button>
               </div>
             </div>
           </div>
@@ -259,20 +263,17 @@
           <div class="card-header">
             <div class="card-title-group">
               <span class="card-kicker">Plan summary</span>
-              <h2 class="card-title">Where your money goes</h2>
+              <h2 class="card-title">Balances and annual costs</h2>
             </div>
           </div>
 
           <div class="highlight-stack">
             <div class="highlight-item">
               <div class="highlight-top">
-                <span class="highlight-label">Total wealth</span>
+                <span class="highlight-label">Cash and retirement assets</span>
                 <span class="highlight-meta" id="hlNetWealthMeta">Cash + 401k</span>
               </div>
               <div class="highlight-val tabular text-emerald" id="hlNetWealthVal">$0</div>
-              <div class="progress-track">
-                <div class="progress-bar bar-emerald" id="hlWealthBar" style="width: 70%;"></div>
-              </div>
             </div>
 
             <div class="highlight-item">
@@ -281,9 +282,6 @@
                 <span class="highlight-meta">Invested</span>
               </div>
               <div class="highlight-val tabular text-accent" id="hlRetireVal">$0</div>
-              <div class="progress-track">
-                <div class="progress-bar bar-accent" id="hlRetireBar" style="width: 45%;"></div>
-              </div>
             </div>
 
             <div class="highlight-item">
@@ -292,9 +290,6 @@
                 <span class="highlight-meta">Average / Year</span>
               </div>
               <div class="highlight-val tabular text-rose" id="hlBurnVal">$0</div>
-              <div class="progress-track">
-                <div class="progress-bar bar-rose" id="hlBurnBar" style="width: 55%;"></div>
-              </div>
             </div>
 
             <div class="highlight-item">
@@ -303,9 +298,6 @@
                 <span class="highlight-meta">Fed + State + FICA</span>
               </div>
               <div class="highlight-val tabular text-gold" id="hlTaxFrictionVal">0.0%</div>
-              <div class="progress-track">
-                <div class="progress-bar bar-gold" id="hlTaxBar" style="width: 28%;"></div>
-              </div>
             </div>
           </div>
         </div>
@@ -320,7 +312,7 @@
           </div>
         </div>
 
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" tabindex="0" aria-label="Scrollable plan table">
           <table class="ledger-matrix" id="summaryMatrixTable"></table>
         </div>
       </div>
@@ -340,7 +332,7 @@
           </button>
         </div>
 
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" tabindex="0" aria-label="Scrollable plan table">
           <table class="ledger-matrix editable" id="workersTable"></table>
         </div>
       </div>
@@ -357,7 +349,7 @@
           </button>
         </div>
 
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" tabindex="0" aria-label="Scrollable plan table">
           <table class="ledger-matrix editable" id="otherIncomeTable"></table>
         </div>
       </div>
@@ -384,8 +376,8 @@
               </div>
             </div>
             <div class="segmented-control" id="expenseViewModeToggle">
-              <button type="button" class="segmented-btn active" data-exp-view="cards" onclick="setExpenseView('cards')">Category Cards</button>
-              <button type="button" class="segmented-btn" data-exp-view="table" onclick="setExpenseView('table')">Spreadsheet</button>
+              <button type="button" class="segmented-btn active" data-exp-view="cards">Category Cards</button>
+              <button type="button" class="segmented-btn" data-exp-view="table">Spreadsheet</button>
             </div>
           </div>
         </div>
@@ -416,7 +408,7 @@
             <h2 class="card-title">Expense table</h2>
           </div>
         </div>
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" tabindex="0" aria-label="Scrollable plan table">
           <table class="ledger-matrix editable" id="expensesTable"></table>
         </div>
       </div>
@@ -464,7 +456,7 @@
           </div>
         </div>
 
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" tabindex="0" aria-label="Scrollable plan table">
           <table class="ledger-matrix editable" id="taxInputsTable"></table>
         </div>
       </div>
@@ -478,7 +470,7 @@
           </div>
         </div>
 
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" tabindex="0" aria-label="Scrollable plan table">
           <table class="ledger-matrix" id="taxResultsTable"></table>
         </div>
       </div>
@@ -514,7 +506,7 @@
             </select>
           </div>
         </div>
-        <p class="projection-scope" id="projectionScope">Retirement balances compound annually after each year’s contributions. Roth limits use the 2025 income phase-out and the contributor count above; 401(k) limits apply to one employee plan. Expenses, debt payments, and savings-goal withdrawals follow the amounts you enter for each year.</p>
+        <p class="projection-scope" id="projectionScope">Opening retirement balances grow for one year, then contributions are added at year-end. Returns are assumptions, with no inflation adjustment. This simplified model applies one 401(k) employee limit to combined wages and estimates Roth eligibility from gross income. It does not model each worker’s plan, catch-up contributions, debt balances, interest, or withdrawals. Savings goals earmark cash rather than creating additional assets.</p>
       </div>
 
       <!-- Retirement Strategy -->
@@ -530,7 +522,7 @@
           </div>
         </div>
 
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" tabindex="0" aria-label="Scrollable plan table">
           <table class="ledger-matrix editable" id="retireInputsTable"></table>
         </div>
       </div>
@@ -544,7 +536,7 @@
           </div>
         </div>
 
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" tabindex="0" aria-label="Scrollable plan table">
           <table class="ledger-matrix" id="retireBreakdownTable"></table>
         </div>
       </div>
@@ -562,7 +554,7 @@
           </button>
         </div>
 
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" tabindex="0" aria-label="Scrollable plan table">
           <table class="ledger-matrix editable" id="customSavingsTable"></table>
         </div>
       </div>
@@ -578,12 +570,12 @@
           </div>
           <div class="card-actions">
             <div class="segmented-control mini" id="vizChartModeToggle">
-              <button type="button" class="segmented-btn active" data-mode="cashflow" onclick="setChartMode('cashflow')">Cash Flow</button>
-              <button type="button" class="segmented-btn" data-mode="wealth" onclick="setChartMode('wealth')">Wealth Growth</button>
+              <button type="button" class="segmented-btn active" data-mode="cashflow">Cash Flow</button>
+              <button type="button" class="segmented-btn" data-mode="wealth">Wealth Growth</button>
             </div>
             <div class="segmented-control mini" id="vizChartTypeToggle">
-              <button type="button" class="segmented-btn active" data-chart="bar" onclick="setChartType('bar')">Bars</button>
-              <button type="button" class="segmented-btn" data-chart="area" onclick="setChartType('area')">Area</button>
+              <button type="button" class="segmented-btn active" data-chart="bar">Bars</button>
+              <button type="button" class="segmented-btn" data-chart="area">Area</button>
             </div>
           </div>
         </div>
@@ -597,6 +589,7 @@
       </div>
     </div>
 
+    <button type="button" class="btn-primary-sm setup-next" id="setupNext" data-action="setup-step" hidden>Next</button>
   </main>
 
   <script src="app.js"></script>

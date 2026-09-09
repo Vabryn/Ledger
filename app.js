@@ -358,7 +358,7 @@
       activeTab: 'overview',
       expenseView: 'cards', // 'cards' | 'table'
       collapsedExpenseCats: {},
-      chartType: 'area',
+      chartType: 'bar',
       chartSeries: {
         gross: true,
         net: true,
@@ -425,26 +425,27 @@
           monthly: [200, 200, 200, 400, 400, 400],
         },
       },
+      isSample: true,
       firstRun: false,
       setupGuideVisible: false,
     };
   }
 
-  function getCleanEmptyState(years = 5) {
-    const isSingle = (typeof state !== 'undefined' && state?.plannerMode) !== 'multi';
+  function getCleanEmptyState(years = 6, previous = {}) {
+    const isSingle = previous.plannerMode !== 'multi';
     const effectiveYears = isSingle ? 1 : Math.max(2, years);
     return {
       plannerMode: isSingle ? 'single' : 'multi',
-      storedMultiYears: (typeof state !== 'undefined' && state?.storedMultiYears) || 6,
+      storedMultiYears: previous.storedMultiYears || 6,
       viewMode: 'years',
       years: effectiveYears,
-      startYear: (typeof state !== 'undefined' && state?.startYear) || 2025,
-      darkMode: true,
+      startYear: previous.startYear || new Date().getFullYear(),
+      darkMode: previous.darkMode !== false,
       isEditMode: false,
       activeTab: 'overview',
       expenseView: 'cards',
       collapsedExpenseCats: {},
-      chartType: 'area',
+      chartType: 'bar',
       chartSeries: { gross: true, net: true, expenses: true, savings: true, retire: true },
       taxStatus: 'Single',
       st: Array(effectiveYears).fill('CA'),
@@ -510,6 +511,29 @@
     if (targetState.additionalDeductions) {
       while (targetState.additionalDeductions.length < targetYears) targetState.additionalDeductions.push(targetState.additionalDeductions[targetState.additionalDeductions.length - 1] ?? 0);
     }
+  }
+
+  function normalizePlan(saved) {
+    const plan = { ...getCleanEmptyState(), ...saved };
+    plan.plannerMode = saved.plannerMode === 'multi' ? 'multi' : 'single';
+    plan.storedMultiYears = Math.max(2, Math.min(10, Math.floor(num(saved.storedMultiYears || saved.years) || 6)));
+    plan.years = plan.plannerMode === 'multi' ? Math.max(2, Math.min(10, Math.floor(num(saved.years) || 6))) : 1;
+    plan.startYear = Math.max(1980, Math.min(2100, Math.floor(num(saved.startYear) || new Date().getFullYear())));
+    plan.firstRun = saved.firstRun === true;
+    plan.setupGuideVisible = saved.setupGuideVisible === true;
+    plan.chartType = saved.chartType === 'area' ? 'area' : 'bar';
+    plan.chartSeries = saved.chartSeries || {};
+    plan.collapsedExpenseCats = saved.collapsedExpenseCats || {};
+    for (const key of ['workers','other','col']) {
+      plan[key] = Array.isArray(saved[key]) ? saved[key].filter(row => row && typeof row === 'object') : plan[key];
+    }
+    plan.customSavings = saved.customSavings && typeof saved.customSavings === 'object' ? saved.customSavings : {};
+    for (const key of ['k401Rate','rothRate','employerMatchRate','deps','additionalDeductions','st']) {
+      if (!Array.isArray(plan[key])) plan[key] = [plan[key] ?? (key === 'st' ? 'CA' : 0)];
+    }
+    if (!saved.k401Rate && saved.retireRate) plan.k401Rate = saved.retireRate;
+    ensureArraysLength(Math.max(plan.years, plan.storedMultiYears), plan);
+    return plan;
   }
 
   // ── CORE CALCULATION ENGINE ──────────────────────────────────────────────
@@ -731,6 +755,8 @@
   }
 
   // ── APP STATE & INITIALIZATION ───────────────────────────────────────────
+  let storageNotice = '';
+  let previousPlan = null;
   let state = loadPersistedState();
   let calc = computePlanner(state);
 
@@ -740,20 +766,11 @@
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed.years === 'number') {
-          if (!parsed.k401Rate) parsed.k401Rate = parsed.retireRate || Array(parsed.years).fill(0);
-          if (!parsed.rothRate) parsed.rothRate = Array(parsed.years).fill(0);
-          if (!parsed.plannerMode) parsed.plannerMode = 'single';
-          if (!parsed.storedMultiYears) parsed.storedMultiYears = parsed.years > 1 ? parsed.years : 6;
-          // Existing plans predate onboarding; do not interrupt them on upgrade.
-          if (typeof parsed.firstRun !== 'boolean') parsed.firstRun = false;
-          if (typeof parsed.setupGuideVisible !== 'boolean') parsed.setupGuideVisible = false;
-          if (parsed.plannerMode === 'single') {
-            parsed.years = 1;
-          }
-          return parsed;
+          return normalizePlan(parsed);
         }
       }
     } catch (e) {
+      storageNotice = 'Your saved plan could not be loaded. It has not been replaced; keep this tab open if you need to recover it.';
       console.warn('Could not read state from localStorage', e);
     }
     // A new planner begins with the user's own blank plan. The sample is an
@@ -764,9 +781,17 @@
   function persistState() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      storageNotice = '';
     } catch (e) {
+      storageNotice = 'Changes are only in this tab: browser storage is unavailable. Keep this tab open to avoid losing your plan.';
       console.warn('Could not write state to localStorage', e);
     }
+    renderStorageNotice();
+  }
+
+  function renderStorageNotice() {
+    const notice = document.getElementById('storageNotice');
+    if (notice) { notice.textContent = storageNotice; notice.hidden = !storageNotice; }
   }
 
   function recomputeAndRender() {
@@ -777,6 +802,7 @@
 
   // ── RENDER ROOT ──────────────────────────────────────────────────────────
   function renderAll() {
+    renderStorageNotice();
     renderMastheadControls();
     renderSetupExperience();
     renderHudMetrics();
@@ -789,13 +815,16 @@
     renderProjectionAssumptions();
     renderRetireTables();
     renderCustomSavingsTable();
+    renderActivePanel();
     renderChart();
+    labelTableControls();
   }
 
   function renderSetupExperience() {
     const guide = document.getElementById('setupGuide');
     if (!guide) return;
-    guide.hidden = state.setupGuideVisible === false;
+    guide.hidden = state.setupGuideVisible === false || state.activeTab !== 'overview';
+    document.getElementById('sampleNotice').hidden = !state.isSample;
     const kicker = document.getElementById('setupGuideKicker');
     const intro = document.getElementById('setupGuideIntro');
     if (kicker) kicker.textContent = state.firstRun ? 'Welcome to Ledger' : 'Plan setup';
@@ -813,12 +842,20 @@
     const multiBtn = document.getElementById('btnModeMultiYear');
     const horizonWrapper = document.getElementById('horizonStepperWrapper');
     const projTabBtn = document.getElementById('tabBtnVisualizer');
+    const start = state.startYear || new Date().getFullYear();
+    document.getElementById('planningPeriodSummary').textContent = isSingle ? `One year: ${start}` : `Forecast: ${start}–${start + state.years - 1}`;
+    singleBtn.textContent = start === new Date().getFullYear() ? 'This year' : 'One year';
+    document.getElementById('startYearLabel').textContent = isSingle ? 'Year' : 'Start year';
+    document.getElementById('btnRemoveYear').disabled = state.years <= 2;
+    document.getElementById('btnAddYear').disabled = state.years >= 10;
+    document.getElementById('btnPrevStartYear').disabled = start <= 1980;
+    document.getElementById('btnNextStartYear').disabled = start >= 2100;
 
     if (singleBtn && multiBtn) {
       singleBtn.classList.toggle('active', isSingle);
-      singleBtn.setAttribute('aria-selected', isSingle ? 'true' : 'false');
+      singleBtn.setAttribute('aria-pressed', String(isSingle));
       multiBtn.classList.toggle('active', !isSingle);
-      multiBtn.setAttribute('aria-selected', !isSingle ? 'true' : 'false');
+      multiBtn.setAttribute('aria-pressed', String(!isSingle));
 
     }
 
@@ -878,7 +915,7 @@
     const editBtn = document.getElementById('btnToggleEdit');
     if (editBtn) {
       editBtn.classList.toggle('active', !!state.isEditMode);
-      document.getElementById('lblEditToggle').textContent = state.isEditMode ? 'Done' : 'Edit Table';
+      document.getElementById('lblEditToggle').textContent = state.isEditMode ? 'Done' : 'Manage rows';
     }
 
     updatePlanningPeriodUI();
@@ -895,7 +932,7 @@
     const monthlyLeftOver = (calc.unallocatedBalance?.[0] || 0) / 12;
 
     const effTaxRate = totalGross > 0 ? (totalTax / totalGross) * 100 : 0;
-    const colRate = totalGross > 0 ? (totalCol / totalGross) * 100 : 0;
+    const colRate = totalNet > 0 ? (totalCol / totalNet) * 100 : 0;
 
     const periodName = isSingle ? 'Annual' : `${state.years}-Yr`;
 
@@ -910,18 +947,20 @@
 
     document.getElementById('hudTaxRateBadge').textContent = `${fmtPct(effTaxRate)} tax`;
     document.getElementById('hudNetVal').textContent = fmt$(totalNet);
-    document.getElementById('hudNetFoot').textContent = 'After taxes & traditional 401(k)';
+    document.getElementById('hudNetFoot').textContent = `${isSingle ? 'Annual' : state.years + '-year total'}, after taxes & traditional 401(k)`;
 
     document.getElementById('hudColBadge').textContent = `${fmtPct(colRate)} of pay`;
     document.getElementById('hudColVal').textContent = fmt$(totalCol);
+    document.getElementById('hudColFoot').textContent = isSingle ? 'Annual living expenses' : `${state.years}-year living expenses`;
 
     document.getElementById('hudSavingsVal').textContent = fmt$(monthlyLeftOver);
+    document.getElementById('hudSavingsVal').classList.toggle('is-shortfall', monthlyLeftOver < 0);
     document.getElementById('hudSavingsBadge').className = `metric-badge ${monthlyLeftOver >= 0 ? 'pos' : 'neg'}`;
     document.getElementById('hudSavingsBadge').textContent = monthlyLeftOver >= 0 ? '+Available' : '-Shortfall';
     document.getElementById('hudSavingsFoot').textContent = `Per month in ${state.startYear || 2025}, after expenses, retirement & goals`;
 
     document.getElementById('hudRetireVal').textContent = fmt$(totalRetire);
-    document.getElementById('hudRetireFoot').textContent = isSingle ? `Invested in ${state.startYear || 2025}` : 'Total invested wealth';
+    document.getElementById('hudRetireFoot').textContent = `Estimated balance at end of ${(state.startYear || 2025) + state.years - 1}`;
   }
 
   // ── PERFORMANCE HIGHLIGHTS ───────────────────────────────────────────────
@@ -951,16 +990,18 @@
       wealthMeta.textContent = isSingle ? 'Cash + retirement accounts' : 'Cash + retirement accounts';
     }
 
-    const wealthPct = Math.min(100, Math.max(10, totalGross > 0 ? (netWealth / totalGross) * 100 : 50));
-    document.getElementById('hlWealthBar').style.width = `${wealthPct}%`;
 
-    const retirePct = Math.min(100, Math.max(10, netWealth > 0 ? (totalRetire / netWealth) * 100 : 35));
-    document.getElementById('hlRetireBar').style.width = `${retirePct}%`;
+  }
 
-    const burnPct = Math.min(100, Math.max(10, totalGross > 0 ? (calc.colOnly.reduce((a, b) => a + b, 0) / totalGross) * 100 : 40));
-    document.getElementById('hlBurnBar').style.width = `${burnPct}%`;
-
-    document.getElementById('hlTaxBar').style.width = `${Math.min(100, effTaxRate * 2.5)}%`;
+  function labelTableControls() {
+    document.querySelectorAll('.ledger-matrix input, .ledger-matrix select, .ledger-matrix button').forEach(el => {
+      if (el.getAttribute('aria-label')) return;
+      const row = el.closest('tr');
+      const name = row?.querySelector('input[type="text"]')?.value || row?.querySelector('.sticky-col')?.textContent.trim().slice(0,90) || 'Plan';
+      const kind = (el.dataset.action || 'value').replace(/-/g,' ');
+      const year = el.dataset.year === undefined ? '' : `, ${state.startYear + Number(el.dataset.year)}`;
+      el.setAttribute('aria-label', `${name}: ${kind}${year}`);
+    });
   }
 
   // ── TABLE HELPER: THEAD ──────────────────────────────────────────────────
@@ -1089,20 +1130,19 @@
               .map((freq) => `<option value="${freq}" ${w.frequency === freq ? 'selected' : ''}>${freq}</option>`)
               .join('')}
           </select>
-          ${w.frequency === 'Hourly' ? `
-            <div class="worker-hours-wrap" style="display:inline-flex; align-items:center; gap:3px; background:var(--bg-elevated); padding:1px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
-              <span style="font-size:11px; font-weight:700; color:var(--text-secondary);">@</span>
-              <input type="number" min="1" max="168" step="1" class="table-input inline-hours-input" value="${w.hours?.[0] ?? 40}" data-action="worker-default-hours" data-idx="${wIdx}" style="width:38px; padding:1px 2px; font-size:11.5px; font-weight:700; text-align:center; height:20px; border-radius:3px; background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border-medium);" title="Hours per week">
-              <span style="font-size:11px; font-weight:700; color:var(--text-secondary);">hrs/wk</span>
-            </div>
-          ` : ''}
+
         </div>
       </td>`;
 
       for (let y = 0; y < state.years; y++) {
         const wageVal = w.wage?.[y] ?? 0;
         html += `<td>
-          <input type="number" step="any" class="table-input" value="${wageVal}" data-action="worker-wage" data-idx="${wIdx}" data-year="${y}">
+          <label class="income-value-label">${w.frequency === 'Hourly' ? '$ per hour' : '$ / ' + w.frequency.toLowerCase()}
+            <input type="number" min="0" step="any" class="table-input" value="${wageVal}" data-action="worker-wage" data-idx="${wIdx}" data-year="${y}">
+          </label>
+          ${w.frequency === 'Hourly' ? `<label class="income-value-label">Hours / week
+            <input type="number" min="0" max="168" step="any" class="table-input" value="${w.hours?.[y] ?? 40}" data-action="worker-default-hours" data-idx="${wIdx}" data-year="${y}">
+          </label>` : ''}
         </td>`;
       }
 
@@ -1226,11 +1266,11 @@
       const items = (state.col || []).filter((item) => item.cat === cat);
       const catMonthly = catTotalsMonthly[cat] || 0;
       const pctOfTotal = totalMonthlyCurrent > 0 ? (catMonthly / totalMonthlyCurrent) * 100 : 0;
-      const isCollapsed = state.collapsedExpenseCats?.[cat] !== false;
+      const isCollapsed = state.collapsedExpenseCats?.[cat] ?? (items.length === 0);
 
       cardsHtml += `
         <div class="category-card ${isCollapsed ? 'collapsed' : ''}" data-cat="${cat}" style="--cat-color: ${meta.color};">
-          <div class="category-card-header" data-action="toggle-cat-card" data-cat="${cat}">
+          <div class="category-card-header" role="button" tabindex="0" aria-expanded="${!isCollapsed}" data-action="toggle-cat-card" data-cat="${cat}">
             <div class="category-left">
               <div>
                 <div class="category-title-row">
@@ -1311,9 +1351,9 @@
       const catMonthlyCurrent = catTotals[0] / 12;
       const pctOfTotal = totalMonthlyCurrent > 0 ? (catMonthlyCurrent / totalMonthlyCurrent) * 100 : 0;
 
-      const isCollapsed = state.collapsedExpenseCats?.[cat] !== false;
+      const isCollapsed = state.collapsedExpenseCats?.[cat] ?? (items.length === 0);
 
-      html += `<tr class="row-group-header category-table-header ${isCollapsed ? 'collapsed' : ''}" style="--cat-color: ${meta.color}; cursor: pointer;" data-action="toggle-table-cat" data-cat="${cat}">
+      html += `<tr class="row-group-header category-table-header ${isCollapsed ? 'collapsed' : ''}" style="--cat-color: ${meta.color}; cursor: pointer;" data-action="toggle-table-cat" data-cat="${cat}" tabindex="0" aria-expanded="${!isCollapsed}">
         <td class="sticky-col category-table-sticky" style="background: color-mix(in srgb, ${meta.color} 5%, var(--bg-subtle));">
           <div class="category-table-title" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -1399,14 +1439,14 @@
           <option value="NY" ${currSt === 'NY' ? 'selected' : ''}>New York (NY)</option>
           <option value="NYC" ${currSt === 'NYC' ? 'selected' : ''}>New York City (NYC)</option>
           <option value="YONKERS" ${currSt === 'YONKERS' ? 'selected' : ''}>Yonkers, NY</option>
-          <option value="NONE" ${currSt === 'NONE' ? 'selected' : ''}>No State Tax (0%)</option>
+          <option value="NONE" ${currSt === 'NONE' ? 'selected' : ''}>No state tax modeled (0%)</option>
         </select>
       </td>`;
     }
     if (state.isEditMode) htmlIn += `<td></td>`;
     htmlIn += `</tr>`;
 
-    htmlIn += `<tr><td class="sticky-col"><strong>Child / Dependents Count</strong></td>`;
+    htmlIn += `<tr><td class="sticky-col"><strong>Qualifying children for the tax credit</strong></td>`;
     for (let y = 0; y < state.years; y++) {
       const deps = state.deps?.[y] ?? 0;
       htmlIn += `<td>
@@ -1513,9 +1553,9 @@
             <input type="text" inputmode="decimal" class="pill-num-input" value="${rate}" data-action="k401-rate" data-year="${y}" aria-label="401(k) percentage">
             <span class="pill-suffix">%</span>
           </div>
-          <button type="button" class="pill-step-btn" data-action="step-k401-rate" data-dir="1" data-year="${y}" title="Increase 401(k) rate" aria-label="Increase 401(k) rate" ${isCapped ? 'disabled style="opacity:0.35; cursor:not-allowed;"' : ''}>+</button>
+          <button type="button" class="pill-step-btn" data-action="step-k401-rate" data-dir="1" data-year="${y}" title="Increase 401(k) rate" aria-label="Increase 401(k) rate" >+</button>
         </div>
-        <div style="font-size:11px; font-weight:600; margin-top:4px; font-family:var(--font-mono); color:${isCapped ? 'var(--accent-gold)' : 'var(--text-secondary)'};">
+        <div data-retire-result="k401Arr" data-year="${y}" style="font-size:11px; font-weight:600; margin-top:4px; font-family:var(--font-mono); color:${isCapped ? 'var(--accent-gold)' : 'var(--text-secondary)'};">
           ${fmtCompact$(k401Amt)}${isCapped ? ' (Max)' : ''}
         </div>
       </td>`;
@@ -1540,9 +1580,9 @@
             <input type="text" inputmode="decimal" class="pill-num-input" value="${rate}" data-action="roth-rate" data-year="${y}" aria-label="Roth IRA percentage">
             <span class="pill-suffix">%</span>
           </div>
-          <button type="button" class="pill-step-btn" data-action="step-roth-rate" data-dir="1" data-year="${y}" title="Increase Roth IRA rate" aria-label="Increase Roth IRA rate" ${isCapped ? 'disabled style="opacity:0.35; cursor:not-allowed;"' : ''}>+</button>
+          <button type="button" class="pill-step-btn" data-action="step-roth-rate" data-dir="1" data-year="${y}" title="Increase Roth IRA rate" aria-label="Increase Roth IRA rate" >+</button>
         </div>
-        <div style="font-size:11px; font-weight:600; margin-top:4px; font-family:var(--font-mono); color:${isCapped ? 'var(--accent-gold)' : 'var(--text-secondary)'};">
+        <div data-retire-result="rothArr" data-year="${y}" style="font-size:11px; font-weight:600; margin-top:4px; font-family:var(--font-mono); color:${isCapped ? 'var(--accent-gold)' : 'var(--text-secondary)'};">
           ${fmtCompact$(rothAmt)} / ${fmtCompact$(maxRothAnnual)}${isCapped ? ' (Max)' : ''}
         </div>
       </td>`;
@@ -1567,7 +1607,7 @@
           </div>
           <button type="button" class="pill-step-btn" data-action="step-retire-match" data-dir="1" data-year="${y}" title="Increase 401k match rate" aria-label="Increase 401k match rate">+</button>
         </div>
-        <div style="font-size:11px; font-weight:600; margin-top:4px; font-family:var(--font-mono); color:var(--accent-emerald);">
+        <div data-retire-result="employerMatchAmount" data-year="${y}" style="font-size:11px; font-weight:600; margin-top:4px; font-family:var(--font-mono); color:var(--accent-emerald);">
           +${fmtCompact$(matchAmt)}
         </div>
       </td>`;
@@ -1692,7 +1732,7 @@
         totalWealth.push((calc.savingsOT[i] || 0) + (calc.retireOT[i] || 0));
       }
       seriesDef = [
-        { id: 'totalWealth', label: 'Total Net Wealth', color: '#4ea679', data: totalWealth },
+        { id: 'totalWealth', label: 'Cash + Retirement', color: '#4ea679', data: totalWealth },
         { id: 'retireOT', label: 'Retirement Portfolio', color: '#d4a359', data: calc.retireOT },
         { id: 'savingsOT', label: 'Cash Reserves', color: '#5aa8e6', data: calc.savingsOT },
       ];
@@ -1708,10 +1748,10 @@
     let legendHtml = '';
     seriesDef.forEach((s) => {
       const isActive = state.chartSeries?.[s.id] !== false;
-      legendHtml += `<div class="chart-chip ${isActive ? '' : 'inactive'}" data-action="toggle-series" data-series="${s.id}">
+      legendHtml += `<button type="button" aria-pressed="${isActive}" class="chart-chip ${isActive ? '' : 'inactive'}" data-action="toggle-series" data-series="${s.id}">
         <span class="chip-dot" style="background:${s.color};"></span>
         <span>${s.label}</span>
-      </div>`;
+      </button>`;
     });
     legendEl.innerHTML = legendHtml;
 
@@ -2104,8 +2144,9 @@
   }
 
   function replacePlan(nextState, message) {
+    previousPlan = JSON.parse(JSON.stringify(state));
     try {
-      localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(previousPlan));
     } catch (e) {
       console.warn('Could not back up the current plan', e);
     }
@@ -2129,7 +2170,7 @@
 
   window.resetData = function () {
     const currentMode = state.plannerMode || 'single';
-    const nextState = getCleanEmptyState(currentMode === 'single' ? 1 : (state.storedMultiYears || 6));
+    const nextState = getCleanEmptyState(currentMode === 'single' ? 1 : (state.storedMultiYears || 6), state);
     nextState.plannerMode = currentMode;
     if (currentMode === 'single') {
       nextState.years = 1;
@@ -2152,10 +2193,12 @@
 
   window.undoPlanReplacement = function () {
     try {
-      const raw = localStorage.getItem(BACKUP_STORAGE_KEY);
-      const previousPlan = raw && JSON.parse(raw);
-      if (!previousPlan || typeof previousPlan.years !== 'number') return;
-      state = previousPlan;
+      const raw = previousPlan ? null : localStorage.getItem(BACKUP_STORAGE_KEY);
+      const backup = previousPlan || (raw && JSON.parse(raw));
+      if (!backup || typeof backup.years !== 'number') return;
+      state = normalizePlan(backup);
+      previousPlan = null;
+      try { localStorage.removeItem(BACKUP_STORAGE_KEY); } catch {}
       recomputeAndRender();
       const toast = document.getElementById('planChangeToast');
       if (toast) toast.hidden = true;
@@ -2187,38 +2230,28 @@
     renderAll();
   };
 
+  const PANEL_IDS = {overview:'panelOverview',income:'panelIncome',expenses:'panelExpenses',taxes:'panelTaxes',retire:'panelRetire',visualizer:'panelVisualizer'};
+  function renderActivePanel() {
+    if (!PANEL_IDS[state.activeTab] || (state.activeTab === 'visualizer' && state.plannerMode !== 'multi')) state.activeTab = 'overview';
+    document.body.dataset.tab = state.activeTab;
+    document.querySelectorAll('#sectionTabs [data-tab]').forEach(btn => {
+      const active = btn.dataset.tab === state.activeTab;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-current', active ? 'page' : 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.toggle('active', panel.id === PANEL_IDS[state.activeTab]));
+    const next = {taxes:['income','Next: income'],income:['expenses','Next: monthly expenses'],expenses:['retire','Next: retirement and goals'],retire:['overview','Review your plan']}[state.activeTab];
+    const guideNext = document.getElementById('setupNext');
+    guideNext.hidden = state.setupGuideVisible === false || !next;
+    if (next) { guideNext.dataset.tab = next[0]; guideNext.textContent = next[1]; }
+  }
   window.switchTab = function (tabKey) {
     state.activeTab = tabKey;
-    document.querySelectorAll('#sectionTabs .segmented-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.tab === tabKey);
-    });
-    document.querySelectorAll('.tab-panel').forEach((p) => {
-      p.classList.remove('active');
-    });
-
-    const targetMap = {
-      overview: 'panelOverview',
-      cockpit: 'panelOverview', // legacy alias
-      income: 'panelIncome',
-      expenses: 'panelExpenses',
-      taxes: 'panelTaxes',
-      retire: 'panelRetire',
-      visualizer: 'panelVisualizer',
-    };
-    const targetId = targetMap[tabKey] || 'panelOverview';
-    const targetPanel = document.getElementById(targetId);
-    if (targetPanel) {
-      targetPanel.classList.add('active');
-    }
-
-    const tabsBar = document.getElementById('sectionTabs');
-    if (tabsBar && typeof tabsBar.scrollIntoView === 'function') {
-      tabsBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    if (tabKey === 'overview' || tabKey === 'visualizer') {
-      renderChart();
-    }
+    renderActivePanel();
+    renderSetupExperience();
+    renderExpensesSection();
+    labelTableControls();
+    renderChart();
     persistState();
   };
 
@@ -2262,7 +2295,7 @@
       id: `w-${Date.now()}`,
       name: `Earner ${state.workers.length + 1}`,
       frequency: 'Hourly',
-      hours: Array(state.years).fill(0),
+      hours: Array(state.years).fill(40),
       wage: Array(state.years).fill(0),
     });
     recomputeAndRender();
@@ -2379,6 +2412,8 @@
         state.chartSeries = state.chartSeries || {};
         state.chartSeries[sKey] = state.chartSeries[sKey] === false;
         renderChart();
+        persistState();
+        document.querySelector(`[data-action="toggle-series"][data-series="${sKey}"]`)?.focus({preventScroll:true});
       }
     });
 
@@ -2429,7 +2464,7 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         const activeEl = document.activeElement;
-        if (activeEl && activeEl.dataset && activeEl.dataset.action === 'focus-cat-card') {
+        if (activeEl && activeEl.dataset && ['focus-cat-card','toggle-cat-card','toggle-table-cat'].includes(activeEl.dataset.action)) {
           e.preventDefault();
           activeEl.click();
         }
@@ -2450,214 +2485,89 @@
   }
 
   // ── DELEGATED INPUT HANDLERS ─────────────────────────────────────────────
+  // Update values without replacing the focused control or the next click target.
   function handleTableInput(e) {
     const action = e.target.dataset.action;
-    if (!action) return;
-
-    const idx = parseInt(e.target.dataset.idx, 10);
-    const yr = parseInt(e.target.dataset.year, 10);
+    const idx = Number(e.target.dataset.idx);
+    const yr = Number(e.target.dataset.year || 0);
     const val = e.target.value;
+    const n = num(val);
+    const nonnegative = Math.max(0, n);
+    const rate = Math.max(0, Math.min(100, n));
+    let changed = true;
+    if (action === 'worker-name' && state.workers[idx]) state.workers[idx].name = val;
+    else if (action === 'other-name' && state.other[idx]) state.other[idx].name = val;
+    else if (action === 'col-name' && state.col[idx]) state.col[idx].name = val;
+    else if (action === 'fund-name' && state.customSavings[e.target.dataset.id]) state.customSavings[e.target.dataset.id].name = val;
+    else if (action === 'worker-wage' && state.workers[idx]) state.workers[idx].wage[yr] = nonnegative;
+    else if (action === 'worker-default-hours' && state.workers[idx]) state.workers[idx].hours[yr] = Math.max(0, Math.min(168, n));
+    else if (action === 'other-amount' && state.other[idx]) state.other[idx].amount[yr] = nonnegative;
+    else if (action === 'col-monthly' && state.col[idx]) state.col[idx].monthly[yr] = nonnegative;
+    else if (action === 'fund-monthly' && state.customSavings[e.target.dataset.id]) state.customSavings[e.target.dataset.id].monthly[yr] = nonnegative;
+    else if (action === 'starting-cash') state.startingCash = nonnegative;
+    else if (action === 'starting-retirement') state.startingRetirement = nonnegative;
+    else if (action === 'retirement-return-rate') state.retirementReturnRate = Math.max(-100, Math.min(100, n));
+    else if (action === 'k401-rate') state.k401Rate[yr] = rate;
+    else if (action === 'roth-rate') state.rothRate[yr] = rate;
+    else if (action === 'retire-match') state.employerMatchRate[yr] = rate;
+    else if (action === 'tax-deps') state.deps[yr] = Math.max(0, Math.min(20, Math.floor(n)));
+    else if (action === 'tax-ded') state.additionalDeductions[yr] = nonnegative;
+    else changed = false;
+    if (!changed) return;
+    persistState();
+    if (!action.endsWith('-name')) refreshResults();
+  }
 
-    if (action === 'starting-cash') {
-      state.startingCash = Math.max(0, num(val));
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderChart();
-    } else if (action === 'starting-retirement') {
-      state.startingRetirement = Math.max(0, num(val));
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderRetireBreakdownTable();
-      renderChart();
-    } else if (action === 'retirement-return-rate') {
-      state.retirementReturnRate = Math.max(-100, Math.min(100, num(val)));
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderRetireBreakdownTable();
-      renderChart();
-    } else if (action === 'worker-wage' && state.workers?.[idx]) {
-      state.workers[idx].wage[yr] = num(val);
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderChart();
-    } else if (action === 'other-amount' && state.other?.[idx]) {
-      state.other[idx].amount[yr] = num(val);
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderChart();
-    } else if (action === 'col-monthly' && state.col?.[idx]) {
-      state.col[idx].monthly[yr] = num(val);
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderChart();
-    } else if (action === 'worker-default-hours' && state.workers?.[idx]) {
-      const h = Math.max(1, Math.min(168, num(val) || 40));
-      state.workers[idx].hours = Array(state.years).fill(h);
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderTaxResultsTable();
-      renderRetireBreakdownTable();
-      renderChart();
-    } else if (action === 'k401-rate') {
-      state.k401Rate = state.k401Rate || Array(state.years).fill(0);
-      const eligibleWages = calc.earned?.[yr] || 0;
-      const maxK401 = CAP401K_EMPLOYEE;
-      const maxPct = eligibleWages > 0 ? (maxK401 / eligibleWages) * 100 : 0;
-      const enteredPct = Math.max(0, num(val));
-      const clampedPct = Math.min(enteredPct, maxPct);
-      state.k401Rate[yr] = Math.round(clampedPct * 10) / 10;
-      if (enteredPct > maxPct) {
-        e.target.value = state.k401Rate[yr];
-      }
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderRetireBreakdownTable();
-      renderChart();
-    } else if (action === 'roth-rate') {
-      state.rothRate = state.rothRate || Array(state.years).fill(0);
-      const eligibleWages = calc.earned?.[yr] || 0;
-      const maxRoth = calc.rothLimit?.[yr] || 0;
-      const maxPct = eligibleWages > 0 ? (maxRoth / eligibleWages) * 100 : 0;
-      const enteredPct = Math.max(0, num(val));
-      const clampedPct = Math.min(enteredPct, maxPct);
-      state.rothRate[yr] = Math.round(clampedPct * 10) / 10;
-      if (enteredPct > maxPct) {
-        e.target.value = state.rothRate[yr];
-      }
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderRetireBreakdownTable();
-      renderChart();
-    } else if (action === 'retire-match') {
-      state.employerMatchRate = state.employerMatchRate || Array(state.years).fill(0);
-      state.employerMatchRate[yr] = Math.max(0, Math.min(100, Math.round(num(val) * 10) / 10));
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderRetireBreakdownTable();
-      renderChart();
-    } else if (action === 'tax-deps') {
-      state.deps[yr] = Math.max(0, Math.min(20, Math.floor(num(val))));
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderTaxResultsTable();
-      renderChart();
-    } else if (action === 'tax-ded') {
-      state.additionalDeductions[yr] = Math.max(0, num(val));
-      persistState();
-      calc = computePlanner(state);
-      renderHudMetrics();
-      renderHighlights();
-      renderSummaryMatrix();
-      renderTaxResultsTable();
-      renderChart();
-    } else if (action === 'fund-monthly') {
-      const fId = e.target.dataset.id;
-      if (state.customSavings?.[fId]) {
-        state.customSavings[fId].monthly[yr] = num(val);
-        persistState();
-        calc = computePlanner(state);
-        renderHudMetrics();
-        renderHighlights();
-        renderSummaryMatrix();
-        renderChart();
-      }
-    }
+  function refreshResults() {
+    calc = computePlanner(state);
+    renderHudMetrics();
+    renderHighlights();
+    renderSummaryMatrix();
+    renderTaxResultsTable();
+    renderRetireBreakdownTable();
+    renderChart();
+    // Update expense totals and retirement amounts in place, preserving typing.
+    document.getElementById('expensesMonthlyTotalVal').textContent = fmt$(calc.colOnly[0] / 12);
+    document.getElementById('expensesAnnualTotalVal').textContent = fmt$(calc.colOnly[0]);
+    document.querySelectorAll('[data-retire-result]').forEach(el => {
+      const y = Number(el.dataset.year);
+      const key = el.dataset.retireResult;
+      el.textContent = key === 'rothArr'
+        ? `${fmt$(calc.rothArr[y])} / ${fmt$(calc.rothLimit[y])} limit`
+        : fmt$(calc[key][y]);
+    });
+    document.querySelectorAll('.category-card').forEach(card => {
+      const total = state.col.filter(c => c.cat === card.dataset.cat).reduce((sum,c) => sum + num(c.monthly[0]), 0);
+      card.querySelector('.category-total-val').textContent = `${fmt$(total)}/mo`;
+      card.querySelectorAll('.expense-item-row').forEach(row => {
+        const field = row.querySelector('[data-action="col-monthly"]');
+        row.querySelector('.expense-item-annual-hint').textContent = `${fmtCompact$(num(state.col[field.dataset.idx].monthly[0])*12)}/yr`;
+      });
+    });
   }
 
   function handleTableChange(e) {
     const action = e.target.dataset.action;
-    const idx = parseInt(e.target.dataset.idx, 10);
-    const yr = parseInt(e.target.dataset.year, 10);
-
-    if (action === 'worker-name' && state.workers?.[idx]) {
-      state.workers[idx].name = e.target.value;
-      persistState();
-    } else if (action === 'worker-freq' && state.workers?.[idx]) {
-      state.workers[idx].frequency = e.target.value;
-      recomputeAndRender();
-    } else if (action === 'other-name' && state.other?.[idx]) {
-      state.other[idx].name = e.target.value;
-      persistState();
-    } else if (action === 'other-freq' && state.other?.[idx]) {
-      state.other[idx].frequency = e.target.value;
-      recomputeAndRender();
-    } else if (action === 'col-name' && state.col?.[idx]) {
-      state.col[idx].name = e.target.value;
-      persistState();
-    } else if (action === 'tax-st') {
-      state.st[yr] = e.target.value;
-      recomputeAndRender();
-    } else if (action === 'roth-contributors') {
-      state.rothContributors = Math.max(1, Math.min(2, Math.floor(num(e.target.value) || 1)));
-      recomputeAndRender();
-    } else if (action === 'tax-deps') {
-      state.deps[yr] = num(e.target.value);
-      recomputeAndRender();
-    } else if (action === 'tax-ded') {
-      state.additionalDeductions[yr] = num(e.target.value);
-      recomputeAndRender();
-    } else if (e.target.id === 'selTaxStatus') {
-      state.taxStatus = e.target.value;
-      recomputeAndRender();
-    } else if (e.target.id === 'chkFicaToggle') {
-      state.fica = e.target.checked;
-      recomputeAndRender();
-    } else if (action === 'fund-name') {
-      const fId = e.target.dataset.id;
-      if (state.customSavings?.[fId]) {
-        state.customSavings[fId].name = e.target.value;
-        persistState();
+    const idx = Number(e.target.dataset.idx);
+    const yr = Number(e.target.dataset.year || 0);
+    if (action === 'worker-freq' && state.workers[idx]) state.workers[idx].frequency = e.target.value;
+    else if (action === 'other-freq' && state.other[idx]) state.other[idx].frequency = e.target.value;
+    else if (action === 'tax-st') state.st[yr] = e.target.value;
+    else if (action === 'roth-contributors') state.rothContributors = Math.max(1, Math.min(2, Math.floor(num(e.target.value) || 1)));
+    else if (e.target.id === 'selTaxStatus') state.taxStatus = e.target.value;
+    else if (e.target.id === 'chkFicaToggle') state.fica = e.target.checked;
+    else {
+      // Normalize committed numeric values without rebuilding any controls.
+      if (e.target.type === 'number' || e.target.inputMode === 'decimal' || e.target.inputMode === 'numeric') {
+        if (e.target.validity?.badInput) return;
+        if (action === 'tax-deps') e.target.value = state.deps[yr];
+        else if (action === 'worker-default-hours') e.target.value = state.workers[idx].hours[yr];
+        else if (['k401-rate','roth-rate','retire-match'].includes(action)) e.target.value = Math.max(0,Math.min(100,num(e.target.value)));
+        else if (action && action !== 'retirement-return-rate') e.target.value = Math.max(0,num(e.target.value));
       }
-    } else if ([
-      'worker-wage',
-      'worker-default-hours',
-      'other-amount',
-      'col-monthly',
-      'k401-rate',
-      'roth-rate',
-      'retire-match',
-      'fund-monthly',
-      'starting-cash',
-      'starting-retirement',
-      'retirement-return-rate',
-    ].includes(action)) {
-      // The live input handler intentionally leaves the focused field in place.
-      // Refresh the full table only after the user has finished the edit.
-      recomputeAndRender();
+      return;
     }
+    recomputeAndRender();
   }
 
   function handleGlobalClicks(e) {
@@ -2695,6 +2605,7 @@
         if (targetCard) {
           if (targetCard.classList.contains('collapsed')) {
             targetCard.classList.remove('collapsed');
+            targetCard.querySelector('.category-card-header').setAttribute('aria-expanded', 'true');
             if (state.collapsedExpenseCats) state.collapsedExpenseCats[cat] = false;
             persistState();
           }
@@ -2754,7 +2665,7 @@
       const step = e.shiftKey ? 5 : 1;
       const eligibleWages = calc.earned?.[yr] || 0;
       const maxK401 = CAP401K_EMPLOYEE;
-      const maxPct = eligibleWages > 0 ? (maxK401 / eligibleWages) * 100 : 0;
+      const maxPct = 100;
       const targetPct = Math.round((current + dir * step) * 10) / 10;
       state.k401Rate[yr] = Math.max(0, Math.min(maxPct, targetPct));
       recomputeAndRender();
@@ -2770,7 +2681,7 @@
       const step = e.shiftKey ? 2 : 0.5;
       const eligibleWages = calc.earned?.[yr] || 0;
       const maxRoth = calc.rothLimit?.[yr] || 0;
-      const maxPct = eligibleWages > 0 ? (maxRoth / eligibleWages) * 100 : 0;
+      const maxPct = 100;
       const targetPct = Math.round((current + dir * step) * 10) / 10;
       state.rothRate[yr] = Math.max(0, Math.min(maxPct, targetPct));
       recomputeAndRender();
@@ -2794,11 +2705,12 @@
     if (toggleHeader) {
       const cat = toggleHeader.dataset.cat;
       state.collapsedExpenseCats = state.collapsedExpenseCats || {};
-      const isCurrentlyCollapsed = state.collapsedExpenseCats[cat] !== false;
+      const isCurrentlyCollapsed = state.collapsedExpenseCats[cat] ?? !state.col.some(item => item.cat === cat);
       state.collapsedExpenseCats[cat] = !isCurrentlyCollapsed;
       const card = toggleHeader.closest('.category-card');
       if (card) {
         card.classList.toggle('collapsed', state.collapsedExpenseCats[cat]);
+        toggleHeader.setAttribute('aria-expanded', String(!state.collapsedExpenseCats[cat]));
       }
       persistState();
       return;
@@ -2810,7 +2722,7 @@
       if (e.target.closest('[data-action="quick-add-col-table"]')) return;
       const cat = toggleTableRow.dataset.cat;
       state.collapsedExpenseCats = state.collapsedExpenseCats || {};
-      const isCurrentlyCollapsed = state.collapsedExpenseCats[cat] !== false;
+      const isCurrentlyCollapsed = state.collapsedExpenseCats[cat] ?? !state.col.some(item => item.cat === cat);
       state.collapsedExpenseCats[cat] = !isCurrentlyCollapsed;
       persistState();
       renderExpensesTable();
@@ -2841,7 +2753,7 @@
       const cat = btnSubmitInline.dataset.cat;
       const cleanCat = cat.replace(/\s+/g, '_');
       const name = (document.getElementById(`newExpName_${cleanCat}`)?.value || '').trim();
-      const monthly = num(document.getElementById(`newExpCost_${cleanCat}`)?.value || 0);
+      const monthly = Math.max(0, num(document.getElementById(`newExpCost_${cleanCat}`)?.value || 0));
 
       if (name) {
         state.col = state.col || [];
@@ -2920,11 +2832,13 @@
       state.activeTab = paramTab;
     }
 
+    document.getElementById('planningPeriod').open = window.innerWidth > 640;
     bindEvents();
+    calc = computePlanner(state);
     renderAll();
-    if (state.activeTab !== 'overview') {
-      switchTab(state.activeTab);
-    }
+    try {
+      if (localStorage.getItem(BACKUP_STORAGE_KEY)) showPlanChangeToast('Your previous plan is available to restore.');
+    } catch {}
 
     // Ensure fluid indicator geometry is exact once fonts & layout settle
     requestAnimationFrame(() => {
