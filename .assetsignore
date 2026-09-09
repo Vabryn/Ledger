@@ -8,3 +8,5 @@ legacy
 *.png
 *.jpg
 LICENSE
+README.md
+docs
