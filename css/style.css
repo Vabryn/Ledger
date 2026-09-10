@@ -2592,12 +2592,13 @@ body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable
 }
 
 /* 3. Each row is a form row with subtle separator */
+/* 3. Each row is a form row with clear separation and generous padding */
 body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr {
   display: flex;
   align-items: center;
   border-bottom: 1px solid var(--border-subtle);
-  padding: 11px 14px;
-  gap: 20px;
+  padding: 14px 16px;
+  gap: 32px;
 }
 body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr:last-child {
   border-bottom: none;
@@ -2614,17 +2615,38 @@ body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable
   box-shadow: none;
 }
 
-/* 5. Left label group */
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td.sticky-col {
+/* 5. Left label group — default for input rows */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable) td.sticky-col {
   flex: 0 0 340px;
   max-width: 380px;
   min-width: 240px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td.sticky-col > div {
+
+/* For rows with title + description text: stack vertically with clear hierarchy so they don't blend */
+body[data-mode="single"] :is(#retireInputsTable,#taxInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td.sticky-col {
+  flex: 0 0 360px;
+  max-width: 400px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+}
+body[data-mode="single"] :is(#retireInputsTable,#taxInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td.sticky-col strong {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+body[data-mode="single"] :is(#retireInputsTable,#taxInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td.sticky-col > div {
   margin-top: 0 !important;
+  font-size: 11.5px !important;
+  color: var(--text-secondary) !important;
+  line-height: 1.35;
 }
 
 /* Editable name inputs in label group have clear input borders */
@@ -2652,7 +2674,7 @@ body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 /* Income value label row layout */
@@ -2695,13 +2717,30 @@ body[data-mode="single"] #taxInputsTable td:not(.sticky-col) .table-select {
   width: 220px;
   max-width: 220px;
 }
+
+/* Retirement inputs: distinct columns for stepper and calculated impact badge */
 body[data-mode="single"] #retireInputsTable td:not(.sticky-col) {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 24px;
 }
-body[data-mode="single"] #retireInputsTable td:not(.sticky-col) [data-retire-result] {
+body[data-mode="single"] #retireInputsTable .cell-pill-stepper {
+  flex: 0 0 130px;
+}
+body[data-mode="single"] #retireInputsTable [data-retire-result] {
   margin-top: 0 !important;
+  min-width: 130px;
+  padding: 5px 12px;
+  font-size: 12.5px !important;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 /* Read-only summary tables (#summaryMatrixTable, #taxResultsTable, #retireBreakdownTable) */
@@ -2799,6 +2838,9 @@ body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
   body[data-mode="single"] #taxInputsTable td:not(.sticky-col) .table-select {
     width: 100%;
     max-width: 100%;
+  }
+  body[data-mode="single"] #retireInputsTable [data-retire-result] {
+    min-width: 0;
   }
   body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable) td:has(.row-action-btn) {
     margin-left: 0;
