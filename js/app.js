@@ -668,33 +668,32 @@
     const effTaxRate = totalGross > 0 ? (totalTax / totalGross) * 100 : 0;
     const colRate = totalNet > 0 ? (totalCol / totalNet) * 100 : 0;
 
-    const periodName = isSingle ? 'Annual' : `${state.years}-Yr`;
-
     const lblGross = document.getElementById('lblGrossMetric');
-    if (lblGross) lblGross.textContent = isSingle ? 'Gross Income' : `Gross Income (${periodName})`;
+    if (lblGross) lblGross.textContent = 'Gross income';
 
     const badgeGross = document.getElementById('badgeGrossTrend');
     if (badgeGross) badgeGross.textContent = isSingle ? 'Annual Total' : `${state.years}-Yr Total`;
 
     document.getElementById('hudGrossVal').textContent = fmt$(totalGross);
-    document.getElementById('hudGrossFoot').textContent = isSingle ? 'Salaries & investments' : 'Cumulative baseline';
+    document.getElementById('hudGrossFoot').textContent = isSingle ? `Total for ${state.startYear}` : `${state.years}-year total`;
 
     document.getElementById('hudTaxRateBadge').textContent = `${fmtPct(effTaxRate)} tax`;
     document.getElementById('hudNetVal').textContent = fmt$(totalNet);
-    document.getElementById('hudNetFoot').textContent = `${isSingle ? 'Annual' : state.years + '-year total'}, after taxes & traditional 401(k)`;
+    document.getElementById('hudNetFoot').textContent = `${isSingle ? 'Annual' : state.years + '-year total'} · after tax & 401(k)`;
 
     document.getElementById('hudColBadge').textContent = `${fmtPct(colRate)} of pay`;
     document.getElementById('hudColVal').textContent = fmt$(totalCol);
-    document.getElementById('hudColFoot').textContent = isSingle ? 'Annual living expenses' : `${state.years}-year living expenses`;
+    document.getElementById('hudColFoot').textContent = isSingle ? 'Annual living costs' : `${state.years}-year living costs`;
 
     document.getElementById('hudSavingsVal').textContent = fmt$(monthlyLeftOver);
     document.getElementById('hudSavingsVal').classList.toggle('is-shortfall', monthlyLeftOver < 0);
     document.getElementById('hudSavingsBadge').className = `metric-badge ${monthlyLeftOver >= 0 ? 'pos' : 'neg'}`;
-    document.getElementById('hudSavingsBadge').textContent = monthlyLeftOver >= 0 ? '+Available' : '-Shortfall';
-    document.getElementById('hudSavingsFoot').textContent = `Per month in ${state.startYear || 2025}, after expenses, retirement & goals`;
+    document.getElementById('hudSavingsBadge').textContent = monthlyLeftOver >= 0 ? 'Available' : 'Shortfall';
+    document.getElementById('lblSavingsMetric').textContent = `Monthly left over · ${state.startYear || 2025}`;
+    document.getElementById('hudSavingsFoot').textContent = 'After expenses, retirement & goals';
 
     document.getElementById('hudRetireVal').textContent = fmt$(totalRetire);
-    document.getElementById('hudRetireFoot').textContent = `Estimated balance at end of ${(state.startYear || 2025) + state.years - 1}`;
+    document.getElementById('hudRetireFoot').textContent = `Est. balance · end of ${(state.startYear || 2025) + state.years - 1}`;
   }
 
   // ── PERFORMANCE HIGHLIGHTS ───────────────────────────────────────────────
@@ -2582,7 +2581,20 @@
       state.activeTab = paramTab;
     }
 
-    document.getElementById('planningPeriod').open = window.innerWidth > 640;
+    const period = document.getElementById('planningPeriod');
+    const model = document.getElementById('modelDetails');
+    document.getElementById('btnFinishPeriod').onclick = () => { period.open = false; period.querySelector('summary').focus(); };
+    for (const detail of [period, model]) {
+      detail.addEventListener('toggle', () => { if (detail.open) (detail === period ? model : period).open = false; });
+    }
+    document.addEventListener('click', e => {
+      for (const detail of [period, model]) if (detail.open && !detail.contains(e.target)) detail.open = false;
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') for (const detail of [period, model]) if (detail.open) {
+        detail.open = false; detail.querySelector('summary').focus();
+      }
+    });
     bindEvents();
     calc = computePlanner(state);
     renderAll();

@@ -30,7 +30,6 @@
           <span class="brand-title">Ledger</span>
           <span class="brand-sub">Financial Planner</span>
         </a>
-        <span class="masthead-badge">2025 Tax Model</span>
       </div>
 
       <div class="masthead-right">
@@ -73,8 +72,10 @@
   <!-- MAIN CONTAINER                                           -->
   <!-- ======================================================== -->
   <main class="page-container">
+    <div class="plan-toolbar">
     <details class="planning-period" id="planningPeriod">
-      <summary><span>Planning period · <strong id="planningPeriodSummary">One year</strong></span><span class="period-edit">Edit</span></summary>
+      <summary><strong id="planningPeriodSummary">One year</strong><span class="period-edit">Edit</span></summary>
+      <div class="period-editor">
         <div class="planning-period-group" aria-label="Planning period">
           <span class="planning-period-label">Planning period</span>
           <div class="planning-period-toggle" role="group" aria-label="Planning period mode">
@@ -101,10 +102,16 @@
           </div>
         </div>
       <p class="period-help">Forecast changes the number of years shown. Each year can be edited separately.</p>
+      <button type="button" class="btn-primary-sm" id="btnFinishPeriod">Done</button>
+      </div>
     </details>
-    <p class="model-note">Estimates use the fixed 2025 tax model for every year. State estimates cover CA and NY; other locations require separate state-tax planning.</p>
+    <span id="sampleNotice" class="sample-indicator" hidden>Sample plan</span>
+    <details class="model-details" id="modelDetails">
+      <summary>2025 model <span aria-hidden="true">ⓘ</span></summary>
+      <div class="model-description">Estimates use the fixed 2025 tax model for every year. State estimates cover CA and NY. Retirement uses simplified contribution limits; returns are assumptions. Other state taxes, debt and inflation require separate planning.</div>
+    </details>
+    </div>
     <p class="status-note" id="storageNotice" role="alert" hidden></p>
-    <p class="status-note" id="sampleNotice" hidden>Sample plan — these are example household numbers. Choose Reset to start your own plan.</p>
 
 
     <section class="setup-guide" id="setupGuide" aria-labelledby="setupGuideTitle" hidden>

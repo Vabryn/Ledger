@@ -173,6 +173,34 @@ test('All panels fit desktop and phone widths, both themes and modes',async p=>{
   }
 });
 
+test('Plan settings stay out of the workspace and remain keyboard accessible',async p=>{
+  for(const width of [320,1440]) {
+    await p.setViewport({width,height:900,isMobile:width<500,hasTouch:width<500});
+    assert.equal(await p.$eval('#planningPeriod',e=>e.open),false,'Settings start closed');
+    await p.click('#planningPeriod summary');
+    await p.click('#btnModeMultiYear');
+    await p.click('#btnAddYear');
+    const years=(await state(p)).years;
+    await p.click('#btnFinishPeriod');
+    assert.equal(await p.evaluate(()=>document.activeElement.parentElement.id),'planningPeriod');
+    await p.keyboard.press('Enter');await p.keyboard.press('Escape');
+    assert.equal(await p.$eval('#planningPeriod',e=>e.open),false,'Escape closes settings');
+    await p.click('#modelDetails summary');
+    assert.equal(await visible(p,'.model-description'),true);
+    await p.click('.masthead-brand');
+    assert.equal(await p.$eval('#modelDetails',e=>e.open),false,'An outside click closes assumptions');
+    await p.reload();assert.equal((await state(p)).years,years);
+  }
+});
+test('The overview workspace is visible without scrolling past settings and notices',async p=>{
+  for(const width of [320,390,768,1024,1440]) {
+    await p.setViewport({width,height:900,isMobile:width<500,hasTouch:width<500});
+    await p.evaluate(()=>{setPlannerMode('multi');scrollTo(0,0);});
+    const top=await p.$eval('#panelOverview',e=>e.getBoundingClientRect().top);
+    assert.ok(top<(width<=640?550:400),`${width}px viewport: workspace starts at ${top}px`);
+  }
+});
+
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const url=process.env.LEDGER_URL || `http://127.0.0.1:${server.address().port}/`;

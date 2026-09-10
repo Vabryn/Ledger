@@ -25,7 +25,7 @@ into `js/` and `css/`; the final changes and regression suite use that layout.
 
 ## Validation
 
-`tests/browser.cjs` contains 23 browser checks, including 110 layout combinations:
+`tests/browser.cjs` contains 25 browser checks, including 110 layout combinations:
 320, 390, 768, 1024, and 1440px widths; dark and light themes; one-year and forecast
 modes; and all available panels. Every workflow also checks for uncaught browser
 errors. Tests use actual typing and clicks where interaction matters, along with
@@ -42,6 +42,27 @@ input-clipping regression.
 Run `npm ci` and `npm test`. To check a deployed copy, set
 `LEDGER_URL=https://ledger.riverakarom.com/`. Each test uses isolated browser
 storage. Test files and dependencies are excluded from the deployed assets.
+
+## Follow-up: space and visual hierarchy
+
+The first review's overflow checks missed excessive vertical space. In a saved
+sample forecast, the workspace began approximately 647px below the viewport top
+at desktop width and 939px down at 320px. Expanded settings, separate notices,
+and a full-width headline metric displaced the actual planner.
+
+The revised layout uses a compact plan toolbar, settings that open on demand,
+an inline sample indicator, and an expandable explanation labeled "2025 model."
+Actual storage failures retain their visible alert. Desktop figures share one
+row; phone figures use a compact summary with two rows of section navigation.
+Row management appears only in sections with removable rows. Values retain
+their annual, forecast-total, or end-balance context.
+
+Screenshots show the workspace starting around 311px on desktop and 516px on
+the narrow phone. Additional checks exercise settings changes, Done, Escape,
+focus return, outside-click dismissal, and reload persistence. A layout check
+now verifies that the overview workspace appears in the first screen, in
+addition to checking horizontal overflow. These measurements support a more
+usable layout; they do not substitute for user feedback on the design.
 
 ## Remaining scope and limits
 
