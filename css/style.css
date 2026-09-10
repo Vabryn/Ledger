@@ -2580,12 +2580,12 @@ body:is([data-tab="overview"],[data-tab="taxes"],[data-tab="visualizer"]) .tabs-
    Single-Year Form Mode (This Year)
 /* ── SINGLE-YEAR PLANNING MODE: FORM LAYOUT (NOT DATA GRID) ──────────────── */
 /* 1. Hide redundant single-year matrix table headers (page header already shows year) */
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) thead {
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) thead {
   display: none !important;
 }
 
 /* 2. De-tableify table elements to flex containers */
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) {
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -2774,8 +2774,120 @@ body[data-mode="single"] .ledger-matrix tr td[colspan] {
 }
 
 /* Delete button */
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable) td:has(.row-action-btn) {
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#expensesTable) td:has(.row-action-btn) {
   margin-left: 12px;
+}
+
+/* Expenses Table in Single-Year Mode */
+body[data-mode="single"] #expensesTable tr.category-table-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 32px;
+  background: color-mix(in srgb, var(--cat-color) 6%, var(--bg-subtle)) !important;
+  border-left: 4px solid var(--cat-color) !important;
+  border-top: none !important;
+  border-radius: var(--radius-sm);
+  margin-top: 10px;
+}
+body[data-mode="single"] #expensesTable tr.category-table-header td.sticky-col {
+  flex: 0 0 360px;
+  max-width: 400px;
+  min-width: 240px;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+body[data-mode="single"] #expensesTable tr.category-table-header td:not(.sticky-col) {
+  flex: 0 0 160px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: right;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13.5px;
+}
+body[data-mode="single"] #expensesTable tr.category-table-header td:has(.table-cat-add-btn) {
+  flex: 0 0 auto;
+  background: transparent !important;
+  margin-left: 8px;
+}
+
+body[data-mode="single"] #expensesTable tr.category-table-item-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 16px;
+  gap: 32px;
+}
+body[data-mode="single"] #expensesTable tr.category-table-item-row td.sticky-col {
+  flex: 0 0 360px;
+  max-width: 400px;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+  border: none !important;
+  border-left: 3.5px solid color-mix(in srgb, var(--cat-color) 40%, transparent) !important;
+  padding: 0 0 0 10px !important;
+  background: transparent !important;
+}
+body[data-mode="single"] #expensesTable tr.category-table-item-row td.sticky-col .table-input.text-left {
+  flex: 1 1 160px;
+  min-width: 120px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-weight: 500;
+}
+body[data-mode="single"] #expensesTable tr.category-table-item-row td.sticky-col .table-input.text-left:focus {
+  border-color: var(--accent-blue);
+  background: var(--bg-elevated);
+}
+body[data-mode="single"] #expensesTable tr.category-table-item-row td:not(.sticky-col) {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+body[data-mode="single"] #expensesTable tr.row-summary-total {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  gap: 32px;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-medium);
+  border-bottom: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  margin-top: 12px;
+}
+body[data-mode="single"] #expensesTable tr.row-summary-total td.sticky-col {
+  flex: 0 0 360px;
+  max-width: 400px;
+  font-weight: 700;
+  font-size: 14px;
+  border: none !important;
+  background: transparent !important;
+}
+body[data-mode="single"] #expensesTable tr.row-summary-total td:not(.sticky-col) {
+  flex: 0 0 160px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: right;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  border: none !important;
+  background: transparent !important;
 }
 
 /* Multi-year adjustments */
@@ -2823,6 +2935,62 @@ body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
     min-width: 0;
   }
   body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td:not(.sticky-col) {
+    flex: 0 0 auto;
+    width: auto;
+    text-align: right;
+  }
+
+  /* Expenses table mobile responsive rules */
+  body[data-mode="single"] #expensesTable tr.category-table-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px;
+  }
+  body[data-mode="single"] #expensesTable tr.category-table-header td.sticky-col {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+  }
+  body[data-mode="single"] #expensesTable tr.category-table-header td:not(.sticky-col) {
+    flex: 0 0 auto;
+    width: auto;
+    text-align: right;
+  }
+  body[data-mode="single"] #expensesTable tr.category-table-item-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 10px;
+  }
+  body[data-mode="single"] #expensesTable tr.category-table-item-row td.sticky-col {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  body[data-mode="single"] #expensesTable tr.category-table-item-row td:not(.sticky-col) {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  body[data-mode="single"] #expensesTable tr.row-summary-total {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px;
+  }
+  body[data-mode="single"] #expensesTable tr.row-summary-total td.sticky-col {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+  }
+  body[data-mode="single"] #expensesTable tr.row-summary-total td:not(.sticky-col) {
     flex: 0 0 auto;
     width: auto;
     text-align: right;

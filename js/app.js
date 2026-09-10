@@ -613,6 +613,10 @@
     if (matrixKicker) {
       matrixKicker.textContent = isSingle ? 'This year' : 'Forecast by year';
     }
+    const expKicker = document.getElementById('expensesTableKicker');
+    if (expKicker) {
+      expKicker.textContent = isSingle ? 'This year' : 'Forecast by year';
+    }
   }
 
   function setPlannerMode(mode) {
@@ -1104,8 +1108,9 @@
             <span class="table-cat-chevron" style="display:inline-block; font-size:10px; color:var(--text-secondary); transition:transform 0.2s ease; transform: ${isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)'}; padding-right:4px;">▼</span>
           </div>
         </td>`;
+      const isSingle = state.plannerMode !== 'multi';
       for (let y = 0; y < state.years; y++) {
-        html += `<td class="cell-val bold" style="text-align:right; background: color-mix(in srgb, ${meta.color} 3%, var(--bg-subtle));">${fmtCompact$(catTotals[y])}</td>`;
+        html += `<td class="cell-val bold" style="text-align:right; background: color-mix(in srgb, ${meta.color} 3%, var(--bg-subtle));">${isSingle ? fmt$(catTotals[y]) : fmtCompact$(catTotals[y])}</td>`;
       }
       if (state.isEditMode) {
         html += `<td style="text-align:center; background: color-mix(in srgb, ${meta.color} 3%, var(--bg-subtle));">
@@ -1125,7 +1130,7 @@
         for (let y = 0; y < state.years; y++) {
           const mVal = item.monthly?.[y] ?? 0;
           html += `<td>
-            <input type="number" step="any" class="table-input" value="${mVal}" data-action="col-monthly" data-idx="${itemIdx}" data-year="${y}">
+            <label class="income-value-label"><span class="currency-prefix">$</span><input type="number" step="any" class="table-input" value="${mVal}" data-action="col-monthly" data-idx="${itemIdx}" data-year="${y}"><span class="income-unit">/ month</span></label>
           </td>`;
         }
 
@@ -1147,12 +1152,13 @@
       }
     });
 
+    const isSingle = state.plannerMode !== 'multi';
     html += `<tr class="row-summary-total">
       <td class="sticky-col"><strong>Total Living Expenses</strong></td>`;
     for (let y = 0; y < state.years; y++) {
-      html += `<td class="cell-val bold negative">${fmtCompact$(calc.colOnly[y] ?? 0)}</td>`;
+      html += `<td class="cell-val bold negative">-${isSingle ? fmt$(calc.colOnly[y] ?? 0) : fmtCompact$(calc.colOnly[y] ?? 0)}</td>`;
     }
-    if (state.isEditMode) html += `<td></td>`;
+    if (state.isEditMode && !isSingle) html += `<td></td>`;
     html += `</tr>`;
 
     html += `</tbody>`;
