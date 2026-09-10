@@ -21,7 +21,7 @@ async function fill(page, selector, value) {
   await page.$eval(selector,e=>{e.focus();e.select();});
   await page.keyboard.type(String(value),{delay:10});
 }
-async function tab(page,name) {await page.click(`#sectionTabs [data-tab="${name}"]`);}
+async function tab(page,name) {await page.$eval(`#sectionTabs [data-tab="${name}"]`,e=>e.click());}
 const visible = (page,selector) => page.$eval(selector,e=>e.getClientRects().length>0 && getComputedStyle(e).display!=='none');
 
 test('A first visit loads a usable blank plan', async p=>{

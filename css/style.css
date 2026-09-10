@@ -1709,6 +1709,7 @@ body {
   max-width: var(--label-col-w);
   width: var(--label-col-w);
   background: var(--bg-surface);
+  border-right: 1.5px solid var(--border-medium) !important;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.2);
   white-space: normal !important;
   word-break: break-word;
@@ -1718,12 +1719,14 @@ body {
 
 [data-theme="light"] .ledger-matrix th.sticky-col,
 [data-theme="light"] .ledger-matrix td.sticky-col {
+  border-right: 1.5px solid var(--border-medium) !important;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
 }
 
 .ledger-matrix thead th.sticky-col {
   z-index: 15;
   background: var(--bg-elevated);
+  border-right: 1.5px solid var(--border-medium) !important;
 }
 
 .row-group-header td {
@@ -2595,10 +2598,10 @@ body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable
 /* 3. Each row is a form row with clear separation and generous padding */
 body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   border-bottom: 1px solid var(--border-subtle);
-  padding: 14px 16px;
-  gap: 32px;
+  padding: 0 16px;
+  gap: 24px;
 }
 body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr:last-child {
   border-bottom: none;
@@ -2609,7 +2612,7 @@ body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable
   display: flex;
   align-items: center;
   border: none;
-  padding: 0;
+  padding: 14px 0;
   position: static;
   background: transparent;
   box-shadow: none;
@@ -2623,6 +2626,9 @@ body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable
   display: flex;
   align-items: center;
   gap: 10px;
+  align-self: stretch;
+  border-right: 1px solid var(--border-medium) !important;
+  padding: 14px 24px 14px 0 !important;
 }
 
 /* For rows with title + description text: stack vertically with clear hierarchy so they don't blend */
@@ -2635,6 +2641,9 @@ body[data-mode="single"] :is(#retireInputsTable,#taxInputsTable,#summaryMatrixTa
   align-items: flex-start;
   justify-content: center;
   gap: 4px;
+  align-self: stretch;
+  border-right: 1px solid var(--border-medium) !important;
+  padding: 14px 24px 14px 0 !important;
 }
 body[data-mode="single"] :is(#retireInputsTable,#taxInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td.sticky-col strong {
   font-size: 13.5px;
@@ -2675,6 +2684,7 @@ body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable
   display: flex;
   align-items: center;
   gap: 16px;
+  padding: 14px 0;
 }
 
 /* Income value label row layout */
@@ -2752,6 +2762,7 @@ body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdo
   font-family: var(--font-mono);
   font-size: 13.5px;
   font-weight: 600;
+  padding: 14px 0;
 }
 
 body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr.row-summary-total {
@@ -2760,7 +2771,14 @@ body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdo
   border-bottom: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
   margin: 3px 0;
-  padding: 10px 14px;
+  padding: 0 14px;
+}
+body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr.row-summary-total td.sticky-col {
+  padding: 10px 24px 10px 0 !important;
+  border-right: 1px solid var(--border-medium) !important;
+}
+body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr.row-summary-total td:not(.sticky-col) {
+  padding: 10px 0 !important;
 }
 
 body[data-mode="single"] td:empty {
@@ -2776,14 +2794,16 @@ body[data-mode="single"] .ledger-matrix tr td[colspan] {
 /* Delete button */
 body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#expensesTable) td:has(.row-action-btn) {
   margin-left: 12px;
+  padding: 0 !important;
+  align-self: center;
 }
 
 /* Expenses Table in Single-Year Mode */
 body[data-mode="single"] #expensesTable tr.category-table-header {
   display: flex;
-  align-items: center;
-  padding: 10px 16px;
-  gap: 32px;
+  align-items: stretch;
+  padding: 0 16px;
+  gap: 24px;
   background: color-mix(in srgb, var(--cat-color) 6%, var(--bg-subtle)) !important;
   border-left: 4px solid var(--cat-color) !important;
   border-top: none !important;
@@ -2794,9 +2814,12 @@ body[data-mode="single"] #expensesTable tr.category-table-header td.sticky-col {
   flex: 0 0 360px;
   max-width: 400px;
   min-width: 240px;
+  display: flex;
+  align-items: center;
   background: transparent !important;
   border: none !important;
-  padding: 0 !important;
+  border-right: 1px solid var(--border-medium) !important;
+  padding: 10px 24px 10px 0 !important;
 }
 body[data-mode="single"] #expensesTable tr.category-table-header td:not(.sticky-col) {
   flex: 0 0 160px;
@@ -2806,7 +2829,7 @@ body[data-mode="single"] #expensesTable tr.category-table-header td:not(.sticky-
   text-align: right;
   background: transparent !important;
   border: none !important;
-  padding: 0 !important;
+  padding: 10px 0 !important;
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 13.5px;
@@ -2815,14 +2838,16 @@ body[data-mode="single"] #expensesTable tr.category-table-header td:has(.table-c
   flex: 0 0 auto;
   background: transparent !important;
   margin-left: 8px;
+  padding: 10px 0 !important;
+  align-self: center;
 }
 
 body[data-mode="single"] #expensesTable tr.category-table-item-row {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   border-bottom: 1px solid var(--border-subtle);
-  padding: 12px 16px;
-  gap: 32px;
+  padding: 0 16px;
+  gap: 24px;
 }
 body[data-mode="single"] #expensesTable tr.category-table-item-row td.sticky-col {
   flex: 0 0 360px;
@@ -2832,7 +2857,8 @@ body[data-mode="single"] #expensesTable tr.category-table-item-row td.sticky-col
   align-items: center;
   border: none !important;
   border-left: 3.5px solid color-mix(in srgb, var(--cat-color) 40%, transparent) !important;
-  padding: 0 0 0 10px !important;
+  border-right: 1px solid var(--border-medium) !important;
+  padding: 12px 24px 12px 10px !important;
   background: transparent !important;
 }
 body[data-mode="single"] #expensesTable tr.category-table-item-row td.sticky-col .table-input.text-left {
@@ -2855,14 +2881,14 @@ body[data-mode="single"] #expensesTable tr.category-table-item-row td:not(.stick
   gap: 16px;
   border: none !important;
   background: transparent !important;
-  padding: 0 !important;
+  padding: 12px 0 !important;
 }
 
 body[data-mode="single"] #expensesTable tr.row-summary-total {
   display: flex;
-  align-items: center;
-  padding: 14px 16px;
-  gap: 32px;
+  align-items: stretch;
+  padding: 0 16px;
+  gap: 24px;
   background: var(--bg-elevated);
   border-top: 1px solid var(--border-medium);
   border-bottom: 1px solid var(--border-medium);
@@ -2874,7 +2900,11 @@ body[data-mode="single"] #expensesTable tr.row-summary-total td.sticky-col {
   max-width: 400px;
   font-weight: 700;
   font-size: 14px;
+  display: flex;
+  align-items: center;
   border: none !important;
+  border-right: 1px solid var(--border-medium) !important;
+  padding: 14px 24px 14px 0 !important;
   background: transparent !important;
 }
 body[data-mode="single"] #expensesTable tr.row-summary-total td:not(.sticky-col) {
@@ -2887,12 +2917,12 @@ body[data-mode="single"] #expensesTable tr.row-summary-total td:not(.sticky-col)
   font-family: var(--font-mono);
   font-size: 14px;
   border: none !important;
+  padding: 14px 0 !important;
   background: transparent !important;
 }
 
 /* Multi-year adjustments */
 body[data-mode="multi"] .income-value-label .income-unit { display: none; }
-body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
 
 @media (max-width: 640px) {
   body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tr {
@@ -2907,12 +2937,15 @@ body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    border-right: none !important;
+    padding: 0 !important;
   }
   body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) td:not(.sticky-col) {
     flex: 1 1 auto;
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    padding: 0 !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2933,10 +2966,13 @@ body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
     width: auto;
     max-width: none;
     min-width: 0;
+    border-right: none !important;
+    padding: 0 !important;
   }
   body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td:not(.sticky-col) {
     flex: 0 0 auto;
     width: auto;
+    padding: 0 !important;
     text-align: right;
   }
 
@@ -2952,10 +2988,13 @@ body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
     flex: 1 1 auto;
     width: auto;
     max-width: none;
+    border-right: none !important;
+    padding: 0 !important;
   }
   body[data-mode="single"] #expensesTable tr.category-table-header td:not(.sticky-col) {
     flex: 0 0 auto;
     width: auto;
+    padding: 0 !important;
     text-align: right;
   }
   body[data-mode="single"] #expensesTable tr.category-table-item-row {
@@ -2969,11 +3008,14 @@ body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
     flex: 1 1 auto;
     width: 100%;
     max-width: 100%;
+    border-right: none !important;
+    padding: 0 0 0 10px !important;
   }
   body[data-mode="single"] #expensesTable tr.category-table-item-row td:not(.sticky-col) {
     flex: 1 1 auto;
     width: 100%;
     max-width: 100%;
+    padding: 0 !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2989,10 +3031,13 @@ body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
     flex: 1 1 auto;
     width: auto;
     max-width: none;
+    border-right: none !important;
+    padding: 0 !important;
   }
   body[data-mode="single"] #expensesTable tr.row-summary-total td:not(.sticky-col) {
     flex: 0 0 auto;
     width: auto;
+    padding: 0 !important;
     text-align: right;
   }
   body[data-mode="single"] .income-value-label {
@@ -3014,6 +3059,7 @@ body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
     margin-left: 0;
     justify-content: flex-end;
   }
+  body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
   body[data-mode="multi"] .tab-panel.active .table-scroll-container::before {
     content: 'Swipe to see all years →'; display: block; padding: 8px; color: var(--text-secondary); font-size: 12px;
   }
