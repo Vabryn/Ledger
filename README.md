@@ -42,7 +42,7 @@ live. Nothing leaves the browser.
 
 ## How it's built
 
-- **Zero build.** `index.html` + `app.js` + `style.css`, plain vanilla
+- **Zero build.** `index.html`, `js/app.js`, `js/tax_data.js`, and `css/style.css`, plain vanilla
   JavaScript — no framework, no bundler, no runtime dependencies. The only
   network request is Google Fonts (Inter, JetBrains Mono).
 - **All local.** State lives in `localStorage` (`ledger_v2_planner_state`, plus
@@ -62,9 +62,10 @@ Ledger/
 ├── index.html            markup + layout
 ├── js/
 │   ├── app.js            planner state, rendering, SVG charts
-│   └── tax_data.js       tax engine and 2025 constants
+│   └── tax_data.js       2025 tax constants
 ├── css/
 │   └── style.css         design system (dark + light)
+├── tests/browser.cjs     browser workflow and responsive-layout regression tests
 ├── legacy/               the original pre-split single-file version (reference)
 └── wrangler.jsonc        Cloudflare static-assets deploy config
 ```
@@ -86,10 +87,40 @@ No install step. Click **Sample** to populate an example household, or
 
 ## Scope & disclaimer
 
-The tax model is a **planning estimate**, not tax advice — a fixed 2025
-schedule, federal + FICA + CA/NY state only, no itemized deductions beyond the
-standard deduction, no AMT, no credits phase‑outs. Use it to compare scenarios,
-not to file.
+The tax model is a **planning estimate**, not tax advice. It applies fixed 2025
+constants to every selected year, with federal, FICA and CA/NY estimates. An
+additional-deduction input and simplified child-credit phaseout are included;
+this is not a complete tax-return calculation or a current-law tax service.
+
+Retirement uses one employee 401(k) limit against combined wage income, plus
+simplified Roth eligibility. It does not model each worker's plan, catch-up
+contributions, debt balances, debt interest, inflation, or withdrawals. Opening
+retirement balances earn the assumed return before year-end contributions.
+Savings goals earmark cash; they do not create additional assets.
+
+## Verify changes
+
+The app needs no dependencies to run. Browser tests use a pinned development
+dependency and start their own temporary local server:
+
+```bash
+npm ci
+npm test
+```
+
+To run the same isolated-browser checks against a deployment:
+
+```bash
+LEDGER_URL=https://ledger.riverakarom.com/ npm test
+```
+
+Tests use disposable browser storage and do not alter an existing browser's
+plan. Coverage includes typing and reload persistence, reset/undo, calculation
+identities, keyboard interactions, and 110 layout combinations across five
+viewport widths, both themes, and both planning modes. Phone checks use Chromium
+device emulation; physical iOS/Android testing remains separate. See
+[AUDIT.md](AUDIT.md) for reproduced issues and the review's limits. Test files
+and dependencies are excluded from the static deployment.
 
 ## License
 

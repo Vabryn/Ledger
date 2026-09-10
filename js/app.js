@@ -11,9 +11,9 @@
     if (v === undefined || v === null || v === '') return 0;
     if (typeof v === 'number') return isNaN(v) || !isFinite(v) ? 0 : v;
     if (typeof v === 'string') {
-      const cleaned = v.replace(/[^0-9.-]/g, '');
+      const cleaned = v.replace(/[$,%\s]/g, '');
       if (!cleaned || cleaned === '-' || cleaned === '.') return 0;
-      const n = parseFloat(cleaned);
+      const n = Number(cleaned);
       return isNaN(n) || !isFinite(n) ? 0 : n;
     }
     return 0;
@@ -935,7 +935,7 @@
   }
 
   // ── REDESIGNED USER-FRIENDLY EXPENSES SECTION ────────────────────────────
-  function renderExpensesSection() {
+  function renderExpenseSummary() {
     const categories = Object.keys(CATEGORY_META);
 
     // Calculate current monthly & annual expenses totals (based on Year 1)
@@ -981,6 +981,11 @@
 
     spendBar.innerHTML = barHtml || `<div class="spend-bar-segment" style="width: 100%; background: var(--bg-subtle);"></div>`;
     spendLegend.innerHTML = legendHtml;
+    return { categories, totalMonthlyCurrent, catTotalsMonthly };
+  }
+
+  function renderExpensesSection() {
+    const { categories, totalMonthlyCurrent, catTotalsMonthly } = renderExpenseSummary();
 
     // Toggle Between Category Cards vs Full Table View
     const isCardsView = state.expenseView !== 'table';
@@ -1057,7 +1062,7 @@
     renderExpensesTable();
   }
 
-  function renderExpensesTable() {
+  function renderExpensesTable(updateTotalsOnly = false) {
     const table = document.getElementById('expensesTable');
     let html = buildTableHeader('Expense Item');
     html += `<tbody>`;
@@ -1154,7 +1159,14 @@
     html += `</tr>`;
 
     html += `</tbody>`;
-    table.innerHTML = html;
+    if (updateTotalsOnly) {
+      const snapshot = document.createElement('table');
+      snapshot.innerHTML = html;
+      const nextCells = snapshot.querySelectorAll('td');
+      table.querySelectorAll('td').forEach((cell, index) => {
+        if (!cell.querySelector('input, select, button') && nextCells[index]) cell.innerHTML = nextCells[index].innerHTML;
+      });
+    } else table.innerHTML = html;
   }
 
   // ── TAX TABLES ───────────────────────────────────────────────────────────
@@ -1968,6 +1980,7 @@
   function renderActivePanel() {
     if (!PANEL_IDS[state.activeTab] || (state.activeTab === 'visualizer' && state.plannerMode !== 'multi')) state.activeTab = 'overview';
     document.body.dataset.tab = state.activeTab;
+    document.body.dataset.mode = state.plannerMode;
     document.querySelectorAll('#sectionTabs [data-tab]').forEach(btn => {
       const active = btn.dataset.tab === state.activeTab;
       btn.classList.toggle('active', active);
@@ -2261,8 +2274,8 @@
     renderRetireBreakdownTable();
     renderChart();
     // Update expense totals and retirement amounts in place, preserving typing.
-    document.getElementById('expensesMonthlyTotalVal').textContent = fmt$(calc.colOnly[0] / 12);
-    document.getElementById('expensesAnnualTotalVal').textContent = fmt$(calc.colOnly[0]);
+    renderExpenseSummary();
+    renderExpensesTable(true);
     document.querySelectorAll('[data-retire-result]').forEach(el => {
       const y = Number(el.dataset.year);
       const key = el.dataset.retireResult;
@@ -2273,6 +2286,9 @@
     document.querySelectorAll('.category-card').forEach(card => {
       const total = state.col.filter(c => c.cat === card.dataset.cat).reduce((sum,c) => sum + num(c.monthly[0]), 0);
       card.querySelector('.category-total-val').textContent = `${fmt$(total)}/mo`;
+      const items = state.col.filter(c => c.cat === card.dataset.cat);
+      const share = calc.colOnly[0] > 0 ? total * 12 / calc.colOnly[0] * 100 : 0;
+      card.querySelector('.category-meta-badge').textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'} · ${share.toFixed(0)}% of expenses`;
       card.querySelectorAll('.expense-item-row').forEach(row => {
         const field = row.querySelector('[data-action="col-monthly"]');
         row.querySelector('.expense-item-annual-hint').textContent = `${fmtCompact$(num(state.col[field.dataset.idx].monthly[0])*12)}/yr`;

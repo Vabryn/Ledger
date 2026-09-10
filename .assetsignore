@@ -10,3 +10,8 @@ legacy
 LICENSE
 README.md
 docs
+tests
+node_modules
+package.json
+package-lock.json
+AUDIT.md

@@ -2208,7 +2208,7 @@ input[type="number"] {
   }
   .masthead-actions .btn-subtle span,
   .masthead-actions .theme-toggle span {
-    display: none !important;
+    display: none;
   }
   .masthead-actions .btn-subtle svg,
   .masthead-actions .theme-toggle svg {
@@ -2540,6 +2540,9 @@ button:disabled { opacity: .45; cursor: default; }
   .masthead-inner { gap: 8px; }
   .masthead-actions { gap: 6px; }
   .masthead-actions .btn-subtle, .masthead-actions .theme-toggle { width: 44px; height: 44px; border-radius: 6px; }
+  .masthead-actions .btn-subtle { width: auto; padding: 0 10px; }
+  .masthead-actions .btn-subtle span { display: inline; }
+  .masthead-actions .btn-subtle svg { display: none; }
   .planning-period summary { font-size: 13px; }
   .planning-period-group { justify-content: flex-start; }
   .planning-period-toggle { flex-basis: 100%; }
@@ -2573,4 +2576,19 @@ button:disabled { opacity: .45; cursor: default; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+}
+
+@media (max-width: 640px) {
+  body[data-mode="single"] .ledger-matrix { table-layout: fixed; width: 100%; min-width: 0; }
+  body[data-mode="single"] .ledger-matrix th,
+  body[data-mode="single"] .ledger-matrix td { min-width: 0; }
+  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) { display: block; }
+  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) :is(thead,tbody) { display: block; width: 100%; }
+  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tr { display: grid; grid-template-columns: minmax(0,1fr); }
+  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) :is(td,th) { display: block; width: auto; max-width: none; min-width: 0; position: static; }
+  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) thead .sticky-col { display: none; }
+  body[data-mode="single"] .income-value-label .table-input { width: 100%; }
+  body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
+  body[data-mode="multi"] .tab-panel.active .table-scroll-container::before { content: 'Swipe to see all years →'; display: block; padding: 8px; color: var(--text-secondary); font-size: 12px; }
+  .card-meta { display: flex; flex-wrap: wrap; gap: 6px; }
 }
