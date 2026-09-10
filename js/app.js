@@ -771,6 +771,13 @@
         sub: isSingle ? '' : `Total: ${fmt$(calc.g.reduce((a, b) => a + b, 0))}`,
       },
       {
+        label: isSingle ? 'Pre-Tax 401(k) Deductions' : 'Pre-Tax 401(k) Additions',
+        data: calc.k401Arr,
+        cssClass: 'cell-val negative',
+        prefix: '-',
+        sub: isSingle ? '' : `Total: ${fmt$(calc.k401Arr.reduce((a, b) => a + b, 0))}`,
+      },
+      {
         label: 'Taxes (Fed + State + FICA)',
         data: calc.totalTax,
         cssClass: 'cell-val negative',
@@ -780,8 +787,9 @@
       {
         label: 'Take-Home Pay',
         data: calc.net,
+        isTotal: true,
         cssClass: 'cell-val bold',
-        sub: isSingle ? '' : `Total: ${fmt$(calc.net.reduce((a, b) => a + b, 0))}`,
+        sub: isSingle ? 'Net cash pay (after tax & 401k)' : `Total: ${fmt$(calc.net.reduce((a, b) => a + b, 0))}`,
       },
       {
         label: 'Living Expenses',
@@ -791,10 +799,19 @@
         sub: isSingle ? '' : `Total: ${fmt$(calc.colOnly.reduce((a, b) => a + b, 0))}`,
       },
       {
+        label: isSingle ? 'Roth IRA Contributions' : 'Post-Tax Roth Additions',
+        data: calc.rothArr,
+        cssClass: 'cell-val negative',
+        prefix: '-',
+        sub: isSingle ? '' : `Total: ${fmt$(calc.rothArr.reduce((a, b) => a + b, 0))}`,
+      },
+      {
         label: isSingle ? 'Net Annual Savings' : 'Net Savings (Annual Cash)',
         data: calc.savings,
-        cssClass: 'cell-val positive',
+        isTotal: true,
+        cssClass: 'cell-val bold positive',
         customFmt: (v) => fmt$(v),
+        sub: isSingle ? 'Retained cash savings' : '',
       },
       ...(isSingle ? [] : [
         {
@@ -804,9 +821,26 @@
         },
       ]),
       {
-        label: isSingle ? 'Retirement Contributions' : 'Annual Retirement Additions',
+        label: isSingle ? 'Dedicated Savings Goals' : 'Earmarked Savings Goals',
+        data: calc.customSavingsTotal,
+        cssClass: 'cell-val negative',
+        prefix: '-',
+        sub: isSingle ? '' : `Total: ${fmt$(calc.customSavingsTotal.reduce((a, b) => a + b, 0))}`,
+      },
+      {
+        label: 'Unallocated Surplus',
+        data: calc.unallocatedBalance,
+        isTotal: true,
+        cssClass: 'cell-val bold',
+        customFmt: (v) => fmt$(v),
+        sub: isSingle ? 'Remaining unallocated cash' : '',
+      },
+      {
+        label: isSingle ? 'Total Retirement Additions' : 'Annual Retirement Additions',
         data: calc.retireActual,
-        cssClass: 'cell-val gold',
+        isTotal: true,
+        cssClass: 'cell-val bold gold',
+        sub: isSingle ? 'Includes 401(k), Roth & match' : '',
       },
       ...(isSingle ? [] : [
         {
@@ -815,17 +849,10 @@
           cssClass: 'cell-val bold gold',
         },
       ]),
-      {
-        label: 'Unallocated Surplus',
-        data: calc.unallocatedBalance,
-        cssClass: 'cell-val',
-        customFmt: (v) => fmt$(v),
-      },
     ];
 
-    rowConfigs.forEach((cfg, idx) => {
-      const isTotalRow = isSingle ? (idx === 2 || idx === 4 || idx === 6) : (idx === 2 || idx === 5 || idx === 7);
-      html += `<tr class="${isTotalRow ? 'row-summary-total' : ''}">`;
+    rowConfigs.forEach((cfg) => {
+      html += `<tr class="${cfg.isTotal ? 'row-summary-total' : ''}">`;
       html += `<td class="sticky-col">
         <div><strong>${cfg.label}</strong></div>
         ${cfg.sub ? `<div style="font-size:10.5px; color:var(--text-muted);">${cfg.sub}</div>` : ''}
@@ -833,7 +860,9 @@
 
       for (let y = 0; y < state.years; y++) {
         const val = cfg.data[y] ?? 0;
-        const formatted = cfg.customFmt ? cfg.customFmt(val) : `${cfg.prefix || ''}${isSingle ? fmt$(val) : fmtCompact$(val)}`;
+        const formatted = cfg.customFmt
+          ? cfg.customFmt(val)
+          : (cfg.prefix && val > 0 ? `${cfg.prefix}${isSingle ? fmt$(val) : fmtCompact$(val)}` : (isSingle ? fmt$(val) : fmtCompact$(val)));
         const posNegClass = val < 0 ? 'cell-val negative' : cfg.cssClass;
         html += `<td class="${posNegClass}">${formatted}</td>`;
       }
