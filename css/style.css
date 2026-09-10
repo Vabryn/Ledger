@@ -2434,6 +2434,14 @@ input[type="number"] {
 .model-details summary { color: var(--text-secondary); font-size: 12px; }
 .model-description { left: auto; right: 0; width: min(400px,100%); color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
 .sample-indicator { color: var(--text-secondary); font-size: 12px; }
+.restore-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border: 1px solid var(--border-medium); border-radius: 999px;
+  background: transparent; color: var(--text-accent);
+  font: 12px var(--font-sans); cursor: pointer;
+}
+.restore-chip:hover { border-color: var(--text-accent); }
+.restore-chip[hidden] { display: none; }
 .sample-indicator::before { content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--accent-gold); margin-right: 6px; vertical-align: middle; }
 .planning-period-group { justify-content: flex-start; flex-wrap: wrap; padding: 10px 0; gap: 12px; }
 .planning-period-label { display: none; }
@@ -2491,6 +2499,12 @@ body:is([data-tab="overview"],[data-tab="taxes"],[data-tab="visualizer"]) .tabs-
 @media (max-width: 640px) {
   :root { --label-col-w: 132px; --cell-min-w: 156px; }
   body:not([data-tab="overview"]) .metric-card:not(.monthly-leftover-card) { display: none; }
+  /* Keep the live surplus reading while editing, but as a single compact row —
+     the label + footnote + large type block belongs on Overview. */
+  body:not([data-tab="overview"]) .metrics-grid { padding: 6px 0 8px; margin-bottom: 6px; }
+  body:not([data-tab="overview"]) .monthly-leftover-card { padding-bottom: 8px; }
+  body:not([data-tab="overview"]) .monthly-leftover-card .metric-footnote { display: none; }
+  body:not([data-tab="overview"]) .monthly-leftover-card .metric-value { font-size: 19px; grid-row: 1; align-self: center; }
   .masthead-inner { gap: 8px; }
   .masthead-actions { gap: 6px; }
   .masthead-actions .btn-subtle, .masthead-actions .theme-toggle { width: 44px; height: 44px; border-radius: 6px; }
@@ -2499,7 +2513,7 @@ body:is([data-tab="overview"],[data-tab="taxes"],[data-tab="visualizer"]) .tabs-
   .masthead-actions .btn-subtle svg { display: none; }
   .plan-toolbar { gap: 0 10px; }
   .planning-period summary { font-size: 12px; gap: 8px; }
-  .sample-indicator { order: 3; flex-basis: 100%; font-size: 11px; padding-bottom: 4px; }
+  .sample-indicator { font-size: 11px; }
   .planning-period-group { justify-content: flex-start; }
   .planning-period-toggle { flex-basis: 100%; }
   .planning-period-option { flex: 1; }
@@ -2514,8 +2528,24 @@ body:is([data-tab="overview"],[data-tab="taxes"],[data-tab="visualizer"]) .tabs-
   .metric-value { font-size: 22px; }
   .metric-card .metric-footnote { font-size: 11px; margin-top: 3px; }
   .cockpit-tabs-bar { flex-wrap: wrap; gap: 8px; }
-  .main-tabs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); flex: 1 1 100%; border-radius: 0; overflow: visible; }
-  .main-tabs .segmented-btn { min-height: 44px; white-space: normal; justify-content: center; text-align: center; font-size: 12px; border-radius: 4px; padding: 4px; }
+  /* One row that scrolls sideways, rather than two stacked rows of six equal
+     buttons — halves the height and keeps the active section obvious. */
+  .main-tabs {
+    display: flex; flex: 1 1 100%; flex-wrap: nowrap;
+    gap: 6px; border-radius: 0; padding-bottom: 2px;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .main-tabs::-webkit-scrollbar { display: none; }
+  .main-tabs .segmented-btn {
+    flex: 0 0 auto; scroll-snap-align: start;
+    min-height: 44px; white-space: nowrap;
+    justify-content: center; text-align: center;
+    font-size: 13px; border-radius: 999px; padding: 4px 14px;
+  }
+  .main-tabs .segmented-btn.active { background: var(--bg-elevated); }
   .main-tabs .segmented-btn svg { display: none; }
   .tabs-bar-right { margin-left: auto; }
   .btn-outline-pill, .btn-primary-sm, .row-action-btn, .expense-item-delete-btn, .pill-step-btn, .btn-inline-add { min-height: 44px; }
@@ -2533,7 +2563,14 @@ body:is([data-tab="overview"],[data-tab="taxes"],[data-tab="visualizer"]) .tabs-
   .setup-guide-heading { flex-wrap: wrap; }
   .setup-dismiss { min-height: 44px; }
   .card-actions { flex-wrap: wrap; }
-  .plan-change-toast { position: static; max-width: none; margin: 10px; }
+  /* Stays overlaid (not in flow) on phones too: it then costs zero vertical
+     space, and auto-dismissing it cannot reflow the page under someone who is
+     mid-edit ten seconds later. */
+  .plan-change-toast {
+    left: 10px; right: 10px; bottom: 10px; max-width: none; margin: 0;
+    gap: 10px; padding: 9px 12px; font-size: 12px; line-height: 1.35;
+  }
+  .plan-change-toast button { padding: 4px 10px; min-height: 32px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }

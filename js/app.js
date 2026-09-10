@@ -1880,12 +1880,43 @@
     }
   };
 
+  // The toast is transient; the backup it refers to is not. It auto-dismisses so
+  // it stops costing a banner's worth of screen on every visit, and
+  // syncRestoreChip() keeps a chip-sized "undo" in the toolbar for as long as a
+  // backup actually exists.
+  let planToastTimer = null;
+  const PLAN_TOAST_MS = 10000;
+
+  function hasPlanBackup() {
+    if (previousPlan) return true;
+    try { return !!localStorage.getItem(BACKUP_STORAGE_KEY); } catch { return false; }
+  }
+
+  function syncRestoreChip() {
+    const chip = document.getElementById('btnRestorePlanInline');
+    if (!chip) return;
+    const toast = document.getElementById('planChangeToast');
+    const toastUp = !!(toast && !toast.hidden);
+    chip.hidden = !hasPlanBackup() || toastUp;
+  }
+
+  function dismissPlanChangeToast() {
+    clearTimeout(planToastTimer);
+    planToastTimer = null;
+    const toast = document.getElementById('planChangeToast');
+    if (toast) toast.hidden = true;
+    syncRestoreChip();
+  }
+
   function showPlanChangeToast(message) {
     const toast = document.getElementById('planChangeToast');
     const messageEl = document.getElementById('planChangeToastMessage');
     if (!toast || !messageEl) return;
     messageEl.textContent = message;
     toast.hidden = false;
+    syncRestoreChip();
+    clearTimeout(planToastTimer);
+    planToastTimer = setTimeout(dismissPlanChangeToast, PLAN_TOAST_MS);
   }
 
   function replacePlan(nextState, message) {
@@ -1945,8 +1976,8 @@
       previousPlan = null;
       try { localStorage.removeItem(BACKUP_STORAGE_KEY); } catch {}
       recomputeAndRender();
-      const toast = document.getElementById('planChangeToast');
-      if (toast) toast.hidden = true;
+      dismissPlanChangeToast();
+      syncRestoreChip();
     } catch (e) {
       console.warn('Could not restore the previous plan', e);
     }
@@ -1980,11 +2011,28 @@
     if (!PANEL_IDS[state.activeTab] || (state.activeTab === 'visualizer' && state.plannerMode !== 'multi')) state.activeTab = 'overview';
     document.body.dataset.tab = state.activeTab;
     document.body.dataset.mode = state.plannerMode;
+    let activeTabBtn = null;
     document.querySelectorAll('#sectionTabs [data-tab]').forEach(btn => {
       const active = btn.dataset.tab === state.activeTab;
       btn.classList.toggle('active', active);
       btn.setAttribute('aria-current', active ? 'page' : 'false');
+      if (active) activeTabBtn = btn;
     });
+    // On phones the section nav is one horizontally scrolling row, so the
+    // current section has to be brought into view or it can sit off-screen.
+    const tabsEl = document.getElementById('sectionTabs');
+    if (activeTabBtn && tabsEl && tabsEl.scrollWidth > tabsEl.clientWidth + 1) {
+      // Only move when the active pill is actually out of view, and move
+      // instantly: a smooth scroll slides the strip out from under a finger
+      // that is still on it (and out from under a click already in flight).
+      const left = activeTabBtn.offsetLeft;
+      const right = left + activeTabBtn.offsetWidth;
+      const viewL = tabsEl.scrollLeft;
+      const viewR = viewL + tabsEl.clientWidth;
+      if (left < viewL || right > viewR) {
+        tabsEl.scrollLeft = Math.max(0, left - (tabsEl.clientWidth - activeTabBtn.offsetWidth) / 2);
+      }
+    }
     document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.toggle('active', panel.id === PANEL_IDS[state.activeTab]));
     const next = {taxes:['income','Next: income'],income:['expenses','Next: monthly expenses'],expenses:['retire','Next: retirement and goals'],retire:['overview','Review your plan']}[state.activeTab];
     const guideNext = document.getElementById('setupNext');
@@ -2111,6 +2159,8 @@
     if (clearBtn) clearBtn.onclick = () => window.requestResetData();
     const undoPlanBtn = document.getElementById('btnUndoPlanChange');
     if (undoPlanBtn) undoPlanBtn.onclick = () => window.undoPlanReplacement();
+    const restoreChip = document.getElementById('btnRestorePlanInline');
+    if (restoreChip) restoreChip.onclick = () => window.undoPlanReplacement();
 
     // 7. Edit Table Toggle
     const editBtn = document.getElementById('btnToggleEdit');
@@ -2598,9 +2648,9 @@
     bindEvents();
     calc = computePlanner(state);
     renderAll();
-    try {
-      if (localStorage.getItem(BACKUP_STORAGE_KEY)) showPlanChangeToast('Your previous plan is available to restore.');
-    } catch {}
+    // A backup from a previous visit surfaces as the toolbar chip, not a banner —
+    // the banner cost ~66px at the top of every phone screen.
+    syncRestoreChip();
 
     // Ensure fluid indicator geometry is exact once fonts & layout settle
     requestAnimationFrame(() => {

@@ -95,8 +95,24 @@ test('Reset cancellation preserves plan; undo survives reload and restores tab',
   await tab(p,'income');const before=await state(p);
   p.once('dialog',d=>d.dismiss());await p.click('#btnClearState');assert.deepEqual(await state(p),before);
   p.once('dialog',d=>d.accept());await p.click('#btnClearState');assert.equal(await visible(p,'#panelOverview'),true);
-  await p.reload();assert.equal(await visible(p,'#btnUndoPlanChange'),true);
-  await p.click('#btnUndoPlanChange');assert.deepEqual((await state(p)).workers,before.workers);assert.equal(await visible(p,'#panelIncome'),true);
+  // After a reload the recovery affordance is the toolbar chip, not the banner:
+  // the banner auto-dismisses so it cannot cost a block of screen on every visit.
+  await p.reload();assert.equal(await visible(p,'#planChangeToast'),false,'no banner on a return visit');
+  assert.equal(await visible(p,'#btnRestorePlanInline'),true,'recovery stays reachable as a chip');
+  await p.click('#btnRestorePlanInline');assert.deepEqual((await state(p)).workers,before.workers);assert.equal(await visible(p,'#panelIncome'),true);
+});
+test('The plan-change banner auto-dismisses and hands recovery to the toolbar chip',async p=>{
+  const before=await state(p);
+  p.once('dialog',d=>d.accept());          // Sample confirms before replacing the plan
+  await p.click('#btnSampleState');
+  assert.equal(await visible(p,'#planChangeToast'),true,'banner appears on the change');
+  assert.equal(await visible(p,'#btnRestorePlanInline'),false,'chip stays out of the way while the banner is up');
+  await new Promise(r=>setTimeout(r,10600));
+  assert.equal(await visible(p,'#planChangeToast'),false,'banner clears itself');
+  assert.equal(await visible(p,'#btnRestorePlanInline'),true,'chip takes over so undo is never lost');
+  await p.click('#btnRestorePlanInline');
+  assert.deepEqual((await state(p)).workers,before.workers,'the chip restores the same plan the banner would have');
+  assert.equal(await visible(p,'#btnRestorePlanInline'),false,'chip clears once the backup is used');
 });
 test('Storage failure is visible and undo works in memory',async p=>{
   await p.evaluate(()=>{Storage.prototype.setItem=()=>{throw Error('Storage blocked for test')};resetData();});
