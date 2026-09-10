@@ -869,13 +869,10 @@
 
       for (let y = 0; y < state.years; y++) {
         const wageVal = w.wage?.[y] ?? 0;
+        const freqText = w.frequency === 'Hourly' ? '/ hour' : '/ ' + (w.frequency === 'Annually' ? 'year' : w.frequency.toLowerCase());
         html += `<td>
-          <label class="income-value-label">${w.frequency === 'Hourly' ? '$ per hour' : '$ / ' + w.frequency.toLowerCase()}
-            <input type="number" min="0" step="any" class="table-input" value="${wageVal}" data-action="worker-wage" data-idx="${wIdx}" data-year="${y}">
-          </label>
-          ${w.frequency === 'Hourly' ? `<label class="income-value-label">Hours / week
-            <input type="number" min="0" max="168" step="any" class="table-input" value="${w.hours?.[y] ?? 40}" data-action="worker-default-hours" data-idx="${wIdx}" data-year="${y}">
-          </label>` : ''}
+          <label class="income-value-label"><span class="currency-prefix">$</span><input type="number" min="0" step="any" class="table-input" value="${wageVal}" data-action="worker-wage" data-idx="${wIdx}" data-year="${y}"><span class="income-unit">${freqText}</span></label>
+          ${w.frequency === 'Hourly' ? `<label class="income-value-label"><input type="number" min="0" max="168" step="any" class="table-input" value="${w.hours?.[y] ?? 40}" data-action="worker-default-hours" data-idx="${wIdx}" data-year="${y}"><span class="income-unit">hrs / wk</span></label>` : ''}
         </td>`;
       }
 
@@ -915,8 +912,9 @@
 
         for (let y = 0; y < state.years; y++) {
           const amt = o.amount?.[y] ?? 0;
+          const freqText = '/ ' + (o.frequency === 'Annually' ? 'year' : o.frequency.toLowerCase());
           html += `<td>
-            <input type="number" step="any" class="table-input" value="${amt}" data-action="other-amount" data-idx="${oIdx}" data-year="${y}">
+            <label class="income-value-label"><span class="currency-prefix">$</span><input type="number" step="any" class="table-input" value="${amt}" data-action="other-amount" data-idx="${oIdx}" data-year="${y}"><span class="income-unit">${freqText}</span></label>
           </td>`;
         }
 
@@ -1439,7 +1437,7 @@
         for (let y = 0; y < state.years; y++) {
           const m = fund.monthly?.[y] ?? 0;
           html += `<td>
-            <input type="number" step="any" class="table-input" value="${m}" data-action="fund-monthly" data-id="${fId}" data-year="${y}">
+            <label class="income-value-label"><span class="currency-prefix">$</span><input type="number" step="any" class="table-input" value="${m}" data-action="fund-monthly" data-id="${fId}" data-year="${y}"><span class="income-unit">/ month</span></label>
           </td>`;
         }
 

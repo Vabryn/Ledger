@@ -2576,17 +2576,201 @@ body:is([data-tab="overview"],[data-tab="taxes"],[data-tab="visualizer"]) .tabs-
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
 
+/* ==========================================================================
+   Single-Year Form Mode (This Year)
+   De-matrixes single-year planning tables into clean, left-packed form rows.
+   Label group left, control right at a fixed sane width (~220px), trailing whitespace.
+   No year header row (the page header already tells you the year).
+   ========================================================================== */
+
+/* 1. Hide the year header row in single-year mode — no cross-year comparison exists */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) thead {
+  display: none !important;
+}
+
+/* 2. De-matrix table to a clean form container */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border-collapse: separate;
+}
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tbody {
+  display: block;
+  width: 100%;
+}
+
+/* 3. Each row is a form row with subtle separator */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tr {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 14px;
+  gap: 20px;
+}
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tr:last-child {
+  border-bottom: none;
+}
+
+/* 4. Cell resets */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) :is(td, th) {
+  display: flex;
+  align-items: center;
+  border: none;
+  padding: 0;
+  position: static;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 5. Left label group */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) td.sticky-col {
+  flex: 0 0 340px;
+  max-width: 380px;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) td.sticky-col > div {
+  margin-top: 0 !important;
+}
+
+/* Editable name inputs in label group have clear input borders */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable) td.sticky-col .table-input.text-left {
+  flex: 1 1 160px;
+  min-width: 120px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-weight: 500;
+}
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable) td.sticky-col .table-input.text-left:focus {
+  border-color: var(--accent-blue);
+  background: var(--bg-elevated);
+}
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable) td.sticky-col .table-select {
+  flex: 0 0 auto;
+  min-width: 110px;
+  height: 32px;
+}
+
+/* 6. Right control group — sane fixed width (~220px), left-packed, trailing whitespace */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) td:not(.sticky-col) {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Income value label row layout */
+body[data-mode="single"] .income-value-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 !important;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+body[data-mode="single"] .income-value-label .currency-prefix {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+body[data-mode="single"] .income-value-label .income-unit {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+}
+body[data-mode="single"] .income-value-label .table-input {
+  display: inline-block;
+  margin-top: 0;
+  width: 115px;
+  border: 1px solid var(--border-medium);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-weight: 600;
+  text-align: right;
+}
+body[data-mode="single"] .income-value-label .table-input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(90, 168, 230, 0.2);
+}
+
+/* Sane fixed width for tax & retirement controls */
+body[data-mode="single"] #taxInputsTable td:not(.sticky-col) .table-select {
+  width: 220px;
+  max-width: 220px;
+}
+body[data-mode="single"] #retireInputsTable td:not(.sticky-col) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+body[data-mode="single"] #retireInputsTable td:not(.sticky-col) [data-retire-result] {
+  margin-top: 0 !important;
+}
+
+/* Empty state message centered across card */
+body[data-mode="single"] .ledger-matrix tr td[colspan] {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Delete button */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable) td:has(.row-action-btn) {
+  margin-left: 12px;
+}
+
+/* Multi-year adjustments */
+body[data-mode="multi"] .income-value-label .income-unit { display: none; }
+body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
+
 @media (max-width: 640px) {
-  body[data-mode="single"] .ledger-matrix { table-layout: fixed; width: 100%; min-width: 0; }
-  body[data-mode="single"] .ledger-matrix th,
-  body[data-mode="single"] .ledger-matrix td { min-width: 0; }
-  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) { display: block; }
-  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) :is(thead,tbody) { display: block; width: 100%; }
-  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tr { display: grid; grid-template-columns: minmax(0,1fr); }
-  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) :is(td,th) { display: block; width: auto; max-width: none; min-width: 0; position: static; }
-  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) thead .sticky-col { display: none; }
-  body[data-mode="single"] .income-value-label .table-input { width: 100%; }
-  body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
-  body[data-mode="multi"] .tab-panel.active .table-scroll-container::before { content: 'Swipe to see all years →'; display: block; padding: 8px; color: var(--text-secondary); font-size: 12px; }
+  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tr {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 10px;
+  }
+  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) td.sticky-col {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) td:not(.sticky-col) {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  body[data-mode="single"] .income-value-label {
+    width: 100%;
+    justify-content: space-between;
+  }
+  body[data-mode="single"] .income-value-label .table-input {
+    width: 120px;
+    max-width: 50%;
+  }
+  body[data-mode="single"] #taxInputsTable td:not(.sticky-col) .table-select {
+    width: 100%;
+    max-width: 100%;
+  }
+  body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable) td:has(.row-action-btn) {
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+  body[data-mode="multi"] .tab-panel.active .table-scroll-container::before {
+    content: 'Swipe to see all years →'; display: block; padding: 8px; color: var(--text-secondary); font-size: 12px;
+  }
   .card-meta { display: flex; flex-wrap: wrap; gap: 6px; }
 }
