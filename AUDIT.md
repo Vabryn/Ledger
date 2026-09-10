@@ -77,3 +77,38 @@ usable layout; they do not substitute for user feedback on the design.
   inflation, and withdrawals remain outside the model and are disclosed in the UI.
 - Plans remain local to a browser. Storage errors are visible, but clearing browser
   data or moving to another device does not transfer a plan.
+
+## Repository audit — September 10, 2026
+
+- Replaced the phone's clipped forecast editor with a section selector and one
+  explicit editing year, including Previous/Next, persistence, and return to all
+  columns on desktop. Financial overview metrics are hidden while editing.
+- Moved transient undo into the plan toolbar; retained the existing persistent
+  restore action. Preserved newer committed desktop table/waterfall work.
+- Corrected federal 2025 standard deductions and the child credit; corrected
+  California 2025 brackets, deductions, exemption amounts, and credit phaseout.
+  Head-of-household receives one California personal exemption, not two.
+- Traditional 401(k) now reduces modeled modified AGI for Roth eligibility and
+  child-credit phaseout. Existing cash-conservation tests continue to pass.
+- Escaped savings-fund identifiers before inserting them into HTML attributes.
+  Added deployment security headers, with framing limited to this site and the
+  portfolio origin. Inline scripts remain allowed because the current UI uses
+  inline event handlers; this is a documented constraint, not a strict CSP claim.
+- 29 browser checks cover the revised phone workflow, desktop regressions,
+  federal deduction boundaries, the child credit, the FTB joint-income example,
+  and Roth eligibility. Physical iOS Safari verification is still outstanding.
+
+Tax references: [IRS Publication 501, Table 6](https://www.irs.gov/publications/p501),
+[2025 Schedule 8812](https://www.irs.gov/pub/irs-prior/i1040s8--2025.pdf),
+[FTB 2025 rate schedules](https://www.ftb.ca.gov/forms/2025/2025-540-tax-rate-schedules.pdf),
+[FTB Form 540](https://www.ftb.ca.gov/forms/2025/2025-540.pdf), and
+[FTB credit limitations](https://www.ftb.ca.gov/forms/2025/2025-540-booklet.html).
+NY standard deductions were checked against
+[the state schedule](https://www.tax.ny.gov/pit/file/standard_deductions.htm).
+
+Remaining release limits: the planner is a simplified fixed-year scenario tool,
+not a complete tax engine. NY recapture and several retirement/credit eligibility
+rules, age-dependent deductions, preferential investment-income tax rates,
+refundability and debt/inflation modeling require further product work if those
+are launch requirements. The archive is intentionally historical and is not
+updated or deployed as a financial tool.

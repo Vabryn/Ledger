@@ -63,10 +63,6 @@
     </div>
   </header>
 
-  <div class="plan-change-toast" id="planChangeToast" role="status" aria-live="polite" hidden>
-    <span id="planChangeToastMessage"></span>
-    <button type="button" id="btnUndoPlanChange">Undo</button>
-  </div>
 
   <!-- ======================================================== -->
   <!-- MAIN CONTAINER                                           -->
@@ -106,6 +102,10 @@
       </div>
     </details>
     <span id="sampleNotice" class="sample-indicator" hidden>Sample plan</span>
+    <div class="plan-change-toast" id="planChangeToast" role="status" aria-live="polite" hidden>
+      <span id="planChangeToastMessage" class="visually-hidden"></span>
+      <button type="button" id="btnUndoPlanChange" aria-label="Restore previous plan">Undo</button>
+    </div>
     <!-- Persistent recovery entry point. The toast auto-dismisses, so this keeps
          "undo" reachable for as long as a backup exists, at chip size. -->
     <button type="button" id="btnRestorePlanInline" class="restore-chip" hidden>
@@ -198,6 +198,13 @@
 
     <!-- MAIN SECTION TABS -->
     <nav class="cockpit-tabs-bar" aria-label="Planner Sections">
+      <label class="phone-section-label" for="phoneSection">Section
+        <select id="phoneSection">
+          <option value="overview">Overview</option><option value="income">Income</option>
+          <option value="expenses">Expenses</option><option value="taxes">Taxes</option>
+          <option value="retire">Retirement &amp; Savings</option><option value="visualizer">Projections</option>
+        </select>
+      </label>
       <div class="segmented-control main-tabs" id="sectionTabs">
         <button type="button" class="segmented-btn active" data-tab="overview">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -232,6 +239,11 @@
         </button>
       </div>
     </nav>
+    <div class="phone-year-nav" id="phoneYearNav">
+      <button type="button" id="phonePrevYear" aria-label="Previous editing year">‹</button>
+      <label for="phoneYear">Editing year <select id="phoneYear"></select></label>
+      <button type="button" id="phoneNextYear" aria-label="Next editing year">›</button>
+    </div>
 
     <!-- ======================================================== -->
     <!-- TAB PANELS                                               -->

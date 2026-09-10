@@ -3163,3 +3163,47 @@ body[data-mode="multi"] .income-value-label .income-unit { display: none; }
   }
   .card-meta { display: flex; flex-wrap: wrap; gap: 6px; }
 }
+
+/* Phone editing uses one labeled year, while desktop retains the full forecast. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.plan-toolbar .plan-change-toast { position: static; margin: 0; padding: 0; max-width: none; border: 0; background: transparent; box-shadow: none; }
+.plan-toolbar .plan-change-toast button { min-height: 36px; background: transparent; color: var(--text-accent); padding: 0 4px; font-size: 12px; font-weight: 500; }
+.phone-section-label, .phone-year-nav { display: none; }
+@media (max-width: 640px) {
+  body[data-phone-editor="true"] #hudMetrics { display: none; }
+  .cockpit-tabs-bar { margin: 6px 0 10px; }
+  #sectionTabs { display: none; }
+  .phone-section-label { display: flex; flex: 1 1 180px; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary); }
+  .phone-section-label select { flex: 1; min-width: 0; }
+  .phone-section-label select, #phoneYear { font: 16px var(--font-sans); min-height: 44px; padding: 6px 10px; color: var(--text-primary); background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 6px; }
+  body[data-phone-editor="true"] .phone-year-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 0 12px; }
+  .phone-year-nav label { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary); }
+  .phone-year-nav button { width: 44px; height: 44px; font-size: 22px; border: 1px solid var(--border-medium); border-radius: 6px; background: var(--bg-surface); color: var(--text-primary); }
+  body[data-phone-editor="true"] .phone-other-year { display: none !important; }
+  body[data-phone-editor="true"] .tab-panel.active .table-scroll-container::before { display: none; }
+  body[data-phone-editor="true"] .tab-panel.active table thead { display: none !important; }
+  body[data-phone-editor="true"] .tab-panel.active .table-scroll-container { overflow-x: hidden; }
+  body[data-phone-editor="true"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tr { display: grid; grid-template-columns: minmax(0,1fr); }
+  body[data-phone-editor="true"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) td { display: block; width: auto; min-width: 0; max-width: none; position: static; }
+  body[data-phone-editor="true"] .tab-panel.active :is(input,select) { font-size: 16px; }
+}
+
+@media (max-width: 640px) {
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) { display: block; table-layout: fixed; width: 100%; min-width: 0; }
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) thead { display: none !important; }
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) tbody { display: block; width: 100%; }
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) tr { display: grid; grid-template-columns: minmax(0,1fr); gap: 0; padding: 10px; }
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) :is(td,th).sticky-col,
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) :is(td,th):not(.sticky-col) { position: static; display: block; flex: none; min-width: 0; width: auto; max-width: 100%; padding: 4px 0 !important; border-right: 0 !important; box-shadow: none !important; }
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) td.sticky-col > div { max-width: 100%; }
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) td.sticky-col .table-select { min-width: 0; max-width: 100%; }
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) td.sticky-col .table-input { min-width: 0; width: 100%; }
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) .phone-other-year { display: none !important; }
+  body[data-phone-editor="true"] .tab-panel.active :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#taxResultsTable,#retireBreakdownTable,#expensesTable) thead:has(.sticky-col) { display: none !important; }
+}
+
+@media (max-width: 640px) {
+ body[data-phone-editor="true"] .income-value-label { display: flex; align-items: center; gap: 8px; white-space: normal; }
+ body[data-phone-editor="true"] .income-value-label .income-unit { display: inline; min-width: 66px; font-size: 12px; }
+ body[data-phone-editor="true"] .income-value-label .table-input { flex: 1; width: 100%; max-width: 100%; min-width: 0; }
+}

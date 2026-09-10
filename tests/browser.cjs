@@ -21,7 +21,10 @@ async function fill(page, selector, value) {
   await page.$eval(selector,e=>{e.focus();e.select();});
   await page.keyboard.type(String(value),{delay:10});
 }
-async function tab(page,name) {await page.$eval(`#sectionTabs [data-tab="${name}"]`,e=>e.click());}
+async function tab(page,name) {
+  if (page.viewport().width <= 640) await page.select('#phoneSection',name);
+  else await page.click(`#sectionTabs [data-tab="${name}"]`);
+}
 const visible = (page,selector) => page.$eval(selector,e=>e.getClientRects().length>0 && getComputedStyle(e).display!=='none');
 
 test('A first visit loads a usable blank plan', async p=>{
@@ -149,6 +152,7 @@ test('Phone users can add an expense and edit the last forecast year',async p=>{
   await p.evaluate(()=>{setPlannerMode('multi');while(document.querySelectorAll('#workersTable .year-col-hdr').length<10)stepYears(1);});
   await tab(p,'income');
   const selector='[data-action="worker-wage"][data-year="9"]';
+  await p.select('#phoneYear','9');
   await p.$eval(selector,e=>e.scrollIntoView({block:'center',inline:'center'}));
   await p.click(selector);await fill(p,selector,'125');await p.reload();
   assert.equal((await state(p)).workers[0].wage[9],125);
@@ -215,6 +219,45 @@ test('The overview workspace is visible without scrolling past settings and noti
     const top=await p.$eval('#panelOverview',e=>e.getBoundingClientRect().top);
     assert.ok(top<(width<=640?550:400),`${width}px viewport: workspace starts at ${top}px`);
   }
+});
+
+test('Phone tax and expense edits affect only the explicitly selected year',async p=>{
+  await p.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+  await p.evaluate(()=>setPlannerMode('multi'));await tab(p,'taxes');await p.select('#phoneYear','1');
+  assert.equal(await visible(p,'[data-action="tax-st"][data-year="0"]'),false);
+  assert.equal(await visible(p,'[data-action="tax-st"][data-year="1"]'),true);
+  await p.select('[data-action="tax-st"][data-year="1"]','NY');
+  await fill(p,'[data-action="tax-deps"][data-year="1"]','2');
+  await tab(p,'expenses');const before=await state(p);
+  await fill(p,'[data-action="col-monthly"][data-year="1"]','2345');
+  await p.reload();const after=await state(p);
+  assert.equal(after.st[1],'NY');assert.equal(after.deps[1],2);
+  assert.equal(after.col[0].monthly[1],2345);assert.equal(after.col[0].monthly[0],before.col[0].monthly[0]);
+  assert.equal(await p.$eval('#phoneYear',e=>e.value),'1');
+  await tab(p,'taxes');
+  assert.ok(await p.$eval('#selTaxStatus',e=>e.getBoundingClientRect().top)<400,'First tax input is in the initial phone viewport');
+  assert.equal(await visible(p,'#taxInputsTable thead'),false);
+  await p.click('#phonePrevYear');assert.equal(await p.$eval('#phoneYear',e=>e.value),'0');
+  assert.equal(await p.$eval('#phonePrevYear',e=>e.disabled),true);
+  await p.setViewport({width:1440,height:900});await new Promise(r=>setTimeout(r,150));
+  assert.equal(await visible(p,'[data-action="tax-st"][data-year="0"]'),true);
+  assert.equal(await visible(p,'[data-action="tax-st"][data-year="1"]'),true);
+});
+test('Federal 2025 standard deductions and child credit match IRS examples',async p=>{
+  const base={...await state(p),years:1,other:[],k401Rate:[0],rothRate:[0],employerMatchRate:[0],deps:[0],additionalDeductions:[0],st:['NONE'],fica:false};
+  for(const [status,deduction] of [['Single',15750],['Married',31500],['HeadOfHousehold',23625],['MarriedSeparate',15750]]) {
+    const s={...base,taxStatus:status,workers:[{frequency:'Annually',wage:[deduction+1000]}]};
+    const c=await p.evaluate(s=>computePlanner(s),s);assert.equal(c.fed[0],100,status);
+  }
+  const c=await p.evaluate(s=>computePlanner(s),{...base,taxStatus:'Single',deps:[1],workers:[{frequency:'Annually',wage:[50000]}]});
+  assert.equal(c.fed[0],1671.5);
+});
+test('California 2025 schedule example and Roth adjusted-income eligibility',async p=>{
+  const base={...await state(p),years:1,other:[],k401Rate:[0],rothRate:[0],employerMatchRate:[0],deps:[0],additionalDeductions:[0],st:['CA'],fica:false};
+  const ca=await p.evaluate(s=>computePlanner(s),{...base,taxStatus:'Married',workers:[{frequency:'Annually',wage:[136412]}]});
+  assert.ok(Math.abs(ca.stTax[0]-4462.1)<.02,'FTB $125,000 taxable joint example, less $306 personal credits');
+  const roth=await p.evaluate(s=>computePlanner(s),{...base,taxStatus:'Single',k401Rate:[10],rothRate:[10],workers:[{frequency:'Annually',wage:[160000]}]});
+  assert.equal(roth.rothArr[0],7000,'Traditional 401(k) reduces modeled modified AGI');
 });
 
 (async()=>{

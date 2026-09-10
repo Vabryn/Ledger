@@ -335,18 +335,19 @@
       const employerMatchPct = num(state.employerMatchRate?.[i]);
 
       // Statutory IRS Limits (2025: $23,500 employee 401(k), $7,000 Roth IRA)
-      const maxRothAnnual = getRothContributionLimit(
-        statusKey,
-        earnedAnnual,
-        annualGross,
-        state.rothContributors
-      );
       const max401kEmployeeAnnual = CAP401K_EMPLOYEE;
       const max401kTotalAnnual = CAP401K_TOTAL_ADDITIONS;
 
       // 401(k) Employee Contribution: strictly clamped to IRS statutory limit
       const k401Desired = earnedAnnual * (k401Pct / 100);
       const k401EmployeeAnnual = Math.min(k401Desired, max401kEmployeeAnnual);
+      const maxRothAnnual = getRothContributionLimit(
+        statusKey,
+        earnedAnnual,
+        annualGross - k401EmployeeAnnual,
+        state.rothContributors
+      );
+
 
       // Roth IRA Contribution: strictly clamped to IRS statutory limit
       const rothDesired = earnedAnnual * (rothPct / 100);
@@ -366,7 +367,8 @@
       const fedConfig = FED_2025[statusKey] || FED_2025.Married;
       const fedTaxable = Math.max(0, annualGross - preTaxRetirement - fedConfig.stdDed - addlDeduction);
       const ctcRaw = CTC_PER_DEP * deps;
-      const ctcPhaseout = annualGross > ctcPhaseoutStart ? Math.ceil((annualGross - ctcPhaseoutStart) / 1000) * 50 : 0;
+      const modifiedAgi = annualGross - preTaxRetirement;
+      const ctcPhaseout = modifiedAgi > ctcPhaseoutStart ? Math.ceil((modifiedAgi - ctcPhaseoutStart) / 1000) * 50 : 0;
       const ctcApplied = Math.max(0, ctcRaw - ctcPhaseout);
       let ftAnnual = Math.max(0, marginalTax(fedTaxable, fedConfig.brackets) - ctcApplied);
       fed.push(ftAnnual * periodScale);
@@ -379,7 +381,9 @@
         const cfg = CA_2025[statusKey] || CA_2025.Married;
         const taxable = Math.max(0, annualGross - preTaxRetirement - cfg.stdDed - addlDeduction);
         stxAnnual = marginalTax(taxable, cfg.brackets);
-        stxAnnual -= cfg.ex + CA_DEP_EXEMPTION_CREDIT * deps;
+        const creditReduction = Math.max(0, Math.ceil((modifiedAgi - cfg.phaseout) / (statusKey === 'MarriedSeparate' ? 1250 : 2500))) * 6;
+        const personalCount = statusKey === 'Married' ? 2 : 1;
+        stxAnnual -= Math.max(0, cfg.ex - creditReduction * personalCount) + Math.max(0, (CA_DEP_EXEMPTION_CREDIT - creditReduction) * deps);
         stxAnnual = Math.max(0, stxAnnual);
         if (taxable > CA_MENTAL_HEALTH_TAX_THRESHOLD) {
           stxAnnual += (taxable - CA_MENTAL_HEALTH_TAX_THRESHOLD) * CA_MENTAL_HEALTH_TAX_RATE;
@@ -536,6 +540,7 @@
 
   // ── RENDER ROOT ──────────────────────────────────────────────────────────
   function renderAll() {
+    state.editingYear = Math.max(0, Math.min(state.years - 1, Math.floor(num(state.editingYear))));
     renderStorageNotice();
     renderMastheadControls();
     renderSetupExperience();
@@ -552,6 +557,7 @@
     renderActivePanel();
     renderChart();
     labelTableControls();
+    renderPhoneEditor();
   }
 
   function renderSetupExperience() {
@@ -966,6 +972,7 @@
 
   // ── REDESIGNED USER-FRIENDLY EXPENSES SECTION ────────────────────────────
   function renderExpenseSummary() {
+    const year = expenseYear();
     const categories = Object.keys(CATEGORY_META);
 
     // Calculate current monthly & annual expenses totals (based on Year 1)
@@ -974,7 +981,7 @@
     categories.forEach((c) => (catTotalsMonthly[c] = 0));
 
     (state.col || []).forEach((item) => {
-      const m = num(item.monthly?.[0] ?? 0);
+      const m = num(item.monthly?.[year] ?? 0);
       totalMonthlyCurrent += m;
       if (catTotalsMonthly[item.cat] !== undefined) {
         catTotalsMonthly[item.cat] += m;
@@ -1015,6 +1022,7 @@
   }
 
   function renderExpensesSection() {
+    const year = expenseYear();
     const { categories, totalMonthlyCurrent, catTotalsMonthly } = renderExpenseSummary();
 
     // Toggle Between Category Cards vs Full Table View
@@ -1059,14 +1067,14 @@
             ${items
               .map((item) => {
                 const itemIdx = state.col.indexOf(item);
-                const mCost = item.monthly?.[0] ?? 0;
+                const mCost = item.monthly?.[year] ?? 0;
                 const annualCost = mCost * 12;
                 return `
                 <div class="expense-item-row">
                   <input type="text" class="expense-item-name-input" value="${escapeHtml(item.name)}" data-action="col-name" data-idx="${itemIdx}" placeholder="Expense name">
                   <div class="expense-item-cost-wrap">
                     <span class="currency-prefix">$</span>
-                  <input type="number" step="any" min="0" class="expense-item-cost-input" value="${mCost}" data-action="col-monthly" data-idx="${itemIdx}" data-year="0" placeholder="0" aria-label="${escapeHtml(item.name)} monthly cost for ${(state.startYear || 2025)}">
+                  <input type="number" step="any" min="0" class="expense-item-cost-input" value="${mCost}" data-action="col-monthly" data-idx="${itemIdx}" data-year="${year}" placeholder="0" aria-label="${escapeHtml(item.name)} monthly cost for ${(state.startYear || 2025) + year}">
                   </div>
                   <span class="expense-item-annual-hint">${fmtCompact$(annualCost)}/yr</span>
                   <button type="button" class="expense-item-delete-btn" data-action="delete-col" data-idx="${itemIdx}" title="Remove item">✕</button>
@@ -1199,6 +1207,7 @@
         if (!cell.querySelector('input, select, button') && nextCells[index]) cell.innerHTML = nextCells[index].innerHTML;
       });
     } else table.innerHTML = html;
+    renderPhoneEditor();
   }
 
   // ── TAX TABLES ───────────────────────────────────────────────────────────
@@ -1466,20 +1475,20 @@
       fundKeys.forEach((fId) => {
         const fund = state.customSavings[fId];
         html += `<tr><td class="sticky-col">
-          <input type="text" class="table-input text-left" value="${escapeHtml(fund.name)}" data-action="fund-name" data-id="${fId}">
+          <input type="text" class="table-input text-left" value="${escapeHtml(fund.name)}" data-action="fund-name" data-id="${escapeHtml(fId)}">
           <span style="font-size:10px; color:var(--text-muted);">Monthly allocation</span>
         </td>`;
 
         for (let y = 0; y < state.years; y++) {
           const m = fund.monthly?.[y] ?? 0;
           html += `<td>
-            <label class="income-value-label"><span class="currency-prefix">$</span><input type="number" step="any" class="table-input" value="${m}" data-action="fund-monthly" data-id="${fId}" data-year="${y}"><span class="income-unit">/ month</span></label>
+            <label class="income-value-label"><span class="currency-prefix">$</span><input type="number" step="any" class="table-input" value="${m}" data-action="fund-monthly" data-id="${escapeHtml(fId)}" data-year="${y}"><span class="income-unit">/ month</span></label>
           </td>`;
         }
 
         if (state.isEditMode) {
           html += `<td style="text-align:center;">
-            <button type="button" class="row-action-btn" data-action="delete-fund" data-id="${fId}">✕</button>
+            <button type="button" class="row-action-btn" data-action="delete-fund" data-id="${escapeHtml(fId)}">✕</button>
           </td>`;
         }
         html += `</tr>`;
@@ -2041,6 +2050,44 @@
   };
 
   const PANEL_IDS = {overview:'panelOverview',income:'panelIncome',expenses:'panelExpenses',taxes:'panelTaxes',retire:'panelRetire',visualizer:'panelVisualizer'};
+  function expenseYear() {
+    return window.matchMedia('(max-width: 640px)').matches
+      ? Math.max(0, Math.min(state.years - 1, Math.floor(num(state.editingYear)))) : 0;
+  }
+
+  function renderPhoneEditor() {
+    const phone = window.matchMedia('(max-width: 640px)').matches;
+    const editing = ['income','expenses','taxes','retire'].includes(state.activeTab);
+    const year = expenseYear();
+    document.body.dataset.phoneEditor = String(phone && editing);
+    document.getElementById('phoneSection').value = state.activeTab;
+    const projection = document.querySelector('#phoneSection option[value="visualizer"]');
+    projection.disabled = state.plannerMode !== 'multi';
+    projection.hidden = projection.disabled;
+    const select = document.getElementById('phoneYear');
+    const options = Array.from({length:state.years}, (_,i) => `<option value="${i}">${state.startYear + i}</option>`).join('');
+    if (select.innerHTML !== options) select.innerHTML = options;
+    select.value = String(year);
+    document.getElementById('phonePrevYear').disabled = year === 0;
+    document.getElementById('phoneNextYear').disabled = year === state.years - 1;
+    document.querySelectorAll('#panelIncome table, #panelExpenses table, #panelTaxes table, #panelRetire table').forEach(table => {
+      table.querySelectorAll('tr').forEach(row => {
+        [...row.children].forEach((cell,i) => {
+          cell.classList.toggle('phone-other-year', i > 0 && i <= state.years && i - 1 !== year);
+        });
+      });
+      if (phone && editing && table.parentElement.scrollLeft) table.parentElement.scrollLeft = 0;
+    });
+  }
+
+  function changeEditingYear(year) {
+    state.editingYear = Math.max(0, Math.min(state.years - 1, Math.floor(num(year))));
+    persistState();
+    renderExpensesSection();
+    renderPhoneEditor();
+    labelTableControls();
+  }
+
   function renderActivePanel() {
     if (!PANEL_IDS[state.activeTab] || (state.activeTab === 'visualizer' && state.plannerMode !== 'multi')) state.activeTab = 'overview';
     document.body.dataset.tab = state.activeTab;
@@ -2072,6 +2119,7 @@
     const guideNext = document.getElementById('setupNext');
     guideNext.hidden = state.setupGuideVisible === false || !next;
     if (next) { guideNext.dataset.tab = next[0]; guideNext.textContent = next[1]; }
+    renderPhoneEditor();
   }
   window.switchTab = function (tabKey) {
     state.activeTab = tabKey;
@@ -2349,6 +2397,7 @@
   }
 
   function refreshResults() {
+    const year = expenseYear();
     calc = computePlanner(state);
     renderHudMetrics();
     renderHighlights();
@@ -2367,16 +2416,17 @@
         : fmt$(calc[key][y]);
     });
     document.querySelectorAll('.category-card').forEach(card => {
-      const total = state.col.filter(c => c.cat === card.dataset.cat).reduce((sum,c) => sum + num(c.monthly[0]), 0);
+      const total = state.col.filter(c => c.cat === card.dataset.cat).reduce((sum,c) => sum + num(c.monthly[year]), 0);
       card.querySelector('.category-total-val').textContent = `${fmt$(total)}/mo`;
       const items = state.col.filter(c => c.cat === card.dataset.cat);
-      const share = calc.colOnly[0] > 0 ? total * 12 / calc.colOnly[0] * 100 : 0;
+      const share = calc.colOnly[year] > 0 ? total * 12 / calc.colOnly[year] * 100 : 0;
       card.querySelector('.category-meta-badge').textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'} · ${share.toFixed(0)}% of expenses`;
       card.querySelectorAll('.expense-item-row').forEach(row => {
         const field = row.querySelector('[data-action="col-monthly"]');
-        row.querySelector('.expense-item-annual-hint').textContent = `${fmtCompact$(num(state.col[field.dataset.idx].monthly[0])*12)}/yr`;
+        row.querySelector('.expense-item-annual-hint').textContent = `${fmtCompact$(num(state.col[field.dataset.idx].monthly[year])*12)}/yr`;
       });
     });
+    renderPhoneEditor();
   }
 
   function handleTableChange(e) {
@@ -2666,6 +2716,10 @@
     }
 
     const period = document.getElementById('planningPeriod');
+    document.getElementById('phoneSection').onchange = e => window.switchTab(e.target.value);
+    document.getElementById('phoneYear').onchange = e => changeEditingYear(e.target.value);
+    document.getElementById('phonePrevYear').onclick = () => changeEditingYear(expenseYear() - 1);
+    document.getElementById('phoneNextYear').onclick = () => changeEditingYear(expenseYear() + 1);
     const model = document.getElementById('modelDetails');
     document.getElementById('btnFinishPeriod').onclick = () => { period.open = false; period.querySelector('summary').focus(); };
     for (const detail of [period, model]) {
@@ -2696,6 +2750,9 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         updatePlanningPeriodUI();
+        renderExpensesSection();
+        renderPhoneEditor();
+        labelTableControls();
         renderChart();
       }, 100);
     });
