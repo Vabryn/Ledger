@@ -2578,42 +2578,33 @@ body:is([data-tab="overview"],[data-tab="taxes"],[data-tab="visualizer"]) .tabs-
 
 /* ==========================================================================
    Single-Year Form Mode (This Year)
-   De-matrixes single-year planning tables into clean, left-packed form rows.
-   Label group left, control right at a fixed sane width (~220px), trailing whitespace.
-   No year header row (the page header already tells you the year).
-   ========================================================================== */
-
-/* 1. Hide the year header row in single-year mode — no cross-year comparison exists */
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) thead {
+/* ── SINGLE-YEAR PLANNING MODE: FORM LAYOUT (NOT DATA GRID) ──────────────── */
+/* 1. Hide redundant single-year matrix table headers (page header already shows year) */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) thead {
   display: none !important;
 }
 
-/* 2. De-matrix table to a clean form container */
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  border-collapse: separate;
-}
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tbody {
-  display: block;
+/* 2. De-tableify table elements to flex containers */
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) {
+  display: flex;
+  flex-direction: column;
   width: 100%;
 }
 
 /* 3. Each row is a form row with subtle separator */
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tr {
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr {
   display: flex;
   align-items: center;
   border-bottom: 1px solid var(--border-subtle);
-  padding: 12px 14px;
+  padding: 11px 14px;
   gap: 20px;
 }
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) tr:last-child {
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr:last-child {
   border-bottom: none;
 }
 
 /* 4. Cell resets */
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) :is(td, th) {
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) :is(td, th) {
   display: flex;
   align-items: center;
   border: none;
@@ -2624,7 +2615,7 @@ body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable
 }
 
 /* 5. Left label group */
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) td.sticky-col {
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td.sticky-col {
   flex: 0 0 340px;
   max-width: 380px;
   min-width: 240px;
@@ -2632,7 +2623,7 @@ body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable
   align-items: center;
   gap: 8px;
 }
-body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable) td.sticky-col > div {
+body[data-mode="single"] :is(#workersTable,#otherIncomeTable,#customSavingsTable,#taxInputsTable,#retireInputsTable,#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td.sticky-col > div {
   margin-top: 0 !important;
 }
 
@@ -2713,6 +2704,30 @@ body[data-mode="single"] #retireInputsTable td:not(.sticky-col) [data-retire-res
   margin-top: 0 !important;
 }
 
+/* Read-only summary tables (#summaryMatrixTable, #taxResultsTable, #retireBreakdownTable) */
+body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td:not(.sticky-col) {
+  flex: 0 0 160px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr.row-summary-total {
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-medium);
+  border-bottom: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  margin: 3px 0;
+  padding: 10px 14px;
+}
+
+body[data-mode="single"] td:empty {
+  display: none !important;
+}
+
 /* Empty state message centered across card */
 body[data-mode="single"] .ledger-matrix tr td[colspan] {
   width: 100%;
@@ -2752,6 +2767,26 @@ body[data-mode="multi"] .ledger-matrix .sticky-col { position: static; }
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 8px;
+  }
+
+  /* Summary rows stay 1-line key-value pairs on mobile */
+  body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) tr {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px;
+  }
+  body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td.sticky-col {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+  }
+  body[data-mode="single"] :is(#summaryMatrixTable,#taxResultsTable,#retireBreakdownTable) td:not(.sticky-col) {
+    flex: 0 0 auto;
+    width: auto;
+    text-align: right;
   }
   body[data-mode="single"] .income-value-label {
     width: 100%;

@@ -829,11 +829,11 @@
 
       for (let y = 0; y < state.years; y++) {
         const val = cfg.data[y] ?? 0;
-        const formatted = cfg.customFmt ? cfg.customFmt(val) : `${cfg.prefix || ''}${fmtCompact$(val)}`;
+        const formatted = cfg.customFmt ? cfg.customFmt(val) : `${cfg.prefix || ''}${isSingle ? fmt$(val) : fmtCompact$(val)}`;
         const posNegClass = val < 0 ? 'cell-val negative' : cfg.cssClass;
         html += `<td class="${posNegClass}">${formatted}</td>`;
       }
-      if (state.isEditMode) html += `<td></td>`;
+      if (state.isEditMode && !isSingle) html += `<td></td>`;
       html += `</tr>`;
     });
 
@@ -1238,12 +1238,13 @@
       { label: 'Total Annual Tax', data: calc.totalTax, cls: 'cell-val bold negative' },
     ];
 
+    const isSingle = state.plannerMode !== 'multi';
     taxRows.forEach((r) => {
       htmlRes += `<tr><td class="sticky-col"><strong>${r.label}</strong></td>`;
       for (let y = 0; y < state.years; y++) {
-        htmlRes += `<td class="${r.cls}">-${fmtCompact$(r.data[y] ?? 0)}</td>`;
+        htmlRes += `<td class="${r.cls}">-${isSingle ? fmt$(r.data[y] ?? 0) : fmtCompact$(r.data[y] ?? 0)}</td>`;
       }
-      if (state.isEditMode) htmlRes += `<td></td>`;
+      if (state.isEditMode && !isSingle) htmlRes += `<td></td>`;
       htmlRes += `</tr>`;
     });
 
@@ -1254,7 +1255,7 @@
       const rate = g > 0 ? (t / g) * 100 : 0;
       htmlRes += `<td class="cell-val bold">${fmtPct(rate)}</td>`;
     }
-    if (state.isEditMode) htmlRes += `<td></td>`;
+    if (state.isEditMode && !isSingle) htmlRes += `<td></td>`;
     htmlRes += `</tr>`;
 
     htmlRes += `</tbody>`;
@@ -1383,9 +1384,9 @@
       const isTotal = isSingle ? idx === 3 : (idx === 3 || idx === 4);
       htmlBk += `<tr class="${isTotal ? 'row-summary-total' : ''}"><td class="sticky-col"><strong>${r.label}</strong></td>`;
       for (let y = 0; y < state.years; y++) {
-        htmlBk += `<td class="${r.cls}">${fmtCompact$(r.data[y] ?? 0)}</td>`;
+        htmlBk += `<td class="${r.cls}">${isSingle ? fmt$(r.data[y] ?? 0) : fmtCompact$(r.data[y] ?? 0)}</td>`;
       }
-      if (state.isEditMode) htmlBk += `<td></td>`;
+      if (state.isEditMode && !isSingle) htmlBk += `<td></td>`;
       htmlBk += `</tr>`;
     });
 
